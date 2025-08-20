@@ -1,0 +1,1 @@
+i am unsure yet if each directory should have its own schema.js file or everything should be in its own directory 
