@@ -30,7 +30,7 @@ DO NOT PUSH TO MAIN (dont panic if you do , git main can be reverted wit previou
 - Implement Two-Factor Authentication (2FA) and JWT (1)
 - Implement WAF/ModSecurity with Hardened Configuration and HashiCorp Vault for Secrets Management (1)
 -  Server-Side Pong (1)
--  Infrastructure Setup with ELK (Elasticsearch, Logstash, Kibana) for Log Management. (1)
+-   Minor module: Monitoring system. (0.5)
 
 
 #### maybe
