@@ -26,17 +26,17 @@ DO NOT PUSH TO MAIN (dont panic if you do , git main can be reverted wit previou
 - user management (1)
 - Game customization options. (0.5)
 - Multiple language support (0.5)
-- Minor module: Expanding Browser Compatibility (0.5)
+- Expanding Browser Compatibility (0.5)
 - Implement Two-Factor Authentication (2FA) and JWT (1)
 - Implement WAF/ModSecurity with Hardened Configuration and HashiCorp Vault for Secrets Management (1)
--  Server-Side Pong (1)
--   Minor module: Monitoring system. (0.5)
+- Server-Side Pong (1)
+- Monitoring system. (0.5)
 
 
 #### maybe
-game graphics with babylon (1) 
-Major module: Introduce an AI opponent. (1) easy to add later
-
+- game graphics with babylon (1) 
+- Major module: Introduce an AI opponent. (1) easy to add later
+- Multiplayer (more than 2 players in the same game) (1) (apparently easy , also easy to do later)
 
 
 
