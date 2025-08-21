@@ -4,12 +4,15 @@ require('module-alias/register'); // enables aliases
 // Create a Fastify instance
 // logger is enabled for debugging purposes
 
+const WebSocket = require('ws');
+
 const fastify = require('fastify')({ logger: true });
 // open a connection to the SQLite database
 
 // use stict mode for better error handling
 'use strict';
 const db = require('@db/initDB.js');
+// Attach WebSocket server to Fastify's internal server
 
 // api path determines the route for user specific operations
 // this does not yet validate the input!
@@ -30,46 +33,34 @@ fastify.get('/status', async (request, reply) => {
 
 
 
-//// testing how do adjust and parse scores with schemas i assume these all go to the top of file
-//const updateScoreSchema = require('@schemas/updateScore.js');
-//
-//
-//fastify.patch('/update-score/:id', {
-//	schema: updateScoreSchema,
-//	handler: async (request, reply) => {
-//	const userId = request.params.id;
-//	const { score } = request.body;
-//
-//	return new Promise((resolve, reject) => {
-//		db.run(
-//			`UPDATE users SET score = ? WHERE id = ?`,
-//			[score, userId],
-//			function (err) {
-//				if (err) {
-//					reject({ error: 'Failed to update the score', details: err});
-//				} else if (this.changes === 0) {
-//					reject({ error: 'User not found , no changes made' });
-//				} else {
-//					resolve({ message: 'Score updated', userId: userId, newScore: score});
-//				}
-//			}
-//		);
-//	});
-//}
-//});
-//
-// would we want to preload map of users and their ids, saftey concerns but also makes databse more free?
-
-// Start the server
 const start = async () => {
   try {
     await fastify.listen({ port: 3000 });
+
+    // WebSocket server setup AFTER Fastify is listening
+    const wss = new WebSocket.Server({ server: fastify.server });
+
+    wss.on('connection', (ws) => {
+      console.log('WebSocket client connected');
+
+      ws.on('message', (message) => {
+        console.log('Received:', message);
+        ws.send(`Echo: ${message}`);
+      });
+	  
+
+      ws.send('Welcome to the WebSocket server!');
+    });
+
+    console.log('WebSocket server is running');
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
   }
 };
+
 start();
+
 
 
 // just an example of returning a different type of data

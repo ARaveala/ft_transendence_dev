@@ -82,7 +82,7 @@ fastify.post('/add-user', async (request, reply) => {
 });
 
 // testing how do adjust and parse scores with schemas i assume these all go to the top of file
-const updateScoreSchema = require('./schemas/updateScore.js');
+const updateScoreSchema = require('../schemas/updateScore.js');
 
 
 fastify.post('/update-score/:id', {
