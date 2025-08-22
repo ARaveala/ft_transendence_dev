@@ -53,3 +53,5 @@ package.json has aliases :
   "@utils": "utils"
   }
 These are used for anything you'd normally require() or import using a relative path.
+
+[Link to how to use](HOWTOSTART.md)
