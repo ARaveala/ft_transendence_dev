@@ -8,7 +8,6 @@ interface ModalProps {
   onSubmit: (data: {
     username: string;
     password: string;
-    twoFactor: boolean 
   }) => void;            // Callback to send the registration data to parent
 }
 
@@ -16,7 +15,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => {
   // Local state to track form inputs
   const [username, setUsername] = useState("");            // Username input
   const [password, setPassword] = useState("");            // Password input
-  const [enable2FA, setEnable2FA] = useState(false);       // 2FA checkbox
   const [error, setError] = useState("");                  // Validation error message
 
   // If modal is not open, don't render anything
@@ -37,8 +35,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => {
     // Calls parent's onSubmit callback with form data
     onSubmit({
       username,
-      password,
-      twoFactor: enable2FA,
+      password
     });
   };
 
@@ -68,17 +65,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => {
             className="p-2 border rounded"
             required
           />
-
-           {/* 2FA checkbox */}
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={enable2FA}
-              onChange={(e) => setEnable2FA(e.target.checked)}
-            />
-            Enable 2FA via Email
-          </label>
-
           {/* Submit and Close buttons */}
           <div className="flex justify-between items-center mt-4">
             <Button type="submit">Register</Button>

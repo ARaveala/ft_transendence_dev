@@ -14,7 +14,7 @@ import Game from "./pages/GamePage";
 import Tournament from "./pages/TournamentLobby";
 import Leaderboard from "./pages/Leaderboard";
 import Friends from "./pages/Friends";
-import Profile from "./pages/Profile";
+import Profile from "./pages/ProfilePage";
 import Navbar from "./components/layout/Navbar";
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {

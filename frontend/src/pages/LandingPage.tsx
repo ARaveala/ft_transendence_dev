@@ -12,16 +12,14 @@ const HomePage: React.FC = () => {
   const handleRegister = async (data: {
     username: string;
     password: string;
-    twoFactor: boolean;
   }) => {
     try {
       // Sends POST request to backend registration endpoint
       const res = await fetch("http://localhost:3000/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data),
+        credentials: "include", // include cookies in request
       });
 
       // Throws error if backend response is not OK
