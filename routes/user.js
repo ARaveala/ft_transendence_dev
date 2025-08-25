@@ -10,8 +10,25 @@ const updateScoreSchema = require('@schemas/updateScore.js');
 // this does not yet validate the input! 
 // does username exist, is password safe, etc.
 
+// idea: write 
+//class {
+//	registerUser
+//	getUser
+//	changeScore
+//}
+//
+//// Frontend
+//function registerUser(data)
+//{
+//	fetch()
+//	{
+//		POST:
+//		DATA
+//	}
+//}
+
 async function registerUser(fastify, options) {
-    fastify.post('/register-user', async (request, reply) => {
+    fastify.post('/register-user/username', async (request, reply) => {
         const { username, password, score, status } = request.body;
         console.log('Incoming user data:', request.body);
 

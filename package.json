@@ -15,6 +15,7 @@
   "_moduleAliases": {
     "@db": "database",
     "@routes": "routes",
-    "@schemas": "schemas"
+    "@schemas": "schemas",
+	"@Wbs": "WebSocket"
   }
 }
