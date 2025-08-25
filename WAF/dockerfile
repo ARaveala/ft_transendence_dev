@@ -1,0 +1,14 @@
+FROM alpine:3.22.0
+
+RUN apk add --no-cache git nginx curl iputils-ping \
+    ca-certificates bash
+
+RUN mkdir -p /etc/nginx/ssl
+
+COPY ./nginx /usr/src/nginx
+COPY ./nginx/conf/default.conf /etc/nginx/nginx.conf
+COPY ./nginx/tools/entry.sh /entry.sh
+
+RUN chmod +x /entry.sh
+
+ENTRYPOINT [ "/entry.sh" ]
