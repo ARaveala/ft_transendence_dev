@@ -1,0 +1,24 @@
+– JWT tokens am i going to use them
+– in relation to backend frontend what do i need
+
+– prometheus, grafana, kabana,
+– hashivault, firewall
+
+
+
+1. set up a dummy container
+    simple webserver (somewhere where we can read the requests)
+2. set up nginx reverse proxy
+    to forward everything to the dummy
+3. set up the WAF
+    clone the modsecurity repo, script built
+    only clone the repo when it's not in the volume already
+    same thing for the connector
+    volume for the container where the waf is so only the volume will be cloned if there is a change and not everytime
+    same container as the nginx reverse proxy 
+    do filtering there
+4. hashivault
+
+later
+replace the nginx image with a base image (alpine prolly)
+
