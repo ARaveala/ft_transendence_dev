@@ -1,22 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Modal from "../components/ui/Modal";
+import { API_PROTOCOL } from "../../shared/api-protocols";
+import type { RegisterUserPayload } from "../../shared/payloads";
 
 const HomePage: React.FC = () => {
   // State to track if the registration modal is open
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const navigate = useNavigate();
 
   //Handles submission of registration form from the Modal
-  const handleRegister = async (data: {
-    username: string;
-    password: string;
-  }) => {
+  const handleRegister = async (data: RegisterUserPayload) => {
     try {
       // Sends POST request to backend registration endpoint
-      const res = await fetch("http://localhost:3000/register", {
-        method: "POST",
+      const res = await fetch(API_PROTOCOL.REGISTER_USER.path, {
+        method: API_PROTOCOL.REGISTER_USER.method,
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(data),
         credentials: "include", // include cookies in request
@@ -28,6 +26,7 @@ const HomePage: React.FC = () => {
       // Success: notifies user and closes the modal
       alert("Registration successful!");
       setIsModalOpen(false);
+
       navigate("/profile"); // Redirect user to profile page after registration
     } catch (err) {
       // Handles errors such as validation failures

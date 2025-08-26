@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from "react";
-
-interface Player {
-  id: string;
-  username: string;
-  avatar: string;
-  score: number;
-  rank: number;
-}
+import { API_PROTOCOL } from "../../shared/api-protocols";
+import type { Player, PlayerPayload } from "../../shared/payloads";
 
 const Leaderboard: React.FC = () => {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -16,8 +10,8 @@ const Leaderboard: React.FC = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await fetch("http://localhost:3000/leaderboard");
-        const data: Player[] = await res.json();
+        const res = await fetch(API_PROTOCOL.GET_LEADERBOARD.path);
+        const data: PlayerPayload = await res.json();
         setPlayers(data);
         setLoading(false);
       } catch (err) {
@@ -31,8 +25,8 @@ const Leaderboard: React.FC = () => {
 
   const handleAddFriend = async (playerId: string) => {
     try {
-      const res = await fetch(`http://localhost:3000/friends/add`, {
-        method: "POST",
+      const res = await fetch(API_PROTOCOL.ADD_FRIEND.path, {
+        method: API_PROTOCOL.ADD_FRIEND.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ friendId: playerId }),
       });

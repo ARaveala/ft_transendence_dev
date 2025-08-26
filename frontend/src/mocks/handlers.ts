@@ -1,6 +1,9 @@
 import { http, HttpResponse } from "msw";
+import { API_PROTOCOL } from "../../shared/api-protocols";
+import type { UserProfile, PlayerPayload } from "../../shared/payloads";
 
-const mockProfile = {
+const mockProfile: UserProfile = {
+  id: "123",
   username: "PlayerOne",
   avatarFile: "avatars/avatar1.png",
   twoFactor: false,
@@ -19,9 +22,15 @@ const mockProfile = {
   ],
 };
 
+const mockPlayers: PlayerPayload = [
+  { id: "123", username: "PlayerOne", avatar: "/avatars/avatar1.png", score: 1200, rank: 1 },
+  { id: "124", username: "PlayerTwo", avatar: "/avatars/avatar2.png", score: 1100, rank: 2 },
+  { id: "125", username: "PlayerThree", avatar: "/avatars/avatar3.png", score: 950, rank: 3 },
+];
+
 export const handlers = [
   // Mock for registration response
-  http.post("http://localhost:3000/register", async ({ request }) => {
+  http.post(API_PROTOCOL.REGISTER_USER.path, async ({ request }) => {
     const data = await request.json();
 
     return HttpResponse.json(
@@ -31,12 +40,12 @@ export const handlers = [
   }),
 
 // Mock for profile fetch
-  http.get("http://localhost:3000/profile", () => {
+  http.get(API_PROTOCOL.GET_PROFILE.path, () => {
     return HttpResponse.json(mockProfile, { status: 200 });
   }),
 
   // Mock profile update request
-  http.post("http://localhost:3000/profile/update", async ({ request }) => {
+  http.post(API_PROTOCOL.UPDATE_PROFILE.path, async ({ request }) => {
     const updated = await request.json();
     // merge updated fields into mockProfile
     Object.assign(mockProfile, updated);
@@ -44,14 +53,8 @@ export const handlers = [
   }),
 
   //Mock for leaderboard request
-  http.get("http://localhost:3000/leaderboard", () => {
-    const mockPlayers = [
-      { rank: 1, username: "PlayerOne", avatar: "/avatars/avatar1.png", score: 1200 },
-      { rank: 2, username: "PlayerTwo", avatar: "/avatars/avatar2.png", score: 1100 },
-      { rank: 3, username: "PlayerThree", avatar: "/avatars/avatar3.png", score: 950 },
-    ];
-
-  return HttpResponse.json(mockPlayers, { status: 200 });
+  http.get(API_PROTOCOL.GET_LEADERBOARD.path, () => {
+    return HttpResponse.json(mockPlayers, { status: 200 });
 }),
 
 ];

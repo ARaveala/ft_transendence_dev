@@ -1,31 +1,6 @@
 import React, { useEffect, useState } from "react";
-
-interface Friend {
-  id: string;
-  username: string;
-  avatar?: string;
-}
-
-interface Match {
-  id: string;
-  opponent: string;
-  result: "win" | "loss";
-  score: number;
-  timestamp: string;
-}
-
-interface UserProfile {
-  username: string;
-  avatarFile?: string;
-  twoFactor: boolean;
-  rank: number;
-  score: number;
-  victories: number;
-  losses: number;
-  totalMatches: number;
-  friends: Friend[];
-  matchHistory: Match[];
-}
+import { API_PROTOCOL } from "../../shared/api-protocols";
+import type { UserProfile, UpdateProfilePayload } from "../../shared/payloads";
 
 const availableAvatars = [
   "/avatars/avatar1.png",
@@ -45,7 +20,7 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch("http://localhost:3000/profile", {
+        const res = await fetch(API_PROTOCOL.GET_PROFILE.path, {
           //credentials: "include", // send HttpOnly cookie
         });
         const data: UserProfile = await res.json();
@@ -69,14 +44,14 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
   const handleUpdate = async () => {
     if (!profile) return;
 
-    const payload = {
-    twoFactor,
-    avatar: selectedAvatar, // string like "/avatars/avatar1.png"
+    const payload: UpdateProfilePayload = {
+      twoFactor,
+      avatar: selectedAvatar,
     };
 
     try {
-      const res = await fetch("http://localhost:3000/profile/update", {
-        method: "POST",
+      const res = await fetch(API_PROTOCOL.UPDATE_PROFILE.path, {
+        method: API_PROTOCOL.UPDATE_PROFILE.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         //credentials: "include", // for HttpOnly cookie
@@ -84,8 +59,9 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
 
       if (!res.ok) throw new Error("Update failed");
 
-      const updatedProfile = await res.json();
+      const updatedProfile: UserProfile = await res.json();
       setProfile(updatedProfile);
+      setSelectedAvatar(updatedProfile.avatarFile || "/avatars/avatar1.png");
       alert("Profile updated successfully!");
     } catch (err) {
       console.error(err);
