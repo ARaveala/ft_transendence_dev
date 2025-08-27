@@ -70,12 +70,12 @@ const Leaderboard: React.FC = () => {
               <td className="border px-2 py-1">{player.username}</td>
               <td className="border px-2 py-1">{player.score}</td>
               <td className="border px-2 py-1">
-                {friends.includes(player.id) ? (
+                {friends.includes(player.user_id) ? (
                   <span className="text-gray-500">Friend</span>
                 ) : (
                   <button
                     className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    onClick={() => handleAddFriend(player.id)}
+                    onClick={() => handleAddFriend(player.user_id)}
                   >
                     Add Friend
                   </button>

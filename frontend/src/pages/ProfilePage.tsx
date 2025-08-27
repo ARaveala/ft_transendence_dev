@@ -132,7 +132,7 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
         <h3 className="font-semibold">Friends</h3>
         <ul>
           {profile.friends.map((friend) => (
-            <li key={friend.id} className="flex items-center gap-2">
+            <li key={friend.user_id} className="flex items-center gap-2">
               <img
                 src={friend.avatar || "/default-avatar.png"}
                 className="w-8 h-8 rounded-full"

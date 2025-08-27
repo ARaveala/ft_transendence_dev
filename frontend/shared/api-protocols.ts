@@ -37,5 +37,40 @@ export const API_PROTOCOL = {
   GET_PLAYER: {
     path: '/player',
     method: 'GET',
+  },
+
+  CREATE_GAME: {
+    path:'/game/local',
+    method: 'POST',
+  },
+
+  CREATE_TOURNAMENT: {
+    path:'/tournament',
+    method: 'POST',
+  },
+
+  JOIN_TOURNAMENT: {
+    path:'/tournament/:id/join',
+    method: 'POST',
+  },
+
+  START_TOURNAMENT: {
+    path:'/tournament/:id/start',
+    method: 'POST',
+  },
+
+  TOURNAMENT_STATE: {
+    path: '/tournament/:id/state',
+    method: 'POST',
   }
+
 } as const;
+
+
+/* handled through websockets??
+  GAME_STATE: {
+    path: 'game/local/:id/state,
+    method: 'GET',
+  }
+
+*/ 
