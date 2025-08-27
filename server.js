@@ -1,5 +1,7 @@
 
 require('module-alias/register'); // enables aliases
+// env file
+require('dotenv').config();
 // Import the Fastify framework
 // Create a Fastify instance
 // logger is enabled for debugging purposes
@@ -18,8 +20,16 @@ const db = require('@db/initDB.js');
 // this does not yet validate the input!
 const userRoutes = require('@routes/user.js');
 const setUpWebSockets = require('@Wbs/startUp.js');
+
+const errorCodes = require('@sharedEcode');
+const formatError = require("@errors");
+const { format } = require('path');
+
+const cookie = require('@fastify/cookie');
 // utalizes api routing from  routes/user.js
 fastify.register(userRoutes);
+fastify.register(cookie);
+// no i need to register all of above? not just user routes
 
 // These are for easy testing
 fastify.get('/', async (request, reply) => {
@@ -31,7 +41,27 @@ fastify.get('/status', async (request, reply) => {
 
 });
 
-
+fastify.register(require('@fastify/cors'), {
+  origin: 'http://localhost:5173', // your frontend dev server
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'], // include any custom headers you use
+  credentials: true // if you're sending cookies or auth headers
+});
+// Global error handler
+fastify.setErrorHandler((error, request, reply) => {
+  if (error.validation) {
+   	console.log('Validation error:', error.validation);
+    const {code, msg} = errorCodes.VALIDATION_FAILED;
+	const formatted = formatError.formatValidationError(error, msg);
+	//reply.code(400).send({ error: 'VALIDATION_FAILED', details: error.validation });
+	
+   reply.code(code).send({ error: 'VALIDATION_FAILED', formatted});
+	
+  } else {
+	console.log('Server error in srver.js:', error);
+    reply.code(500).send({ error: 'SERVER_ERROR', message: error.message });
+  }
+});
 
 const start = async () => {
 

@@ -28,7 +28,30 @@ function insertUser({ username, password, score, status }) {
     });
 }
 
+// this fucntion has to look inside database and confirm if username and password match
+// dev style right now just utalizes simple create a new user logic 
+function loginUser({ username, password}) {
+    console.log('Incoming user data:', { username, password});
+	const score = 0;
+	const status = 'active';
+    return new Promise((resolve, reject) => {
+        db.run(
+            `INSERT INTO users (username, password, score, status) VALUES (?, ?, ?, ?)`,
+            [username, password, score, status],
+            function (err) {
+                if (err) {
+                    reject({ error: 'Failed to add user', details: err });
+                } else {
+                    resolve({userId: this.lastID, user: username });
+                }
+            }
+        );
+    });
+}
 
-module.exports = { insertUser };
 
+module.exports = {
+	insertUser, 
+	loginUser
+};
 
