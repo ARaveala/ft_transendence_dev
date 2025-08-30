@@ -48,7 +48,7 @@
 ## Purpose of each file
 
 ### index.html
-- Entry point of the single page application (SPA). Browsers load this file first.
+- Entry point of the single page application (SPA). Browsers load this file first
 - It doesn’t contain any app logic itself, but sets up the environment where React will take over
 - It contains a single empty <div id="root"></div> which acts as the mount point for the React app
 - All rendering is done by React inside this root div (React controls the DOM from here)
@@ -80,23 +80,23 @@
     - List of devDependencies (tools needed only for development)
     - Scripts like npm run dev, npm run build, npm run test
 
-> {
+```{
   "name": "frontend",               // project name
   "version": "0.1.0",               // project version
   "private": true,                  // prevents accidental publishing to npm registry
->
+
   "scripts": {                      // CLI commands that can be run with 'npm run <script>'
     "dev": "vite",                  // Starts Vite dev server (fast reload)
     "build": "vite build",          // Builds optimized production-ready files
     "preview": "vite preview"       // Gives built files locally for testing
   },
->
+
   "dependencies": {                 // Libraries required for the app to run
     "react": "^18.2.0",             // Core React library (UI components)
     "react-dom": "^18.2.0",         // React DOM renderer (mount React into the browser DOM)
     "react-router-dom": "^7.8.2"    // Routing library (navigation between pages in SPA)
   },
->
+
   "devDependencies": {                      // Tools needed only during development
     "@types/react": "^19.1.11",             // TS type definitions for React
     "@types/react-dom": "^19.1.7",          // TS type definitions for ReactDOM
@@ -109,13 +109,13 @@
     "typescript": "^5.2.0",                 // TypeScript compiler
     "vite": "^5.0.0"                        // Vite build tool
   },
->
+
   "msw": {                                   // Extra config for Mock Service Worker
     "workerDirectory": [                     // Where the service worker script will be generated
       "public"
     ]
   }
-> }
+} ```
 
 ### package-lock.json
 - Ensures that builds can be reproduced by locking the exact versions of every installed dependency
@@ -138,7 +138,7 @@
 - Enables strict type checking, which helps catch bugs at compile time
 - Defines what is compiled
 
-> {
+```{
   "compilerOptions": {   
     "target": "ESNext",                              // Target version of JavaScript output
     "module": "ESNext",                              // Module system used for imports/exports
@@ -151,7 +151,7 @@
     "types": ["vite/client", "some-other-global-lib"] 
   },                                                  // Additional global type definitions
   "include": ["src"]                                  // Which files/folders TypeScript should include in compilation
->}
+```}
 
 ### vite.config.ts
 - main configuration file for Vite
