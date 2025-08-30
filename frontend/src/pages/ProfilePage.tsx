@@ -1,13 +1,14 @@
+import avatar1 from "../assets/avatars/avatar1.png";
+import avatar2 from "../assets/avatars/avatar2.png";
+import avatar3 from "../assets/avatars/avatar3.png";
+import avatar4 from "../assets/avatars/avatar4.png";
+import defaultAvatar from "../assets/avatars/default-avatar.png";
+
 import React, { useEffect, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile, UpdateProfilePayload } from "../../shared/payloads";
 
-const availableAvatars = [
-  "/avatars/avatar1.png",
-  "/avatars/avatar2.png",
-  "/avatars/avatar3.png",
-  "/avatars/avatar4.png",
-];
+const availableAvatars = [avatar1, avatar2, avatar3, avatar4];
 
 const Profile: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -15,7 +16,7 @@ const Profile: React.FC = () => {
   const [twoFactor, setTwoFactor] = useState(false);
 
 const [selectedAvatar, setSelectedAvatar] = useState<string>
-  (profile?.avatarFile || "/default-avatar.png");
+  (profile?.avatarFile || defaultAvatar);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -26,7 +27,7 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
         const data: UserProfile = await res.json();
 
         if (!data.avatarFile) {
-          data.avatarFile = "/avatars/default-avatar.png";
+          data.avatarFile = defaultAvatar;
         }
 
         setProfile(data);
@@ -61,7 +62,7 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
 
       const updatedProfile: UserProfile = await res.json();
       setProfile(updatedProfile);
-      setSelectedAvatar(updatedProfile.avatarFile || "/avatars/avatar1.png");
+      setSelectedAvatar(updatedProfile.avatarFile || avatar1);
       alert("Profile updated successfully!");
     } catch (err) {
       console.error(err);
@@ -78,7 +79,7 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
       {/* Avatar and username */}
       <div className="flex items-center gap-4 mb-4">
         <img
-          src={selectedAvatar || profile.avatarFile || "/avatars/default-avatar.png"}
+          src={selectedAvatar || profile.avatarFile || defaultAvatar}
           alt="Avatar"
           className="w-24 h-24 rounded-full"
         />

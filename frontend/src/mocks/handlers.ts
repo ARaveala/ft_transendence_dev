@@ -1,11 +1,17 @@
+
+import avatar1 from "../assets/avatars/avatar1.png";
+import avatar2 from "../assets/avatars/avatar2.png";
+import avatar3 from "../assets/avatars/avatar3.png";
+
 import { http, HttpResponse } from "msw";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile, PlayerPayload } from "../../shared/payloads";
 
+
 const mockProfile: UserProfile = {
   user_id: "123",
   username: "PlayerOne",
-  avatarFile: "avatars/avatar1.png",
+  avatarFile: avatar1,
   twoFactor: false,
   rank: 5,
   score: 1200,
@@ -13,8 +19,8 @@ const mockProfile: UserProfile = {
   losses: 7,
   totalMatches: 22,
   friends: [
-    { user_id: "1", username: "Player2", avatar: "/avatars/avatar2.png", online_status: true },
-    { user_id: "2", username: "Player3", avatar: "/avatars/avatar3.png", online_status: false },
+    { user_id: "1", username: "Player2", avatar: avatar2, online_status: true },
+    { user_id: "2", username: "Player3", avatar: avatar3, online_status: false },
   ],
    matchHistory: [
     { user_id: "m1", opponent: "Player2", result: "win", score: 21, timestamp: "2025-08-25T12:00:00" },
@@ -23,9 +29,9 @@ const mockProfile: UserProfile = {
 };
 
 const mockPlayers: PlayerPayload = [
-  { user_id: "123", username: "PlayerOne", avatar: "/avatars/avatar1.png", score: 1200, rank: 1 },
-  { user_id: "124", username: "PlayerTwo", avatar: "/avatars/avatar2.png", score: 1100, rank: 2 },
-  { user_id: "125", username: "PlayerThree", avatar: "/avatars/avatar3.png", score: 950, rank: 3 },
+  { user_id: "123", username: "PlayerOne", avatar: avatar1, score: 1200, rank: 1 },
+  { user_id: "124", username: "PlayerTwo", avatar: avatar2, score: 1100, rank: 2 },
+  { user_id: "125", username: "PlayerThree", avatar: avatar3, score: 950, rank: 3 },
 ];
 
 export const handlers = [

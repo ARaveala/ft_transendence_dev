@@ -12,7 +12,7 @@
 - JavaScript library for building user interfaces
 - It controls what the user sees and updates it efficiently when the app state changes
 - With it it's possible to build a web app as small reusable components and React then updates the browser whenever the data changes
-    - Component-based UI → UI by combining small components (<Button />, <Profile />, etc.)
+    - Component-based UI → UI by combining small components
     - Virtual DOM → Instead of reloading the whole page, React updates just the part of the screen that changed
     - State management → Components can store and update data (e.g. useState)
     - Props → Pass data between components like function arguments
@@ -50,7 +50,7 @@
 ### index.html
 - Entry point of the single page application (SPA). Browsers load this file first
 - It doesn’t contain any app logic itself, but sets up the environment where React will take over
-- It contains a single empty <div id="root"></div> which acts as the mount point for the React app
+- It contains a single empty ```<div id="root"></div>``` which acts as the mount point for the React app
 - All rendering is done by React inside this root div (React controls the DOM from here)
 
 - What actually happens at runtime:
@@ -61,7 +61,7 @@
 
 ### main.tsx
 - Entry point for the React application
-- It renders the <App /> component into the #root div defined in index.html
+- It renders the ```<App />``` component into the #root div defined in index.html
 - It loads global CSS/Tailwind styles so they apply everywhere
 - In development mode, it starts Mock Service Worker (MSW) to simulate backend API responses
 
@@ -182,14 +182,16 @@ from the 'vite/client' package
 
 ### Assets
 - Contains static files like images, fonts, icons etc.
-- Avatars
-- Images for the game or landing page
-- Icons for buttons (friend request, tournament trophy)\
+    - Avatars
+    - Images for the game or landing page
+    - Icons for buttons (friend request, tournament trophy)\
 
 ### Components
 - Contains reusable React components that aren’t full pages
 
 #### Game
+- GameCanvas.tsx
+- Paddle.tsx
 
 #### Layout
 - Navbar.tsx → navigation bar used on multiple pages
@@ -200,14 +202,46 @@ from the 'vite/client' package
 #### UI
 - Button.tsx → custom styled buttons
 - Modal.tsx → Form/dialog for signing in and registering
+- PlayerCard.tsx → shows a player on the leaderboard/friend list
 
+### Hooks
+- Custom React hooks for logic that can be reused across components
+  - useAuth.ts → handle login state, JWT, and 2FA
+  - useWebSocket.ts → connect to server-side Pong or tournament updates
+  - useLeaderboard.ts → fetch and cache leaderboard data
 
+### Mocks
+- Mock data and mock service workers for development/testing
+  - browser.ts → sets up Mock Service Worker (MSW)
+  - handlers.ts → defines fake API responses for login, game state, leaderboard
 
+### Pages
+- React components that correspond to full pages/routes
+  - LandingPage.tsx → login/register page
+  - GamePage.tsx → local Pong game
+  - TournamentLobby.tsx → tournament registration & matchmaking
+  - Leaderboard.tsx → player rankings
+  - Friends.tsx → friends list and friend requests
+  - ProfilePage.tsx → profile settings (avatar, 2FA)
 
-Button.tsx → custom styled buttons
+### Services
+- Modules that handle API or backend calls
+  - authService.ts → login, register, 2FA verification
+  - gameService.ts → start local games, update paddle/ball state
+  - tournamentService.ts → create/join tournaments, fetch bracket
+  - leaderboardService.ts → get player rankings
 
-FriendCard.tsx → shows a single friend in the friends list
+### Styles
+- Global CSS, Tailwind imports or other styling files
+  - globals.css
 
-PlayerCard.tsx → shows a player on the leaderboard
+### Types
+- TypeScript interfaces
+    - User.ts → UserProfile, Friend, Match
+    - Game.ts → PaddleState, BallState, PaddleMovementPayload
+    - Tournament.ts → Tournament, Matchup, Bracket
 
-Tip: You can further organize into subfolders, e.g., components/layout, components/ui, components/game.
+### Utils
+- Helper functions or small utilities
+    - formatDate.ts → format timestamps for match history
+    - validateUsername.ts → check username format before sending to backend (is this needed?)
