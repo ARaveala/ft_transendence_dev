@@ -115,7 +115,8 @@
       "public"
     ]
   }
-} ```
+}
+```
 
 ### package-lock.json
 - Ensures that builds can be reproduced by locking the exact versions of every installed dependency
@@ -151,7 +152,8 @@
     "types": ["vite/client", "some-other-global-lib"] 
   },                                                  // Additional global type definitions
   "include": ["src"]                                  // Which files/folders TypeScript should include in compilation
-```}
+}
+```
 
 ### vite.config.ts
 - main configuration file for Vite
