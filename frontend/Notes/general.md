@@ -80,7 +80,8 @@
     - List of devDependencies (tools needed only for development)
     - Scripts like npm run dev, npm run build, npm run test
 
-```{
+```
+{
   "name": "frontend",               // project name
   "version": "0.1.0",               // project version
   "private": true,                  // prevents accidental publishing to npm registry
@@ -139,7 +140,8 @@
 - Enables strict type checking, which helps catch bugs at compile time
 - Defines what is compiled
 
-```{
+```
+{
   "compilerOptions": {   
     "target": "ESNext",                              // Target version of JavaScript output
     "module": "ESNext",                              // Module system used for imports/exports
