@@ -55,10 +55,82 @@ Resources:
 ### Tips
 
 - start in DetectionOnly: run with ```SecRuleEngine DetectionOnly``` first, watch logs, and then flip to ```On```. 
-- Use OWASP CRS: that's the defacto rule set
+- Use OWASP CRS: that's the defacto rule set / Core Rule Set; It’s a maintained, general-purpose set of ModSecurity rules that detect common web attacks (SQLi, XSS, RCE, LFI/RFI, protocol anomalies, bad bots, etc.).
+
+- crs-setup.conf: top-level tuning (e.g., Paranoia Level).
+
+- rules/*.conf: the actual rules.
+
+Workflow: start with DetectionOnly, review audit logs, tune exceptions, then switch to On. CRS uses anomaly scoring (sum of rule hits); you set block thresholds to balance false positives vs. coverage.
 
 #### Dynamic Modules
 
 - they're like features for Nginx; new functionalities can be added with software modules
 - nginx has a modular architecture
 - they are shared object files (.so) that can be loaded at runtime using load_module directive in NGINX config
+- .so = shared object (ELF shared library on Linux). The ModSecurity–NGINX connector builds into ngx_http_modsecurity_module.so. NGINX loads that file at startup (load_module /path/to/ngx_http_modsecurity_module.so;). Without it, NGINX won’t recognize directives like modsecurity on; or modsecurity_rules_file.
+- the NGINX connector is a module we'll be using to plug libModSecuirty into Nginx's request/response phases
+- ngx_http_modsecurity_module
+    - exposes directives (modsecurity on; modsecurity_rules_file...)
+    - hands nginx request/response data to libModSecurity so rules can run
+    - receives the decision (allow/log/block) and enforces it in nginx
+
+#### NOTES:
+- TEST THIS: Anomaly scoring + paranoia level (CRS): start at PL1 (default), raise to PL2+ only where you can tolerate stricter checks; increase blocking threshold (e.g., 5/8) to reduce false positives in prod. (See CRS docs/examples.) 
+Set/raise CRS Paranoia Level in /etc/nginx/modsec/crs/crs-setup.conf once you’re comfortable; start at PL1 (default), consider PL2 for sensitive endpoints only.
+
+- ADD THIS: Audit logging to a dedicated volume (waf-logs) with SecAuditEngine RelevantOnly, rotate aggressively; ship logs to ELK/Graylog for dashboards. 
+
+- ADD THIS: Rate-limit + WAF: add NGINX limit_req for login, search, cart endpoints to choke brute force/floods before WAF work. (Native NGINX feature; composes well with CRS.)
+
+- EXPLORE: Allowlist health checks & internal paths: short-circuit /health or /metrics with modsecurity off; to shrink noise.
+
+- EXPLORE: Normalize headers: Ensure X-Forwarded-For and set_real_ip_from are correct so ModSecurity sees the real client IP (important for correlation / blocking).
+
+- SEE IF NEEDED: Virtual patching: add custom SecRule for known app quirks instead of waiting on code fixes. (Keep them in modsec/custom/*.conf and include them after CRS.) 
+
+- EXPLORE: Multi-stage image: for lean prod, build libmodsecurity + connector in a builder stage and copy only the .so + libs into the final NGINX image. The volume approach above is great for dev and for your “clone only when needed” requirement; multi-stage is better for immutable prod builds. (Still load via load_module.) 
+
+- EXPLORE: Pin tags: Pin connector and CRS to known tags (e.g., the connector’s latest 1.0.4 and a specific CRS release) and record them in labels/CHANGELOG.
+
+- Short-circuit health endpoints with modsecurity off; to reduce noise
+
+#### Troubleshooting
+
+“Failed to locate unicode.map” → ensure unicode.mapping sits next to modsecurity.conf (we copy it). 
+
+“unknown directive modsecurity” → the module .so didn’t load (wrong path or mismatched compile). Check load_module and nginx -V. 
+docs.nginx.com
+
+“Not able to open CRS files” → path typo in your include to crs/rules/*.conf. 
+
+### WAF concepts (CRS & scoring)
+
+#### Anomaly scoring (CRS):
+CRS doesn’t immediately “block on first hit.” Each rule that matches adds a number of points to a running counter (*the anomaly score*) for that request/response. Think of it like a spam score:
+
+```Rule matches → +points (severity → more/less points).```
+
+At the end of processing, CRS compares the total to a threshold you set.
+
+If *total ≥ threshold → block* (when SecRuleEngine On).
+Example: 3 medium findings (+3 each) = 9 points. If your inbound threshold is 5, it blocks.
+
+This reduces false positives: a single weird header won’t block, but multiple suspicious signals together will.
+
+#### Inbound vs outbound:
+
+Inbound = request going to your app (URL, headers, body).
+
+Outbound = response going back (helps catch things like reflected XSS).
+CRS tracks both with separate thresholds.
+
+#### Paranoia Level (PL):
+
+A “strictness dial” for which CRS rules are active:
+
+*PL1*: broad coverage, low false positives (default).
+
+*PL2–PL3–PL4*: progressively stricter (enable more/stricter rules), better detection but more tuning needed.
+
+Typical workflow: start PL1, tune; maybe raise PL2 on sensitive paths (e.g., /login, /admin), keep the rest at PL1.

@@ -22,9 +22,9 @@ services:
       - CONNECTOR: "https://github.com/owasp-modsecurity/ModSecurity-nginx"
       - CRS: "https://github.com/coreruleset/coreruleset"
     volumes:
-      - ./waf-data:/waf/src #caches git repos (lib + connector)
-      - ./waf-conf:/etc/nginx/modsec # modsec + CRD configs
-      - ./waf-logs:/var/log/modsecurity
+      - ./waf-data:/waf/src:rw #caches git repos (lib + connector)
+      - ./waf-conf:/etc/nginx/modsec:rw # modsec + CRD configs
+      - ./waf-logs:/var/log/modsecurity:rw
       - ./nginx/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
     - "8080:8080"
@@ -35,7 +35,6 @@ networks:
   compost:
     driver: bridge
 
-volumes:
-  waf-data:
-  waf-conf:
-  waf-logs:
+# the volumes part is not needed? unless you need to specify an absolute path, etc
+# having the volumes specified in the service block is the short-form, otherwise it would have been long form
+

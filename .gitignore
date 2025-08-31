@@ -1,0 +1,5 @@
+nginx-waf/waf-data/*
+!nginx-waf/waf-data/.gitkeep
+nginx-waf/waf-logs/*
+!nginx-waf/waf-logs/.gitkeep
+

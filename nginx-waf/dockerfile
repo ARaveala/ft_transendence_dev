@@ -1,7 +1,15 @@
 FROM alpine:3.22.0
 
-RUN apk add --no-cache git nginx curl iputils-ping \
-    ca-certificates bash wget
+RUN apk add --no-cache \
+    git nginx curl iputils-ping \
+    ca-certificates bash wget \
+    autoconf automake coreutils \        
+    g++ gcc geoip-dev libc-dev libfuzzy2-dev \        
+    libmaxminddb-dev libstdc++ libtool libxml2-dev \
+    linux-headers lmdb-dev \
+    make openssl openssl-dev patch \
+    pkgconfig pcre pcre-dev pcre2 pcre2-dev \
+    yajl yajl-dev zlib-dev flex bison   
 
 ENV WAF_SRC=/waf/src WAF_BLD=/waf/build NGINX_BASE=/etc/nginx
 
