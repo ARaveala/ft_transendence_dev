@@ -10,14 +10,22 @@ services:
     networks:
       - compost
 
-  nginx-reverse-proxy:
-    build: ./WAF
+  waf:
+    build: ./nginx-waf
     container_name: modsecurity
     restart: always
     depends_on:
       - php
+    environment:
+      - WAF_MODE: "DetectionOnly" # change to On after testing
+      - MODSECURITY: "https://github.com/owasp-modsecurity/ModSecurity"
+      - CONNECTOR: "https://github.com/owasp-modsecurity/ModSecurity-nginx"
+      - CRS: "https://github.com/coreruleset/coreruleset"
     volumes:
-      - ./WAF/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./waf-data:/waf/src #caches git repos (lib + connector)
+      - ./waf-conf:/etc/nginx/modsec # modsec + CRD configs
+      - ./waf-logs:/var/log/modsecurity
+      - ./nginx/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
     - "8080:8080"
     networks:
@@ -27,3 +35,7 @@ networks:
   compost:
     driver: bridge
 
+volumes:
+  waf-data:
+  waf-conf:
+  waf-logs:

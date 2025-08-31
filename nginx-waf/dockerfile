@@ -1,9 +1,11 @@
 FROM alpine:3.22.0
 
 RUN apk add --no-cache git nginx curl iputils-ping \
-    ca-certificates bash
+    ca-certificates bash wget
 
-RUN mkdir -p /etc/nginx/ssl
+ENV WAF_SRC=/waf/src WAF_BLD=/waf/build NGINX_BASE=/etc/nginx
+
+RUN mkdir -p ${NGINX_BASE}/ssl ${NGINX_BASE}/modules ${NGINX_BASE}/modsec /var/log/modsecurity ${WAF_BLD} ${WAF_SRC}
 
 COPY ./nginx /usr/src/nginx
 COPY ./nginx/conf/default.conf /etc/nginx/nginx.conf

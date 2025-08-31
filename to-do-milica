@@ -4,6 +4,10 @@
 – prometheus, grafana, kabana,
 – hashivault, firewall
 
+THE BASICS FOR OTHER TEAMMATES:
+- the firewall with the reverse proxy is meant to intercept, examine, and then either forward requests to the right location or drop them if they seem sus
+- there is a defacto set of rules recommended by *OWASP* (they are famous for their Top 10 vulnerabilities for web applications list mostly) for modsecurity firewall which we will be implementing (see the list below on what they handle)
+- we will be loading our own *dynamic module* into our nginx proxy config; these are *.so files* that add feature capabilites to the current nginx setup
 
 
 1. set up a dummy container
@@ -23,3 +27,38 @@ later
 replace the nginx image with a base image (alpine prolly)
 
 ![alt text](structure.png)
+
+## setting up ModSecurity
+
+Resources:
+- https://coreruleset.org/
+- https://github.com/owasp-modsecurity/ModSecurity-nginx
+- https://github.com/owasp-modsecurity/ModSecurity/tree/v3/master
+- https://github.com/owasp-modsecurity/ModSecurity/wiki/Reference-Manual-%28v3.x%29
+- Dynamic Modules 101: https://docs.nginx.com/nginx/admin-guide/dynamic-modules/dynamic-modules
+- How to load your own dynamic module: https://www.f5.com/company/blog/nginx/compiling-dynamic-modules-nginx-plus 
+
+### Supported Attack Categories
+    SQL Injection (SQLi)
+    Cross Site Scripting (XSS)
+    Local File Inclusion (LFI)
+    Remote File Inclusion (RFI)
+    PHP Code Injection
+    Java Code Injection
+    HTTPoxy
+    Shellshock
+    Unix/Windows Shell Injection
+    Session Fixation
+    Scanner/Bot Detection
+    Metadata/Error Leakages
+
+### Tips
+
+- start in DetectionOnly: run with ```SecRuleEngine DetectionOnly``` first, watch logs, and then flip to ```On```. 
+- Use OWASP CRS: that's the defacto rule set
+
+#### Dynamic Modules
+
+- they're like features for Nginx; new functionalities can be added with software modules
+- nginx has a modular architecture
+- they are shared object files (.so) that can be loaded at runtime using load_module directive in NGINX config
