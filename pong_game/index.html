@@ -1,0 +1,108 @@
+<html>
+	<head>
+		<style>
+			.paddle {
+				width: 25px;
+				height: 250px;
+				position: absolute;
+				background: black;
+			}
+			.ball {
+				width: 50px;
+				height: 50px;
+				border-radius: 50%;
+				position: absolute;
+				background: red;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="paddle1" class="paddle" style="left: 75px"></div>
+		<div id="paddle2" class="paddle" style="right: 75px"></div>
+		<div id="ball" class="ball" style="top: 500px; left: 500px"></div>
+		<script>
+
+
+			// window sizes and framerate etc
+			const height = window.innerHeight;
+			const width = window.innerWidth;
+			const paddleOffset = 100; // how far are paddles from window edges in pixels
+			const fps = 60; // don't change unless change also in server
+
+			// key related
+			const controls = ["w", "s", "ArrowUp", "ArrowDown"];
+			const keysDown = [false, false, false, false];
+
+			// elements
+			const paddle1 = document.getElementById("paddle1");
+			const paddle2 = document.getElementById("paddle2");
+			const ball = document.getElementById("ball");
+
+			// init element sizes
+			const paddleSize = height / 5;
+			const ballSize = Math.min(height, width) / 20;
+			paddle1.style.height = paddleSize + "px";
+			paddle2.style.height = paddleSize + "px";
+			ball.style.height = ballSize + "px";
+			ball.style.width = ballSize + "px";
+
+			let positions;
+
+			// web
+			const webSocket = new WebSocket("ws://localhost:8080");
+
+			webSocket.onopen = (event) => {
+				console.log("WebSocket connection opened.");
+				webSocket.send(JSON.stringify({
+					type: "init",
+					height: height,
+					width: width,
+					ballSize: ballSize,
+					paddleSize: paddleSize,
+					paddleOffset: paddleOffset
+				}));
+			};
+
+			webSocket.onmessage = (event) => {
+				positions = JSON.parse(event.data);
+			};
+
+			webSocket.onclose = (event) => {
+				console.log("WebSocket connection closed.");
+			};
+
+			webSocket.onerror = (error) => {
+				console.error("WebSocket error:", error);
+			};
+
+			document.addEventListener("keydown", (e) => {
+				for (let i = 0; i < 4; ++i) {
+					if (e.key == controls[i]) keysDown[i] = true;
+				}
+			});
+
+			document.addEventListener("keyup", (e) => {
+				for (let i = 0; i < 4; ++i) {
+					if (e.key == controls[i]) keysDown[i] = false;
+				}
+			});
+
+			function render() {
+				// set <div> elements' positions that came from server
+				if (!positions) return requestAnimationFrame(render);
+				paddle1.style.top = positions[0] + "px";
+				paddle2.style.top = positions[1] + "px";
+				ball.style.top = positions[2] + "px";
+				ball.style.left = positions[3] + "px";
+				requestAnimationFrame(render);
+			}
+			requestAnimationFrame(render);
+
+			setInterval(() => {
+				// send which keys are pressed down
+				webSocket.send(JSON.stringify(keysDown));
+			}, 1000 / fps);
+		</script>
+  </body>
+</html>
+
