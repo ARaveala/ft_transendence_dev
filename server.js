@@ -13,21 +13,37 @@ const fastify = require('fastify')({ logger: true });
 
 // use stict mode for better error handling
 'use strict';
-const db = require('@db/initDB.js');
-// Attach WebSocket server to Fastify's internal server
-
-// api path determines the route for user specific operations
-// this does not yet validate the input!
+// set up fucntion userRoutes , require from user.js
+//this will be split later into multiple files we can use this now as the tetsing ground
 const userRoutes = require('@routes/user.js');
+// set up context, require from context.js 
+// there will be multiple index or context.txt for each file ....
+const context = require('@context');
+// attatch context to fucntion options 
+fastify.register(userRoutes, context);
+
+// set up auth routes with context
+const authRoutes = require('@Rauth/auth.js');
+const authcontext = require('@Rauth/context.js');
+fastify.register(authRoutes, authcontext);
+
+const profileRoutes = require('@Rprofile/profile.js');
+const profilecontext = require('@Rprofile/context.js');
+fastify.register(profileRoutes, profilecontext);
+
+// Attach WebSocket server to Fastify's internal server
 const setUpWebSockets = require('@Wbs/startUp.js');
 
 const errorCodes = require('@sharedEcode');
 const formatError = require("@errors");
 const { format } = require('path');
 
+// websocket handlers
+//const WBhandlers = require ('Webscoket/');
 const cookie = require('@fastify/cookie');
 // utalizes api routing from  routes/user.js
-fastify.register(userRoutes);
+
+
 fastify.register(cookie);
 // no i need to register all of above? not just user routes
 
@@ -50,7 +66,7 @@ fastify.register(require('@fastify/cors'), {
 // Global error handler
 fastify.setErrorHandler((error, request, reply) => {
   if (error.validation) {
-   	console.log('Validation error:', error.validation);
+	console.log('Validation error:', error.validation);
     const {code, msg} = errorCodes.VALIDATION_FAILED;
 	const formatted = formatError.formatValidationError(error, msg);
 	//reply.code(400).send({ error: 'VALIDATION_FAILED', details: error.validation });

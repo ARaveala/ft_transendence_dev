@@ -10,6 +10,20 @@ const db = require('./initDB.js');
 // promise is used to handle asynchronous operations, await is used to wait
 // for the promise to resolve or reject
 // this is a common pattern in Node.js for database operations
+
+// player profile defaults 
+/**
+ * 
+avatarFile: "avatars/avatar1.png",
+				twoFactor: false,
+				rank: 0,
+				score: 0,
+				victories: 0,
+				losses: 0,
+				totalMatches: 0,
+				friends: 0 (format unknown)
+				matchHistory: 0 (format unknown)
+ */
 function insertUser({ username, password, score, status }) {
     console.log('Incoming user data:', { username, password, score, status });
 
@@ -32,8 +46,9 @@ function insertUser({ username, password, score, status }) {
 // dev style right now just utalizes simple create a new user logic 
 function loginUser({ username, password}) {
     console.log('Incoming user data:', { username, password});
-	const score = 0;
-	const status = 'active';
+	const score = 0; // this is only dev !!
+	const status = "online"; // status should be changed to online after verificiation
+	// this would be easiest with a change status function that i call from apiroute.
     return new Promise((resolve, reject) => {
         db.run(
             `INSERT INTO users (username, password, score, status) VALUES (?, ?, ?, ?)`,
@@ -48,7 +63,7 @@ function loginUser({ username, password}) {
         );
     });
 }
-
+// change status fucntion 
 
 module.exports = {
 	insertUser, 

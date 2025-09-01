@@ -2,6 +2,7 @@
   "name": "my-first-backend",
   "version": "1.0.0",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node server.js"
   },
@@ -22,12 +23,26 @@
   "_moduleAliases": {
     "@db": "database",
     "@routes": "routes",
+	"@rUsers": "routes/user.js",
     "@schemas": "schemas",
     "@Wbs": "WebSocket",
+	"@context": "routes/context.js",
     "@sharedSchemas": "shared/schemas.js",
     "@sharedApi": "shared/apiProtocols.js",
     "@sharedEcode": "shared/errorCodes.js",
     "@errors": "utils/errorFormatter.js",
-    "@security": "security/security.js"
+    "@security": "security/security.js",
+	"@Rauth": "routes/auth",
+	"@Rprofile": "routes/profile"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-no-floating-promise": "^2.0.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-security": "^3.0.1",
+    "eslint-plugin-unicorn": "^48.0.1"
   }
 }

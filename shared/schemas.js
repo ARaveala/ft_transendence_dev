@@ -16,9 +16,9 @@ const Schemas = {
   RegisterUser: Type.Object({
     username: Type.String({ 
 		minLength: 3, 
-    	maxLength: 20,
-    	pattern: '^[a-zA-Z0-9_]+$',
-    	description: 'Must be 3–20 characters, no spaces, only letters, numbers, and underscores'
+		maxLength: 20,
+		pattern: '^[a-zA-Z0-9_]+$',
+		description: 'Must be 3–20 characters, no spaces, only letters, numbers, and underscores'
 	}),
     password: Type.String({ minLength: 6 }),
     score: Type.Optional(Type.Number()),

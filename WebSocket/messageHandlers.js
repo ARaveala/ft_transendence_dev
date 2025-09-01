@@ -1,11 +1,19 @@
 
+const {
+  handleGreet,
+  //handleMove,
+  //handleConnection,
+  //handlePing
+} = require('./handlers.js');
+// we should rename this to message deligation?
 
 function handleMessage(ws, data) {
 
 	switch (data.type) {
 		case 'greet':
-			console.log('Received greeting:', data.message);
-		    ws.send('Hello back!');
+			handleGreet(ws, data);
+			//console.log('Received greeting:', data.message);
+			//ws.send('Hello back!');
 			break;
 		case 'ping':
 			ws.send(JSON.stringify({ type: 'pong', payload: 'Pong!' }));
@@ -15,6 +23,10 @@ function handleMessage(ws, data) {
 			// Process movement data here (e.g., update game state)
 			// send something back to acknowledge
 			ws.send(JSON.stringify({ type: 'move-ack', payload: 'Move received' }));
+			break;
+		case 'init':
+			//send to connect game logic
+			ws.send(JSON.stringify({type: 'connect', payload: 'temp'}));
 			break;
 		default:
 			console.error('Unknown message type:', data.type);
