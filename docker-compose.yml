@@ -1,5 +1,3 @@
-version: "3.9"
-
 name: transcendence
 
 services:
@@ -14,8 +12,6 @@ services:
       SQLITE_PATH: /database/database.sqlite
     expose:
       - "3000"
-    depends_on:
-      - db
     volumes:
       - backend_data:/data
     restart: unless-stopped
