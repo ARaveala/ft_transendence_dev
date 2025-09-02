@@ -1,0 +1,27 @@
+CREATE TABLE users
+(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    avatar_file TEXT,
+    mfa_enabled INTEGER NOT NULL DEFAULT 0,
+    rank INTEGER NOT NULL DEFAULT 0,
+    score INTEGER NOT NULL DEFAULT 0,
+    wins INTEGER NOT NULL DEFAULT 0,
+    losses INTEGER NOT NULL DEFAULT 0,
+    total_games INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE games
+(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tournament_id INTEGER,
+    p1_id INTEGER,
+    p2_id INTEGER,
+    p1_score INTEGER NOT NULL DEFAULT 0,
+    p2_score INTEGER NOT NULL DEFAULT 0,
+    CHECK (p1_id <> p2_id),
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+    FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
