@@ -9,9 +9,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      SQLITE_PATH: /database/database.sqlite
-    expose:
-      - "3000"
+      SQLITE_PATH: /data/database.sqlite
+    ports:
+      - "3000:3000"    # publish for quick API testing
     volumes:
       - backend_data:/data
     restart: unless-stopped
@@ -35,5 +35,4 @@ networks:
   app-net:
 
 volumes:
-  pg_data:
-  backend_data:   # uncomment if you use SQLite inside backend
+  backend_data:
