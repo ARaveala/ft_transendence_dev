@@ -1,2 +1,7 @@
+#ignore files that are not mine 
 frontend/
 .env
+
+
+.eslintrc.cjs
+
