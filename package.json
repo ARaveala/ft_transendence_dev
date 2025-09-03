@@ -16,10 +16,5 @@
     "@db": "database",
     "@routes": "routes",
     "@schemas": "schemas"
-  },
-  "msw": {
-    "workerDirectory": [
-      "public"
-    ]
   }
 }
