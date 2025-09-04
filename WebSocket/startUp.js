@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 const handleMessage = require('./messageHandlers.js').handleMessage;
-const handlers = require('./handlers.js');
+//const handlers = require('./handlers.js');
 
 function setUpWebSockets(server) {
 
@@ -9,11 +9,7 @@ function setUpWebSockets(server) {
 
 		// WebSocket server setup AFTER Fastify is listening
 		server.on('upgrade', (req, socket, head) => {
-			//const requestedProtocols = req.headers['sec-websocket-protocol'];
-			//console.log('Requested protocols:', protocols);
-			//if (requestedProtocols !== 'my-protocol') {
-			//  socket.destroy(); // reject connection
-			//}
+
 			console.log('🔗 Upgrade request received');
 			console.log('🧾 Request URL:', req.url);
 			console.log('📬 Headers:', req.headers);
@@ -34,15 +30,8 @@ function setUpWebSockets(server) {
 			ws.on('message', (msg, isBinary) => {
 				try {
 					const text = isBinary ? msg.toString() : msg.toString('utf8');
-
-				//     let data;
 					const data = JSON.parse(text);
 					handleMessage(ws, data);
-
-		//			if (data.type === 'greet') {
-		//		      console.log('Received greeting:', data.message);
-		//		      ws.send('Hello back!');
-		//		    }
 					} catch (err) {
 					console.error('Invalid JSON:', msg);
 					ws.send('Error: Invalid format');
