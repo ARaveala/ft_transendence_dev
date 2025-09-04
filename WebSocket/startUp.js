@@ -31,9 +31,12 @@ function setUpWebSockets(server) {
 		wss.on('connection', (ws) => {
 			console.log('WebSocket client connected');
 
-			ws.on('message', (msg) => {
+			ws.on('message', (msg, isBinary) => {
 				try {
-					const data = JSON.parse(msg);
+					const text = isBinary ? msg.toString() : msg.toString('utf8');
+
+				//     let data;
+					const data = JSON.parse(text);
 					handleMessage(ws, data);
 
 		//			if (data.type === 'greet') {
@@ -46,8 +49,17 @@ function setUpWebSockets(server) {
 				}
 			});
 
+			ws.on("close", () => {
+				console.log("Client disconnected");
+			});
+		
+			ws.on("error", (err) => {
+				console.error("WebSocket error:", err);
+			});
 			ws.send('Welcome to the WebSocket server!');
 		});
+
+
 }
 
 module.exports = setUpWebSockets; // not exporting as an object 

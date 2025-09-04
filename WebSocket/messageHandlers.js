@@ -1,11 +1,25 @@
 
 const {
+	createGameState, initGame, updateKeys, updateGame
+} = require('../pong_game/pong_server.js');
+
+const {
   handleGreet,
   //handleMove,
   //handleConnection,
   //handlePing
 } = require('./handlers.js');
 // we should rename this to message deligation?
+
+//const games = new Map(); // matchId -> gameState
+// let state = games.get(matchId);
+
+// guarding send calls
+//if (webSocket.readyState === WebSocket.OPEN) {
+//  webSocket.send(JSON.stringify(keysDown));
+//}
+
+let gameState;
 
 function handleMessage(ws, data) {
 
@@ -18,38 +32,27 @@ function handleMessage(ws, data) {
 		case 'ping':
 			ws.send(JSON.stringify({ type: 'pong', payload: 'Pong!' }));
 			break;
-		case 'move':
-			console.log('Received move data:', data.payload);
-			// Process movement data here (e.g., update game state)
-			// send something back to acknowledge
-			ws.send(JSON.stringify({ type: 'move-ack', payload: 'Move received' }));
+		
+		case 'init': {
+			console.log("game init is activated ", data.payload);
+			gameState = createGameState();
+			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset }
+			ws.send(JSON.stringify(gameState.positions));
+			gameState.loop = setInterval(() => {
+				updateGame(gameState);
+				ws.send(JSON.stringify(gameState.positions));
+			}, 1000 / gameState.fps);
+
+		}
 			break;
-		case 'init':
-			//send to connect game logic
-			ws.send(JSON.stringify({type: 'connect', payload: 'temp'}));
+		case 'keys':
+			updateKeys(gameState, data.payload); // update keys in game state
 			break;
 		default:
 			console.error('Unknown message type:', data.type);
 			ws.send(JSON.stringify({ error: 'Unknown message type' }));
 			break;
 	}
-
-	//ws.on('message', (msg) => {
-	//	  try {
-	//	    const data = JSON.parse(msg);
-	//	    if (data.type === 'greet') {
-	//	      console.log('Received greeting:', data.message);
-	//	      ws.send('Hello back!');
-	//	    }
-	//	  } catch (err) {
-	//	    console.error('Invalid JSON:', msg);
-	//	    ws.send('Error: Invalid format');
-	//	  }
-	//	});
-     // ws.on('message', (message) => {
-     //   console.log('Received:', message);
-     //   ws.send(`Echo: ${message}`);
-     // });
 }
 
 module.exports = { handleMessage };
