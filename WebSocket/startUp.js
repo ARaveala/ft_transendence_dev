@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
 const handleMessage = require('./messageHandlers.js').handleMessage;
 //const handlers = require('./handlers.js');
-
+let reconnect = false;
 function setUpWebSockets(server) {
 
 	// this allows http and websocket to share same port
@@ -26,9 +26,15 @@ function setUpWebSockets(server) {
 
 		wss.on('connection', (ws) => {
 			console.log('WebSocket client connected');
-
+			
 			ws.on('message', (msg, isBinary) => {
 				try {
+
+					if (reconnect) {
+						handleMessage(ws, {type: "reconnect"}); // actual player detials needed
+						reconnect = false;
+						return;
+					}
 					const text = isBinary ? msg.toString() : msg.toString('utf8');
 					const data = JSON.parse(text);
 					handleMessage(ws, data);
@@ -40,6 +46,21 @@ function setUpWebSockets(server) {
 
 			ws.on("close", () => {
 				console.log("Client disconnected");
+				// some kind of pause logic here 
+				const player = 666;//players.get(playerId);
+				if (player) {
+					player.disconnectedAt = Date.now();
+				//	player.ws = null;
+					handleMessage(undefined, { type: "pause"});
+					
+				//	// Pause game logic if needed
+				player.pauseTimeout = setTimeout(() => {
+				//		// If still disconnected after 10s, end game or remove player
+				//		players.delete(playerId);
+					console.log("client died, bury them ");
+					}, 10000);
+				}
+				reconnect = true;
 			});
 		
 			ws.on("error", (err) => {

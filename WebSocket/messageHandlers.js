@@ -20,39 +20,77 @@ const {
 //}
 
 let gameState;
+let currentWs;
+let paused = false;
+let reconnect = false;
 
 function handleMessage(ws, data) {
-
+	currentWs = ws;
 	switch (data.type) {
 		case 'greet':
-			handleGreet(ws, data);
+			handleGreet(currentWs, data);
 			//console.log('Received greeting:', data.message);
 			//ws.send('Hello back!');
 			break;
 		case 'ping':
-			ws.send(JSON.stringify({ type: 'pong', payload: 'Pong!' }));
+			currentWs.send(JSON.stringify({ type: 'pong', payload: 'Pong!' }));
 			break;
-		
+		case "pause": {
+			if (gameState.loop) {
+				clearInterval(gameState.loop);
+				gameState.loop = undefined; // mark as stopped
+				gameState.gameRunning = false; // optional flag
+				paused = true;
+				console.log("Game paused");
+			}
+			break;
+		}
 		case 'init': {
 			console.log("game init is activated ", data.payload);
 			gameState = createGameState();
 			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset }
-			ws.send(JSON.stringify(gameState.positions));
-			gameState.loop = setInterval(() => {
-				updateGame(gameState);
-				ws.send(JSON.stringify(gameState.positions));
-			}, 1000 / gameState.fps);
-
+			currentWs.send(JSON.stringify(gameState.positions));
+				gameState.loop = setInterval(() => {
+					updateGame(gameState);
+					currentWs.send(JSON.stringify(gameState.positions));
+				}, 1000 / gameState.fps);
+			
 		}
 			break;
 		case 'keys':
 			updateKeys(gameState, data.payload); // update keys in game state
 			break;
+		case "reconnect": {
+			paused = false; // may have future use
+			reconnect = true; // may have future use
+			currentWs.send(JSON.stringify(gameState.positions));
+			if (!gameState.loop) {
+				gameState.gameRunning = true;
+				gameState.loop = setInterval(() => {
+					updateGame(gameState);
+					currentWs.send(JSON.stringify(gameState.positions));
+				}, 1000 / gameState.fps);
+				console.log("Game resumed");
+				
+			}
+			//currentWs.send(JSON.stringify({ type: "resume-game" }));
+		//	const player = players.get(data.playerId);
+		//	if (player) {
+		//		clearTimeout(player.pauseTimeout);
+		//		player.ws = ws;
+		//		// Resume game logic
+		//		console.log(`Player ${data.playerId} reconnected`);
+		//	} else {
+		//		// new player
+		//	}
+			break;
+		}		
 		default:
 			console.error('Unknown message type:', data.type);
-			ws.send(JSON.stringify({ error: 'Unknown message type' }));
+			currentWs.send(JSON.stringify({ error: 'Unknown message type' }));
 			break;
 	}
 }
 
 module.exports = { handleMessage };
+
