@@ -40,7 +40,32 @@ async function fetchUser({ userId }) {
 		});
 }
 
-module.exports = { fetchUser };
+
+// mini example of checking player exists and password matches . 
+
+async function miniLogin(username, password) {
+  console.log("minilogin activated, no access to profile should be possible");
+
+  return new Promise((resolve, reject) => {
+    db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
+      if (err) {
+        return reject({ error: 'Database error' });
+      }
+      if (!row) {
+        return reject({ error: 'User not found' });
+      }
+
+      // TEMP: plain text password check for testing only
+      if (row.password !== password) {
+        return reject({ error: 'Invalid password' });
+      }
+      // Return minimal info — no profile data
+      resolve({ id: row.id});
+    });
+  });
+}
+
+module.exports = { fetchUser, miniLogin };
 //similar logic as below may be required
 //async function userRoutes(fastify, options) {
 //  await registerUser(fastify, options);

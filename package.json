@@ -33,7 +33,8 @@
     "@errors": "utils/errorFormatter.js",
     "@security": "security/security.js",
 	"@Rauth": "routes/auth",
-	"@Rprofile": "routes/profile"
+	"@Rprofile": "routes/profile",
+	"@Rgame": "routes/game.js"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.41.0",

@@ -40,6 +40,7 @@ async function loginUser(fastify, options) {
 		const { username, password} = request.body;
 		console.log('Incoming user data:', request.body);
 		try {
+			// could try use miniLogin here instead
 		// here it looks to find if user exists and password matches.
 			const result = await DBinsert.loginUser({ username, password});
 			// if user 2fa -> securty.js handle that

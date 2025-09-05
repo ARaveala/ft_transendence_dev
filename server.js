@@ -47,6 +47,7 @@ const cookie = require('@fastify/cookie');
 fastify.register(cookie);
 // no i need to register all of above? not just user routes
 
+
 // These are for easy testing
 fastify.get('/', async (request, reply) => {
   return { hello: 'world' };

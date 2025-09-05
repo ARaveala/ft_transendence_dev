@@ -11,6 +11,14 @@ function generateToken(user) {
     { expiresIn: '1h' }
   );
 }
+
+function generateWsToken(playerId, gameId) {
+  return jwt.sign(
+    { id: playerId, gameId},
+    JWT_SECRET,
+    { expiresIn: '15m' } // short-lived
+  );
+}
 //: 24, user: 'testuser3' 
 // right now we are using http , this MUST be https in production
 function setAuthCookie(reply, token) {
@@ -27,8 +35,13 @@ function verifyToken(token) {
 }
 
 function getUserIdFromToken(token) {
-  const decoded = jwt.verify(token, JWT_SECRET);
-  return decoded.id;
+	try {
+		const decoded = jwt.verify(token, JWT_SECRET);
+		return decoded.id; // or whatever claim you expect
+	} catch (err) {
+		console.error('Invalid or expired token:', err.message);
+		return null; // or throw a custom error if you want to handle it upstream
+	}
 }
 
 
@@ -39,4 +52,4 @@ function getUserIdFromToken(token) {
 //Optionally confirm that the user still exists in the database this is done by returning to me id
 //  potentailly may require more returned as an object , backend sends to database verify user in db. 
 
-module.exports = { generateToken, setAuthCookie, verifyToken, getUserIdFromToken };
+module.exports = { generateToken, setAuthCookie, verifyToken, getUserIdFromToken, generateWsToken };

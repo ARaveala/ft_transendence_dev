@@ -5,10 +5,15 @@ const {
 
 const {
   handleGreet,
+  startLoop,
   //handleMove,
   //handleConnection,
   //handlePing
 } = require('./handlers.js');
+
+const {
+	games
+} = require("@Rgame");
 // we should rename this to message deligation?
 
 //const games = new Map(); // matchId -> gameState
@@ -19,7 +24,7 @@ const {
 //  webSocket.send(JSON.stringify(keysDown));
 //}
 
-let gameState;
+//let gameState;
 let currentWs;
 let paused = false;
 let reconnect = false;
@@ -45,15 +50,30 @@ function handleMessage(ws, data) {
 			}
 			break;
 		}
+		case 'initPlayer':{
+			// this fucntion dosnt care about if remote or local
+			if (initPlayer(currentWs, data));
+			// send status data.player ready, gameid?, 
+			// update a player init, wait for second before full true
+			break;
+		}
+//		case 'remotePlayerReady':
 		case 'init': {
 			console.log("game init is activated ", data.payload);
-			gameState = createGameState();
+
+			const gameState = games.get(data.gameId);
+			createGameState();
+//games.get(data.gameId);
+
 			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset }
-			currentWs.send(JSON.stringify(gameState.positions));
-				gameState.loop = setInterval(() => {
-					updateGame(gameState);
-					currentWs.send(JSON.stringify(gameState.positions));
-				}, 1000 / gameState.fps);
+			games.set(data.gameId, gameState);
+			
+			startLoop(currentWs, gameState);
+			//currentWs.send(JSON.stringify(gameState.positions));
+			//	gameState.loop = setInterval(() => {
+			//		updateGame(gameState);
+			//		currentWs.send(JSON.stringify(gameState.positions));
+			//	}, 1000 / gameState.fps);
 			
 		}
 			break;
@@ -66,10 +86,11 @@ function handleMessage(ws, data) {
 			currentWs.send(JSON.stringify(gameState.positions));
 			if (!gameState.loop) {
 				gameState.gameRunning = true;
-				gameState.loop = setInterval(() => {
-					updateGame(gameState);
-					currentWs.send(JSON.stringify(gameState.positions));
-				}, 1000 / gameState.fps);
+				startLoop(currentWs, gameState);
+				//gameState.loop = setInterval(() => {
+				//	updateGame(gameState);
+				//	currentWs.send(JSON.stringify(gameState.positions));
+				//}, 1000 / gameState.fps);
 				console.log("Game resumed");
 				
 			}
