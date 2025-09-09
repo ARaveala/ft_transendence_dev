@@ -1,23 +1,35 @@
 const path = require("path");
 
 const API_PROTOCOL = {
-  REGISTER_USER: {
-    path: '/register-user',
-    method: 'POST',
-  },
-  LOGIN_USER: {
-    path: '/register',
-    method: 'POST',
+	REGISTER_USER: {
+		path: '/register-user',
+		method: 'POST',
+	},
+	LOGIN_USER: {
+		path: '/login',	
+		method: 'POST',
+	},
+    CREATE_GAME:  {
+		path: '/create-game',
+		method: 'POST',
+	},
+	START_GAME:  {
+		path: '/start-game',
+		method: 'POST',
+	},
+    JOIN_GAME:  {
+		path: '/join-game',
+		method: 'POST',
+	},
+	GET_USER: {
+		path: '/user/:id',
+		method: 'GET',
+	},
+	GET_PROFILE: {
+		path: '/profile',
+		method: 'GET',
 
-  },
-  GET_USER: {
-	path: '/user/:id',
-	method: 'GET',
-  },
-  GET_PROFILE: {
-	path: '/profile',
-    method: 'GET',
-  },
+	},
 };
 
 //const API_PROTOCOL = {

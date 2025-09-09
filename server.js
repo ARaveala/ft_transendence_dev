@@ -9,8 +9,7 @@ require('dotenv').config();
 //const WebSocket = require('ws');
 
 const fastify = require('fastify')({ logger: true });
-// open a connection to the SQLite database
-
+const {log} = require('@logger'); //dev
 // use stict mode for better error handling
 'use strict';
 // set up fucntion userRoutes , require from user.js
@@ -36,7 +35,11 @@ const setUpWebSockets = require('@Wbs/startUp.js');
 
 const errorCodes = require('@sharedEcode');
 const formatError = require("@errors");
-const { format } = require('path');
+
+const {gameRoutes} = require('@Rgame');
+fastify.register(gameRoutes, context);
+
+const path = require('path');
 
 // websocket handlers
 //const WBhandlers = require ('Webscoket/');
@@ -58,12 +61,28 @@ fastify.get('/status', async (request, reply) => {
 
 });
 
-fastify.register(require('@fastify/cors'), {
-  origin: 'http://localhost:5173', // your frontend dev server
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'], // include any custom headers you use
-  credentials: true // if you're sending cookies or auth headers
+
+const fastifyStatic = require('@fastify/static');
+
+fastify.register(fastifyStatic, {
+  root: path.join(__dirname, 'test_harness'), // or wherever your HTML lives
+  prefix: '/test_harness/', // serve files from root
+  index: false // disables auto-redirect to index.html
 });
+
+fastify.register(fastifyStatic, {
+  root: path.join(__dirname, 'pong_game'),
+  prefix: '/pong_game/',
+  index: false,
+  decorateReply: false // prevents re-adding sendFile
+});
+
+//fastify.register(require('@fastify/cors'), {
+//  origin: 'http://localhost:3000', // your frontend dev server 5173 front end dev
+//  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//  allowedHeaders: ['Content-Type', 'Authorization'], // include any custom headers you use
+//  credentials: true // if you're sending cookies or auth headers
+//});
 // Global error handler
 fastify.setErrorHandler((error, request, reply) => {
   if (error.validation) {
@@ -83,7 +102,7 @@ fastify.setErrorHandler((error, request, reply) => {
 const start = async () => {
 
 	try {
-		
+		log('STARTING SERVER', '---------------------------------------------');
 	//await fastify.register(require('@fastify/cors'), {
     //  		origin: '*', // Allow all origins (for testing only)
     //});

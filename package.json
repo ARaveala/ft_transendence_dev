@@ -9,7 +9,6 @@
   "dependencies": {
     "@fastify/cookie": "^7.4.0",
     "@fastify/cors": "^8.5.0",
-    "@fastify/static": "^8.2.0",
     "@fastify/websocket": "^11.2.0",
     "@sinclair/typebox": "^0.34.40",
     "dotenv": "^17.2.1",
@@ -23,20 +22,22 @@
   "_moduleAliases": {
     "@db": "database",
     "@routes": "routes",
-	"@rUsers": "routes/user.js",
+    "@rUsers": "routes/user.js",
     "@schemas": "schemas",
     "@Wbs": "WebSocket",
-	"@context": "routes/context.js",
+    "@context": "routes/context.js",
     "@sharedSchemas": "shared/schemas.js",
     "@sharedApi": "shared/apiProtocols.js",
     "@sharedEcode": "shared/errorCodes.js",
     "@errors": "utils/errorFormatter.js",
     "@security": "security/security.js",
-	"@Rauth": "routes/auth",
-	"@Rprofile": "routes/profile",
-	"@Rgame": "routes/game.js"
+    "@Rauth": "routes/auth",
+    "@Rprofile": "routes/profile",
+    "@Rgame": "routes/game.js",
+	"@logger": "logger.js"
   },
   "devDependencies": {
+    "@fastify/static": "^6.12.0",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
     "eslint": "^8.57.1",

@@ -28,20 +28,40 @@ function setUpWebSockets(server) {
 			console.log('WebSocket client connected');
 			
 			ws.on('message', (msg, isBinary) => {
-				try {
-
-					if (reconnect) {
-						handleMessage(ws, {type: "reconnect"}); // actual player detials needed
-						reconnect = false;
-						return;
-					}
-					const text = isBinary ? msg.toString() : msg.toString('utf8');
-					const data = JSON.parse(text);
-					handleMessage(ws, data);
+				let data;				
+				//try {
+				//if (reconnect) {
+				//		handleMessage(ws, {type: "reconnect"}); // actual player detials needed
+				//		reconnect = false;
+				//		return;
+				//	}
+				//	console.log('Raw WebSocket message:', msg);
+				//	const text = Buffer.isBuffer(msg) ? msg.toString() : msg;
+//
+				//	console.log('Text version is ------', text);
+				//	//const text = isBinary ? msg.toString() : msg.toString('utf8');
+				//	const data = JSON.parse(text);
+				//	handleMessage(ws, data);
+				//	} catch (err) {
+				//	console.error('Invalid JSON:', msg);
+				//	ws.send('Error: Invalid format');
+				//}
+					try {
+					  const text = Buffer.isBuffer(msg) ? msg.toString() : msg;
+					  data = JSON.parse(text);
 					} catch (err) {
-					console.error('Invalid JSON:', msg);
-					ws.send('Error: Invalid format');
-				}
+					  console.error('Failed to parse JSON:', msg.toString());
+					  console.error('Parse error:', err.message);
+					  ws.send('Error: Invalid format');
+					  return;
+					}
+					
+					try {
+						//console.log('CHECKING THE GAME ID BEFORE MESSAGE HANLDER', JSON.stringify(data));
+					  handleMessage(ws, data);
+					} catch (err) {
+					  console.error('Error in handleMessage:', err.message);
+					}	
 			});
 
 			ws.on("close", () => {

@@ -1,5 +1,6 @@
 const schemas = require('@sharedSchemas');
 const { API_PROTOCOL } = require('@sharedApi');
+const {log} = require('@logger');
 /**
  * @type {import('../../shared/payloads').RegisterUserPayload}
  */
@@ -21,10 +22,10 @@ async function registerUser(fastify, options) {
 	}, async (request, reply) => {
 		/** @type {RegisterUserPayload} */
 		const { username, password, score, status } = request.body;
-		console.log('Incoming user data:', request.body);
+		log('REGISTER_USER:', `in coming body ${JSON.stringify(request.body)}`);
 		try {
 		const result = await DBinsert.insertUser({ username, password, score, status });
-		console.log('User registration result:', result);
+		log('REGISTER_USER', `User registration result: ${result}`);
 			reply.send(result);
 		} catch (err) {
 			reply.code(500).send(err);
@@ -32,25 +33,25 @@ async function registerUser(fastify, options) {
 	});
 }
 
-
+// result change may affect frontend testing due to incorrect path
 async function loginUser(fastify, options) {
-	const { DBinsert, secure } = options;
+	const { DBget, secure } = options;
 	fastify.post(API_PROTOCOL.LOGIN_USER.path, {
 	}, async (request, reply) => {
 		const { username, password} = request.body;
-		console.log('Incoming user data:', request.body);
+		log('LOGINUSER', `Incoming user data: ${JSON.stringify(request.body)}`);
 		try {
-			// could try use miniLogin here instead
 		// here it looks to find if user exists and password matches.
-			const result = await DBinsert.loginUser({ username, password});
+			const result = await DBget.miniLogin(username, password);//*DBinsert.loginUser({ username, password});
 			// if user 2fa -> securty.js handle that
 			// dev testing for now
-			const token = secure.generateToken(result);
+			const token = secure.generateToken(result, username);
+			log('LOGINUSER', `token on creation ${token}`);
 			secure.setAuthCookie(reply, token);
 			// change status function once everything verified
 
 			
-			console.log('User registration result:', result);
+			log('LOGINUSER', `User registration result:${JSON.stringify(result)}`);
 			reply.code(200).send('ok');
 			//reply.send(result);
 		} catch (err) {

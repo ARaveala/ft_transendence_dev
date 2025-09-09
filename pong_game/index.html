@@ -21,7 +21,25 @@
 		<div id="paddle2" class="paddle" style="right: 75px"></div>
 		<div id="ball" class="ball" style="top: 500px; left: 500px"></div>
 		<script>
+			// the other html is sending the gameId and token over 
+			const urlParams = new URLSearchParams(window.location.search);
+			const gameId = urlParams.get('gameId');
 
+			const startData = JSON.parse(decodeURIComponent(urlParams.get('startData')));
+			const player1Token = urlParams.get('player1');
+			const player2Token = urlParams.get('player2'); // might be null if not provided
+			// somehow this logic needs to be token isntead of players, incase of remot eplay
+			if (player2Token) {
+			  console.log("Player 2 token detected:", player2Token);
+			  // Proceed with local multiplayer logic
+			} else {
+			  console.log("No Player 2 token — assuming remote or single-player mode");
+			  // Proceed with single-player or remote logic
+			}
+//			const token = urlParams.get('token');
+
+			console.log('game ID:', gameId);
+			console.log('token:', player1Token);
 
 			// window sizes and framerate etc
 			const height = window.innerHeight;
@@ -53,8 +71,11 @@
 
 			webSocket.onopen = (event) => {
 				console.log("WebSocket connection opened.");
+				console.log('Sending init message game id:', gameId);
 				webSocket.send(JSON.stringify({
 					type: "init",
+					gameId: gameId,
+					token: player1Token,
 					payload: {
     				    height: height,
     				    width: width,
@@ -64,18 +85,27 @@
     				}
 				}));
 			};
-
+			//webSocket.onerror = (event) => {
+//
+			//};
 			webSocket.onmessage = (event) => {
 				positions = JSON.parse(event.data);
+				if (data.type == 'init_ack') {
+					console.log(data.message); // logs "Init succeeded"
+  					// Or show it on the page:
+  					document.body.insertAdjacentHTML('beforeend', `<p>${data.message}</p>`);
+					webSocket.send(JSON.stringify({
+						type: "initPlayer",
+						player1: player1Token,
+						player2: player2Token
+					}))
+				}
 			};
 
 			webSocket.onclose = (event) => {
 				console.log("WebSocket connection closed.");
 			};
 
-			webSocket.onerror = (error) => {
-				console.error("WebSocket error:", error);
-			};
 
 			document.addEventListener("keydown", (e) => {
 				for (let i = 0; i < 4; ++i) {
@@ -103,7 +133,7 @@
 			setInterval(() => {
 				// send which keys are pressed down as json with payload
 				  if (webSocket.readyState === WebSocket.OPEN) {
-  					  webSocket.send(JSON.stringify({ type: 'keys', payload: keysDown }));
+  					  webSocket.send(JSON.stringify({gameId: gameId, type: 'keys', payload: keysDown }));
   				}
 
 				//webSocket.send(JSON.stringify(keysDown));

@@ -3,9 +3,13 @@ const {
 } = require('../pong_game/pong_server.js');
 
 const {
-	games
+	games,
+	getGame
 } = require('@Rgame');
 
+const {
+	verifyToken
+} = require('@security');
 
 function handleGreet(ws, data){
 		console.log('Received greeting:', data.message);
@@ -32,8 +36,8 @@ const player1Token = jwt.sign(
 
 // each player must send their own init 
 function initPlayer(ws, data) {
-  const { token, gameId } = data;
-  const session = validateWsToken(token, gameId);
+  const { player1Token} = data;
+  const session = verifyToken(player1Token)//n(token, gameId); own fucntion here 
   if (!session) {
     ws.send(JSON.stringify({ error: 'Invalid session' }));
     ws.close();
@@ -47,17 +51,28 @@ function initPlayer(ws, data) {
 
 
 //this attatches the ws object to the ingame memeory 
+//function attachPlayerToGame(ws, session) {
+//	const game = games.get(session.gameId);
+//	if (!game) return false;
+//	if (session.role === 'player1') {
+//		game.player1.ws = ws;
+//	} else if (session.role === 'player2') {
+//		game.player2.ws = ws;
+//	}	
+//	return true;
+//}
+
 function attachPlayerToGame(ws, session) {
-	const game = games.get(session.gameId);
+	const game = getGame(session.gameId);
 	if (!game) return false;
 	if (session.role === 'player1') {
-	  game.player1.ws = ws;
+		game.player1.ws = ws;
 	} else if (session.role === 'player2') {
-	  game.player2.ws = ws;
+		game.player2.ws = ws;
 	}	
 	return true;
 }
-module.exposrts = {handleGreet, startLoop, initPlayer}
+module.exports = {handleGreet, startLoop, initPlayer}
 
 /** example of an active game body
  * activeGames.get('abc123') === {

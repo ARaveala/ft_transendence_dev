@@ -6,16 +6,19 @@ const {
 const {
   handleGreet,
   startLoop,
+  initPlayer,
   //handleMove,
   //handleConnection,
   //handlePing
 } = require('./handlers.js');
 
 const {
-	games
+	games,
+	getGame,
 } = require("@Rgame");
 // we should rename this to message deligation?
 
+const {log} = require('@logger');
 //const games = new Map(); // matchId -> gameState
 // let state = games.get(matchId);
 
@@ -30,6 +33,18 @@ let paused = false;
 let reconnect = false;
 
 function handleMessage(ws, data) {
+	const id = Number(data.gameId); // normalize type
+	const game = getGame(id);
+	//let game = getGame(data.gameId);
+	log('HANDLE MESSAGE::', `geting game with id ${JSON.stringify(data.gameId)}`);
+	//console.log('All game IDs:', Array.from(game.keys()));
+	if (!game) {
+		console.error('no game to get :');
+		currentWs.send(JSON.stringify({ error: 'Game is null' }));
+		log("HANDLE MESSAGE:: ", 'game is null');
+		return;
+	}
+	let gameState = game.payload;
 	currentWs = ws;
 	switch (data.type) {
 		case 'greet':
@@ -52,28 +67,32 @@ function handleMessage(ws, data) {
 		}
 		case 'initPlayer':{
 			// this fucntion dosnt care about if remote or local
-			if (initPlayer(currentWs, data));
+			initPlayer(currentWs, data);
 			// send status data.player ready, gameid?, 
 			// update a player init, wait for second before full true
+			log('PLAYER INIT CASE::', "after init ");
 			break;
 		}
 //		case 'remotePlayerReady':
 		case 'init': {
-			console.log("game init is activated ", data.payload);
+			log('GAME INIT CASE::', "starting game init ");
+			//console.log("game init is activated ", data.payload);
+	//		game = getGame(data.gameId);
+	//		log('GAME INIT CASE::', `did game come through ${JSON.stringify(game)}`);
+			//gameState = createGameState();
+			// merge not create a new object 
+			//Object.assign(game.payload, createGameState());
+	//		gameState = game.payload;
+			//game.payload = gameState;
+			log('GAME INIT CASE::', `checking payload ${JSON.stringify(gameState)}`);
+			//games.get(data.gameId);
 
-			const gameState = games.get(data.gameId);
-			createGameState();
-//games.get(data.gameId);
-
-			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset }
-			games.set(data.gameId, gameState);
-			
+			initGame(gameState, createGameState()); // payload = { height, width, ballSize, paddleSize, paddleOffset }
+//			games.set(data.gameId, gameState);
+			log('GAME INIT CASE::', `gamestate after creategamestate ${JSON.stringify(gameState)}`);
 			startLoop(currentWs, gameState);
-			//currentWs.send(JSON.stringify(gameState.positions));
-			//	gameState.loop = setInterval(() => {
-			//		updateGame(gameState);
-			//		currentWs.send(JSON.stringify(gameState.positions));
-			//	}, 1000 / gameState.fps);
+			log('GAME INIT CASE::', "sending a message to front end ");
+			currentWs.send(JSON.stringify({type: 'init_ack', message: 'game init success' }));
 			
 		}
 			break;
