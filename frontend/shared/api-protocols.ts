@@ -62,6 +62,11 @@ export const API_PROTOCOL = {
   TOURNAMENT_STATE: {
     path: '/tournament/:id/state',
     method: 'POST',
+  },
+
+  DELETE_PROFILE: {
+	  path: '/profile',
+	  method: 'DELETE',
   }
 
 } as const;

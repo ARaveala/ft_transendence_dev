@@ -35,6 +35,14 @@ const mockPlayers: PlayerPayload = [
 ];
 
 export const handlers = [
+	//Mock for delete profile
+	http.delete(API_PROTOCOL.DELETE_PROFILE.path, async () => {
+	return HttpResponse.json(
+	{ status: 'DELETED' }, 
+	{ status: 200 }
+	);
+	}),
+
   // Mock for registration response
   http.post(API_PROTOCOL.REGISTER_USER.path, async ({ request }) => {
     const data = await request.json();
