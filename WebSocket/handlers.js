@@ -17,10 +17,18 @@ function handleGreet(ws, data){
 }
 
 function startLoop(ws, gameState) {
-	ws.send(JSON.stringify(gameState.positions));
+	ws.send(JSON.stringify({type: "update_game", data: gameState.positions}));
 	gameState.loop = setInterval(() => {
+		//const test = gameState.keysDown;
+		//for (const [key, value] of Object.entries(test)) {
+		//  if (value === true) {
+		//    console.log(`${key} turned true in gameState`);
+		//  }
+		//}
+		//console.log("Keys at loop tick:", gameState.keysDown);
+
 		updateGame(gameState);
-		ws.send(JSON.stringify(gameState.positions));
+		ws.send(JSON.stringify({type: "update_game", data: gameState.positions}));
 	}, 1000 / gameState.fps);
 			
 }
@@ -35,9 +43,11 @@ const player1Token = jwt.sign(
  */
 
 // each player must send their own init 
-function initPlayer(ws, data) {
-  const { player1Token} = data;
-  const session = verifyToken(player1Token)//n(token, gameId); own fucntion here 
+function initPlayer(ws, token) {
+  //const { token} = data;
+  //console.log("CHEKCING:: initplayer is getting players", Array.from(players.entries()));
+  const session = verifyToken(token)//n(token, gameId); own fucntion here 
+	console.log("whats in session", session);
   if (!session) {
     ws.send(JSON.stringify({ error: 'Invalid session' }));
     ws.close();
@@ -45,34 +55,42 @@ function initPlayer(ws, data) {
   }
 
   attachPlayerToGame(ws, session);
-  ws.send(JSON.stringify({ status: 'connected ', playerId: session.playerId }));
+  console.log("player inited");
+//  ws.send(JSON.stringify({ status: 'connected ', playerId: session.playerId }));
 }
 //once both players have connected front end sends yes and we start the game 
 
-
-//this attatches the ws object to the ingame memeory 
-//function attachPlayerToGame(ws, session) {
-//	const game = games.get(session.gameId);
-//	if (!game) return false;
-//	if (session.role === 'player1') {
-//		game.player1.ws = ws;
-//	} else if (session.role === 'player2') {
-//		game.player2.ws = ws;
-//	}	
-//	return true;
-//}
-
 function attachPlayerToGame(ws, session) {
-	const game = getGame(session.gameId);
-	if (!game) return false;
-	if (session.role === 'player1') {
-		game.player1.ws = ws;
-	} else if (session.role === 'player2') {
-		game.player2.ws = ws;
-	}	
+	//const game = getGame(session.gameId);
+	ws.playerId = session.id;
+	ws.gameId = session.gameId;
+
+	const game = getGame(ws.gameId);
+	//if (!game) return false;
+    const player = game.players.get(ws.playerId);
+	if (!player) {
+		ws.send(JSON.stringify({ error: 'Player not found in game' }));
+		ws.close();
+		return;
+	}
+	player.ws = ws;	
+	//console.log("CHEKCING:: initplayer after updating", Array.from(players.entries()));
 	return true;
 }
-module.exports = {handleGreet, startLoop, initPlayer}
+
+function getGameContext(ws, data, playerinit) {
+    if (!playerinit) return undefined;
+
+    const gameId = ws.gameId || Number(data.gameId); // i would like to remove the need for this at all for saftey 
+    const game = getGame(gameId);
+    if (!game) return undefined;
+
+    return {
+        game,
+        gameState: game.payload
+    };
+}
+module.exports = {handleGreet, startLoop, initPlayer, getGameContext}
 
 /** example of an active game body
  * activeGames.get('abc123') === {

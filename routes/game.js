@@ -55,20 +55,20 @@ function createGameMap(owner, mode, type) {
 		phase: "setup",
 		players: new Map(),
 		payload: {
-			fps: undefined,
-			height: undefined,
-    		width: undefined,
-    		ballSize: undefined,
-    		paddleSize: undefined,
-    		paddleOffset: undefined,
-			paddleSpeed: undefined,
-			ballSpeed: undefined,
-			leftPaddleI: undefined,
-			rightPaddleI: undefined,
-			ballYI: undefined,
-			ballXI: undefined,
-			positions: [0, 0, 0, 0],
-			ball: { dx: 0, dy: 0 },
+			fps: 60,
+			height: 1,
+    		width: 1,
+    		ballSize: 1,
+    		paddleSize: 1,
+    		paddleOffset: 1,
+			paddleSpeed: 10,
+			ballSpeed: 2,
+			leftPaddleI: 0,
+			rightPaddleI: 1,
+			ballYI: 2,
+			ballXI: 3,
+			positions: [100, 100, 100, 100],
+			ball: { dx: 3, dy: 1 },
 			gameRunning: false,
 			keysDown: [false, false, false, false],
 			lastUpdate: undefined		
@@ -82,6 +82,9 @@ function getGame(gameId) {
 	return games.get(gameId);
 }
 
+//function getPlayers(players, playerId) {
+//	return 
+//}
 function deleteGame(gameId) {
   games.delete(gameId);
 }
@@ -97,10 +100,10 @@ function addPlayer(gameId, playerId, playerData) {
 //	game.players.set(playerId, playerData);
 //	log('ADD_PLAYER',`checking actual players ${JSON.stringify(game.players)}`);
 
-	 const game = games.get(gameId);
-  console.log('Before adding:', Array.from(game.players.entries()));
-  game.players.set(playerId, playerData);
-  console.log('After adding:', Array.from(game.players.entries()));
+	const game = games.get(gameId);
+	console.log('Before adding:', Array.from(game.players.entries()));
+	game.players.set(playerId, playerData);
+	console.log('After adding:', Array.from(game.players.entries()));
 }
 
 
@@ -207,16 +210,10 @@ async function startGame(fastify, options) {
 		log('START_GAME',`debug1`);
     	// Generate WS tokens for each player unless ai?
 		const playerTokens = {};
-		for (const [playerId] of game.players) {
-			if (playerTokens[playerId].role == 'player1'){
-				console.log('GOT THE METHOD');
-			}
-			playerTokens[playerId] = secure.generateWsToken(playerId, gameId);
-			//log("checking token creation and then the id", `${playersToken[playerId]}, ${playerId}`);
-			console.log("---------------------------------in the loop");
-			console.log(JSON.stringify(playerTokens[playerId]));
+		for (const [playerId, playerData] of game.players) {
+		  const role = playerData.role; // ✅ this is what you're after
+		  playerTokens[role] = secure.generateWsToken(playerId, gameId);
 		}
-		//const player1 = secure.generateWsToken(game.players, gameId);
 		log('START_GAME',`debug2`);
 		if (Object.keys(playerTokens).length < 2){
 			log("player tokens is not the size of 2-----------------------------------");

@@ -47,20 +47,20 @@ function setUpWebSockets(server) {
 				//	ws.send('Error: Invalid format');
 				//}
 					try {
-					  const text = Buffer.isBuffer(msg) ? msg.toString() : msg;
-					  data = JSON.parse(text);
-					} catch (err) {
-					  console.error('Failed to parse JSON:', msg.toString());
-					  console.error('Parse error:', err.message);
-					  ws.send('Error: Invalid format');
-					  return;
+						const text = Buffer.isBuffer(msg) ? msg.toString() : msg;
+						data = JSON.parse(text);
+						} catch (err) {
+							console.error('Failed to parse JSON:', msg.toString());
+							console.error('Parse error:', err.message);
+							ws.send('Error: Invalid format');
+						return;
 					}
 					
 					try {
 						//console.log('CHECKING THE GAME ID BEFORE MESSAGE HANLDER', JSON.stringify(data));
-					  handleMessage(ws, data);
+						handleMessage(ws, data);
 					} catch (err) {
-					  console.error('Error in handleMessage:', err.message);
+						console.error('Error in handleMessage:', err.message);
 					}	
 			});
 
@@ -86,7 +86,7 @@ function setUpWebSockets(server) {
 			ws.on("error", (err) => {
 				console.error("WebSocket error:", err);
 			});
-			ws.send('Welcome to the WebSocket server!');
+			ws.send(JSON.stringify({type: 'welcome', msg: 'Welcome to the WebSocket server!'}));
 		});
 
 

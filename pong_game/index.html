@@ -26,8 +26,8 @@
 			const gameId = urlParams.get('gameId');
 
 			const startData = JSON.parse(decodeURIComponent(urlParams.get('startData')));
-			const player1Token = urlParams.get('player1');
-			const player2Token = urlParams.get('player2'); // might be null if not provided
+			const player1Token = urlParams.get('player1Token');
+			const player2Token = urlParams.get('player2Token'); // might be null if not provided
 			// somehow this logic needs to be token isntead of players, incase of remot eplay
 			if (player2Token) {
 			  console.log("Player 2 token detected:", player2Token);
@@ -65,40 +65,87 @@
 			ball.style.width = ballSize + "px";
 
 			let positions;
-			
+			let gameReady = false
 			// web
 			const webSocket = new WebSocket("ws://localhost:3000/ws");
 
 			webSocket.onopen = (event) => {
 				console.log("WebSocket connection opened.");
 				console.log('Sending init message game id:', gameId);
-				webSocket.send(JSON.stringify({
-					type: "init",
-					gameId: gameId,
-					token: player1Token,
-					payload: {
-    				    height: height,
-    				    width: width,
-    				    ballSize: ballSize,
-    				    paddleSize: paddleSize,
-    				    paddleOffset: paddleOffset
-    				}
-				}));
+				webSocket.send(JSON.stringify({gameId: gameId, type: 'initPlayer', token: player1Token}));
+				//webSocket.send(JSON.stringify({
+				//	type: "init",
+				//	gameId: gameId,
+				//	token: player1Token,
+				//	payload: {
+    			//	    height: height,
+    			//	    width: width,
+    			//	    ballSize: ballSize,
+    			//	    paddleSize: paddleSize,
+    			//	    paddleOffset: paddleOffset
+    			//	}
+				//}));
 			};
-			//webSocket.onerror = (event) => {
-//
-			//};
 			webSocket.onmessage = (event) => {
-				positions = JSON.parse(event.data);
-				if (data.type == 'init_ack') {
-					console.log(data.message); // logs "Init succeeded"
-  					// Or show it on the page:
-  					document.body.insertAdjacentHTML('beforeend', `<p>${data.message}</p>`);
-					webSocket.send(JSON.stringify({
-						type: "initPlayer",
-						player1: player1Token,
-						player2: player2Token
-					}))
+				if (typeof event.data !== 'string') {
+  				  console.warn('Unexpected non-string WebSocket message:', event.data);
+  				  return;
+  				}
+				else {
+					try {
+						
+  					  const data = JSON.parse(event.data);
+					 // console.log("should be doing the thingdata.data", Array.from(data.data.entries()));
+	  					if (data.type == 'update_game') {
+							console.log("update is activated");
+							positions = data.data;//JSON.parse(event.data);
+						} 	
+						if (data.type == 'welcome'){
+							console.log(data.msg);
+						}
+						if (data.type == 'init_ack'){
+							 webSocket.send(JSON.stringify({gameId: gameId, type: 'start_loop', token: player1Token}));
+							 gameReady = true;
+						}
+						if (data.type == 'playerInit_ack'){
+							 webSocket.send(JSON.stringify({
+								type: "init",
+								gameId: gameId,
+								token: player1Token,
+								payload: {
+    							    height: height,
+    							    width: width,
+    							    ballSize: ballSize,
+    							    paddleSize: paddleSize,
+    							    paddleOffset: paddleOffset
+    							}
+							}));
+							
+						}
+						// if reconnect we must have stored these tokens 
+						//eg sessionStorage.setItem('playerToken', playerToken);
+						//	sessionStorage.setItem('gameId', gameId);
+						// then resend the tokens for verification. 
+
+  					} catch (err) {
+  					  console.error('Invalid JSON from server:', event.data);
+  					}
+					
+				//const data = JSON.parse(event.data);
+				//if (data.type == 'update_game'){
+				//	positions = data.data;//JSON.parse(event.data);
+				//}
+				//if (data.type == 'init_ack') {
+				//	console.log(data.message); // logs "Init succeeded"
+//				//	positions = 
+				//	// Or show it on the page:
+  				//	document.body.insertAdjacentHTML('beforeend', `<p>${data.message}</p>`);
+				//	//webSocket.send(JSON.stringify({
+				//	//	type: "initPlayer",
+				//	//	player1: player1Token,
+				//	//	player2: player2Token
+				//	//}))
+				//}
 				}
 			};
 
@@ -132,7 +179,7 @@
 
 			setInterval(() => {
 				// send which keys are pressed down as json with payload
-				  if (webSocket.readyState === WebSocket.OPEN) {
+				  if (webSocket.readyState === WebSocket.OPEN && gameReady) {
   					  webSocket.send(JSON.stringify({gameId: gameId, type: 'keys', payload: keysDown }));
   				}
 
