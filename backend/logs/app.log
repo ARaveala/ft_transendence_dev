@@ -782,3 +782,93 @@
 [GETGAME] geting game called
 [GETGAME] geting game called
 [GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[REGISTER_USER:] in coming body {"username":"oooo","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] taking id from token
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[REGISTER_USER:] in coming body {"username":"poopoo","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] taking id from token
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[REGISTER_USER:] in coming body {"username":"stop","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJtZXNzYWdlIjoiVXNlciBhZGRlZCB5YXkhIiwidXNlcklkIjo1NX0sInVzZXJuYW1lIjoic3RvcCIsImlhdCI6MTc1NzYwNDMwOCwiZXhwIjoxNzU3NjA3OTA4fQ.7C5J0DwfxsZf3Wns25wM5gsBylofEhIPp03jWZSnYp8
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":55},"username":"stop","iat":1757604308,"exp":1757607908}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":55},"username":"stop","iat":1757604308,"exp":1757607908}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":55},"username":"stop","iat":1757604308,"exp":1757607908}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":55},"username":"stop","iat":1757604308,"exp":1757607908}
+[REGISTER_USER:] in coming body {"username":"fafaf","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJtZXNzYWdlIjoiVXNlciBhZGRlZCB5YXkhIiwidXNlcklkIjo1Nn0sInVzZXJuYW1lIjoiZmFmYWYiLCJpYXQiOjE3NTc2MDQ2NDUsImV4cCI6MTc1NzYwODI0NX0.vHK7SweUxC2It7KobM7pdO9JXi7RQGU9OusDy8yWvFg
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":56},"username":"fafaf","iat":1757604645,"exp":1757608245}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":56},"username":"fafaf","iat":1757604645,"exp":1757608245}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[REGISTER_USER:] in coming body {"username":"rarara","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJtZXNzYWdlIjoiVXNlciBhZGRlZCB5YXkhIiwidXNlcklkIjo1N30sInVzZXJuYW1lIjoicmFyYXJhIiwiaWF0IjoxNzU3NjA0NzQ5LCJleHAiOjE3NTc2MDgzNDl9.Gk0ohtS2mQShEVdVXP8eWlpRywVGIWIf9H9FzzP4Qxs
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":57},"username":"rarara","iat":1757604749,"exp":1757608349}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":57},"username":"rarara","iat":1757604749,"exp":1757608349}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":57},"username":"rarara","iat":1757604749,"exp":1757608349}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":57},"username":"rarara","iat":1757604749,"exp":1757608349}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[REGISTER_USER:] in coming body {"username":"nanana","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJtZXNzYWdlIjoiVXNlciBhZGRlZCB5YXkhIiwidXNlcklkIjo1OH0sInVzZXJuYW1lIjoibmFuYW5hIiwiaWF0IjoxNzU3NjA1OTIwLCJleHAiOjE3NTc2MDk1MjB9.KenG4QKgUWF07SkhcG0JUepCcbkzHPFolO8bWdnYdYs
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":58},"username":"nanana","iat":1757605920,"exp":1757609520}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":58},"username":"nanana","iat":1757605920,"exp":1757609520}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":58},"username":"nanana","iat":1757605920,"exp":1757609520}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":58},"username":"nanana","iat":1757605920,"exp":1757609520}
+[REGISTER_USER:] in coming body {"username":"hshdsh","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJtZXNzYWdlIjoiVXNlciBhZGRlZCB5YXkhIiwidXNlcklkIjo1OX0sInVzZXJuYW1lIjoiaHNoZHNoIiwiaWF0IjoxNzU3NjA2MTU0LCJleHAiOjE3NTc2MDk3NTR9.jTfC3IP0G2QUGhEfGOQodcng3Yu-dt7wYh8V661QgQs
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":59},"username":"hshdsh","iat":1757606154,"exp":1757609754}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":59},"username":"hshdsh","iat":1757606154,"exp":1757609754}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[REGISTER_USER:] in coming body {"username":"vAVAVAV","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NjAsInVzZXJuYW1lIjoidkFWQVZBViIsImlhdCI6MTc1NzYwNjI3OSwiZXhwIjoxNzU3NjA5ODc5fQ.8GC-aCC-_QW7B-A4IvKmRa2GkHTkGEa06xizOynWYI0
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":60,"username":"vAVAVAV","iat":1757606279,"exp":1757609879}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":60,"username":"vAVAVAV","iat":1757606279,"exp":1757609879}

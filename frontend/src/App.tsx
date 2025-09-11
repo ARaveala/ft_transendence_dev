@@ -19,6 +19,7 @@ import Tournament from "./pages/TournamentLobby";
 import Leaderboard from "./pages/Leaderboard";
 import Friends from "./pages/Friends";
 import Profile from "./pages/ProfilePage";
+import SettingsPage from "./pages/SettingsPage";
 
 // Import shared layout components
 import Navbar from "./components/layout/Navbar";
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/friends" element={<Friends />} />
           <Route path="/profile" element={<Profile />} />
+		  <Route path="/settings" element={<SettingsPage />} />
         </Routes>
         </Layout>
     </Router>

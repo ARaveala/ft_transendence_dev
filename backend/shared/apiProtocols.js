@@ -2,31 +2,31 @@ const path = require("path");
 
 const API_PROTOCOL = {
 	REGISTER_USER: {
-		path: '/register-user',
+		path: '/api/register',
 		method: 'POST',
 	},
 	LOGIN_USER: {
-		path: '/login',	
+		path: '/api/login',	
 		method: 'POST',
 	},
     CREATE_GAME:  {
-		path: '/create-game',
+		path: '/api/create-game',
 		method: 'POST',
 	},
 	START_GAME:  {
-		path: '/start-game',
+		path: '/api/start-game',
 		method: 'POST',
 	},
     JOIN_GAME:  {
-		path: '/join-game',
+		path: '/api/join-game',
 		method: 'POST',
 	},
 	GET_USER: {
-		path: '/user/:id',
+		path: '/api/user/:id',
 		method: 'GET',
 	},
 	GET_PROFILE: {
-		path: '/profile',
+		path: '/api/profile',
 		method: 'GET',
 
 	},
@@ -34,46 +34,46 @@ const API_PROTOCOL = {
 
 //const API_PROTOCOL = {
 //  REGISTER_USER: {
-//    path: '/register',
+//    path: '/api/register',
 //    method: 'POST',
 //  },
 //  LOGIN_USER: {
-//    path: '/login',
+//    path: '/api/login',
 //    method: 'POST',
 //  },
 //  GET_USER: {
-//    path: '/profile',
+//    path: '/api/profile',
 //    method: 'GET',
 //  },
 //  UPDATE_PROFILE: {
-//    path: '/profile/update',
+//    path: '/api/profile/update',
 //    method: 'POST',
 //  },
 //  //GET_PROFILE: {
-//  //  path: '/profile',
+//  //  path: '/api/profile',
 //  //  method: 'GET',
 //  //},
 //  GET_LEADERBOARD: {
-//    path: '/leaderboard',
+//    path: '/api/leaderboard',
 //    method: 'GET',
 //  },
 //  ADD_FRIEND: {
-//    path: '/friends/add',
+//    path: '/api/friends/add',
 //    method: 'POST',
 //  },
 //  GET_FRIENDS: {
-//    path: '/friends',
+//    path: '/api/friends',
 //    method: 'GET',
 //  },
 //
 //  GET_PLAYER: {
-//    path: '/player',
+//    path: '/api/player',
 //    method: 'GET',
 //  }
 //} //as const; was in file that is .ts
 module.exports = { API_PROTOCOL };
 
 //  GET_GAME_STATE: {
-//    path: '/game/state',
+//    path: '/api/game/state',
 //    method: 'GET',
 //  },npm install @sinclair/typebox

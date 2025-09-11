@@ -11,6 +11,7 @@ const Navbar: React.FC = () => {
       <Link to="/friends" className="hover:underline">Friends</Link>
       <div className="ml-auto flex gap-4">
         <Link to="/profile" className="hover:underline">Profile</Link>
+		<Link to="/settings" className="hover:underline">Settings</Link>
         <Link to="/exit" className="hover:underline">Exit</Link>
       </div>
     </nav>

@@ -28,7 +28,7 @@ this could be managed by routes calling 3 fucntions     const player = await db.
     const matchHistory = await db.getMatchHistory(playerId);
  */
 async function fetchUser({ userId }) {
-	console.log('Fetching user with ID:', userId);
+	console.log('Finside db::fetching user with ID:', userId);
 		return new Promise((resolve, reject) => {
 			db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) =>{
 				if (err || !row) {

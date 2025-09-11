@@ -28,6 +28,8 @@ async function getUser(fastify, options) {
 		console.log('Cookies in get User:', request.cookies);
 
 		const userId = secure.getUserIdFromToken(token);
+		console.log("-------- is the id valid", userId);
+		console.log("debug :: after get userid from");
 
 		const mockProfile = {
 				username: "PlayerOne",
@@ -51,6 +53,7 @@ async function getUser(fastify, options) {
 		//const userId = request.params.id;
 		console.log('Fetching user with ID:', userId);
 		try {
+			console.log("debug :: inside try block");
 			const result = await DBget.fetchUser({userId});
 			console.log("the user we should be returning is :", result);
 			reply.send(mockProfile);

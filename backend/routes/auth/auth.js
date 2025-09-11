@@ -16,16 +16,23 @@ console.log('API_PROTOCOL:', API_PROTOCOL);
 defaults 
  */
 async function registerUser(fastify, options) {
-	const { DBinsert,} = options;
+	const {secure, DBinsert,} = options;
 	fastify.post(API_PROTOCOL.REGISTER_USER.path, {
 	schema: { body: schemas.RegisterUser }
 	}, async (request, reply) => {
 		/** @type {RegisterUserPayload} */
-		const { username, password, score, status } = request.body;
+		const { username, password} = request.body;
+		const  score = 0;
+		const  status = 'online';
+
 		log('REGISTER_USER:', `in coming body ${JSON.stringify(request.body)}`);
 		try {
 		const result = await DBinsert.insertUser({ username, password, score, status });
 		log('REGISTER_USER', `User registration result: ${result}`);
+
+		const token = secure.generateToken(result.userId, username);
+		log('LOGINUSER', `token on creation ${token}`);
+		secure.setAuthCookie(reply, token)
 			reply.send(result);
 		} catch (err) {
 			reply.code(500).send(err);
