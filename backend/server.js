@@ -77,6 +77,7 @@ fastify.register(fastifyStatic, {
   decorateReply: false // prevents re-adding sendFile
 });
 
+// TEST:: docker does not seem to need this 
 //fastify.register(require('@fastify/cors'), {
 //  origin: 'http://localhost:3000', // your frontend dev server 5173 front end dev
 //  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -106,7 +107,15 @@ const start = async () => {
 	//await fastify.register(require('@fastify/cors'), {
     //  		origin: '*', // Allow all origins (for testing only)
     //});
-    await fastify.listen({ port: 3000 });
+    //await fastify.listen({ port: 3000 });
+	// have added for testing a local host binding to test docker ability to connect to browser
+    fastify.listen({ port: 3000, host: '0.0.0.0' }, err => {
+	  if (err) {
+	    fastify.log.error(err)
+	    process.exit(1)
+	  }
+	  fastify.log.info('Server listening on port 3000')
+	});
 	setUpWebSockets(fastify.server);
     console.log('WebSocket server is running');
   } catch (err) {

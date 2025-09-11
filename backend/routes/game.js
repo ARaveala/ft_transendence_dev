@@ -91,16 +91,11 @@ function deleteGame(gameId) {
 
 
 function addPlayer(gameId, playerId, playerData) {
-//	const game = getGame(gameId);
 //	log('ADD_PLAYER',`addPlayer called with:${gameId}, ${JSON.stringify(playerId)}, ${JSON.stringify(playerData)}`);
-//	//console.log('Type of game.players:', game.players instanceof Map);
-//
-//	if (!game) throw new Error('Game not found');
-//
-//	game.players.set(playerId, playerData);
-//	log('ADD_PLAYER',`checking actual players ${JSON.stringify(game.players)}`);
+//	console.log('Type of game.players:', game.players instanceof Map);
 
 	const game = games.get(gameId);
+	if (!game) throw new Error('Game not found');
 	console.log('Before adding:', Array.from(game.players.entries()));
 	game.players.set(playerId, playerData);
 	console.log('After adding:', Array.from(game.players.entries()));
@@ -120,11 +115,9 @@ async function createGame(fastify, options) {
 		// this also verifies the token
 		const user1 = secure.getUserIdFromToken(token); //this should throw bad session or something
 	    log('CREATE_GAME', `checking id ${user1}`);
-		// Create game session
-	  // const gameId = createGameSession(); // this  database?
 		// local or remote should be type, mode is vs or tournament
 		const gameId = createGameMap(user1, type, mode);
-		addPlayer(gameId, user1, {type: "login", ws: undefined, role: "player1", alias: undefined});
+		addPlayer(gameId, user1, {type: "login", ws: undefined, role: "player1", alias: undefined, ready: false});
 		log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
 		reply.send({ status: 'game created' , gameId});
 	   } catch (err) {
@@ -140,8 +133,6 @@ async function joinGame(fastify, options) {
 	//type: guest/login/ai
 	//mode:local/remote
 		const {gameId, type, mode, username, password, player_count} = request.body;
-		//const userId = 0;
-		// should be a try catch
 		try {
 			if (mode === "remote"){
 				const token = request.cookies.auth_token;
@@ -190,7 +181,6 @@ async function startGame(fastify, options) {
 	log('START_GAME',`starting game`);
     try { 
 //		log('START_GAME',`debug1`);
-		//const { gameId } = req.body;
 		const token = request.cookies.auth_token;
 //		log('STAR_GAME', `checking tokn ${token}`);
 		const userId = secure.getUserIdFromToken(token);
@@ -211,8 +201,8 @@ async function startGame(fastify, options) {
     	// Generate WS tokens for each player unless ai?
 		const playerTokens = {};
 		for (const [playerId, playerData] of game.players) {
-		  const role = playerData.role; // ✅ this is what you're after
-		  playerTokens[role] = secure.generateWsToken(playerId, gameId);
+			const role = playerData.role; 
+			playerTokens[role] = secure.generateWsToken(playerId, gameId);
 		}
 		log('START_GAME',`debug2`);
 		if (Object.keys(playerTokens).length < 2){
@@ -222,6 +212,7 @@ async function startGame(fastify, options) {
 		// do i need to also send type and mode of the game 
 		//console.log("show me the tokens ", JSON.stringify(playerTokens[0], JSON.stringify(playerTokens[1])));
 		reply.send({ status: 'ready', gameId, playerTokens });
+		// if remote playe we would send each player seperatley to their own game.html, they would not go through the test harness anymore
 		} catch (err) {
 			reply.code(400).send({ error: 'Game initialization failed' });
 		}

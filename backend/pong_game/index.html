@@ -73,18 +73,6 @@
 				console.log("WebSocket connection opened.");
 				console.log('Sending init message game id:', gameId);
 				webSocket.send(JSON.stringify({gameId: gameId, type: 'initPlayer', token: player1Token}));
-				//webSocket.send(JSON.stringify({
-				//	type: "init",
-				//	gameId: gameId,
-				//	token: player1Token,
-				//	payload: {
-    			//	    height: height,
-    			//	    width: width,
-    			//	    ballSize: ballSize,
-    			//	    paddleSize: paddleSize,
-    			//	    paddleOffset: paddleOffset
-    			//	}
-				//}));
 			};
 			webSocket.onmessage = (event) => {
 				if (typeof event.data !== 'string') {

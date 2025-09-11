@@ -32,18 +32,25 @@ let currentWs;
 let playerinit = false;
 let paused = false;
 let reconnect = false;
+// if remote play , each player should have its own set of keys , that are clearly 
+// attatched to the relative paddles 
+/**
+ * 
+gameState.keys = {
+  player1: { up: false, down: false },
+  player2: { up: false, down: false }
+};
 
+ */
 function handleMessage(ws, data) {
 	
 	const context = getGameContext(ws, data, playerinit);
 	const {game, gameState} = context || {};
 
-	currentWs = ws;
+	currentWs = ws; // this will have to be changed for remote play
 	switch (data.type) {
 		case 'greet':
 			handleGreet(currentWs, data);
-			//console.log('Received greeting:', data.message);
-			//ws.send('Hello back!');
 			break;
 		case 'ping':
 			currentWs.send(JSON.stringify({ type: 'pong', payload: 'Pong!' }));
@@ -60,7 +67,6 @@ function handleMessage(ws, data) {
 		}
 		case 'initPlayer':{
 			// this fucntion dosnt care about if remote or local
-//			initPlayer(currentWs, data);
 			console.log("starting player init");
 			initPlayer(currentWs, data.token);
 			//if (game.type === 'local'){
@@ -74,37 +80,38 @@ function handleMessage(ws, data) {
 			playerinit = true;
 			console.log("finnished player init");
 			currentWs.send(JSON.stringify({type: 'playerInit_ack', message: 'player init success' }));
-
 			break;
 		}
-//		case 'remotePlayerReady':
 		case 'init': {
+			// if remote initgame should only happen for player1
 			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset }
 			currentWs.send(JSON.stringify({type: 'init_ack', message: 'game init success' }));
 		}
 			break;
 		case 'keys':{
-			//console.log("keys is triggering");
+			// if remote update keys should somehow update keys for both players at the same time
+			/**
+			 * const playerId = ws.playerId;
+				gameState.keys[playerId/orsomething] = payload;
+
+			 */
 			updateKeys(gameState, data.payload); // update keys in game state
 			break;
 		}
 		case "start_loop":{
+			// if remote this should only start once player 1 and player 2 have initilized and player 1 has initilized the game
+			// then this should be updated to startloop for both player websockets
 			startLoop(currentWs, gameState);
 			break;
 		}
 		case "reconnect": {
-			paused = false; // may have future use
-			reconnect = true; // may have future use
+			paused = false; // may have future use, should be stored in game object
+			reconnect = true; // may have future use, not sure
 			currentWs.send(JSON.stringify(gameState.positions));
 			if (!gameState.loop) {
 				gameState.gameRunning = true;
 				startLoop(currentWs, gameState);
-				//gameState.loop = setInterval(() => {
-				//	updateGame(gameState);
-				//	currentWs.send(JSON.stringify(gameState.positions));
-				//}, 1000 / gameState.fps);
 				console.log("Game resumed");
-				
 			}
 			break;
 		}		
@@ -117,3 +124,21 @@ function handleMessage(ws, data) {
 
 module.exports = { handleMessage };
 
+/** example of how 2 websockets can communicate or get updates at the same time
+ * for (const player of game.players.values()) {
+  if (player.ws && player.ws.readyState === WebSocket.OPEN) {
+    player.ws.send(JSON.stringify({ type: 'start_game', payload: game.payload }));
+  }
+}
+
+ */
+
+/** example of looping through players to chekc ready status and open status , to start game loop
+ * const allReady = Array.from(game.players.values()).every(p => p.ready);
+if (allReady) {
+  for (const p of game.players.values()) {
+    if (p.ws && p.ws.readyState === WebSocket.OPEN) {
+      p.ws.send(JSON.stringify({ type: 'start_game', payload: game.payload }));
+    }
+  }
+ */

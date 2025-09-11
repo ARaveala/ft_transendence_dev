@@ -19,14 +19,6 @@ function handleGreet(ws, data){
 function startLoop(ws, gameState) {
 	ws.send(JSON.stringify({type: "update_game", data: gameState.positions}));
 	gameState.loop = setInterval(() => {
-		//const test = gameState.keysDown;
-		//for (const [key, value] of Object.entries(test)) {
-		//  if (value === true) {
-		//    console.log(`${key} turned true in gameState`);
-		//  }
-		//}
-		//console.log("Keys at loop tick:", gameState.keysDown);
-
 		updateGame(gameState);
 		ws.send(JSON.stringify({type: "update_game", data: gameState.positions}));
 	}, 1000 / gameState.fps);
@@ -44,7 +36,6 @@ const player1Token = jwt.sign(
 
 // each player must send their own init 
 function initPlayer(ws, token) {
-  //const { token} = data;
   //console.log("CHEKCING:: initplayer is getting players", Array.from(players.entries()));
   const session = verifyToken(token)//n(token, gameId); own fucntion here 
 	console.log("whats in session", session);
@@ -66,14 +57,15 @@ function attachPlayerToGame(ws, session) {
 	ws.gameId = session.gameId;
 
 	const game = getGame(ws.gameId);
-	//if (!game) return false;
+	//if (!game) return false; throw, make sure its being caught
     const player = game.players.get(ws.playerId);
 	if (!player) {
 		ws.send(JSON.stringify({ error: 'Player not found in game' }));
 		ws.close();
 		return;
 	}
-	player.ws = ws;	
+	player.ws = ws;
+	player.ready = 'true';
 	//console.log("CHEKCING:: initplayer after updating", Array.from(players.entries()));
 	return true;
 }

@@ -40,6 +40,18 @@ async function fetchUser({ userId }) {
 		});
 }
 
+//async function getUserbyName({ username }) {
+//	console.log('Fetching user with username:', username);
+//		return new Promise((resolve, reject) => {
+//			db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) =>{
+//				if (err || !row) {
+//					reject({ error: 'User not found' });
+//				} else {
+//					resolve(row || { error: 'User not found' });
+//				}
+//			});
+//		});
+//}
 
 // mini example of checking player exists and password matches . 
 
