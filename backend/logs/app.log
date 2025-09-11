@@ -872,3 +872,20 @@
 [GET USER ID FROM TOKEN] decoded token {"id":60,"username":"vAVAVAV","iat":1757606279,"exp":1757609879}
 [GET USER ID FROM TOKEN] taking id from token
 [GET USER ID FROM TOKEN] decoded token {"id":60,"username":"vAVAVAV","iat":1757606279,"exp":1757609879}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":60,"username":"vAVAVAV","iat":1757606279,"exp":1757609879}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":60,"username":"vAVAVAV","iat":1757606279,"exp":1757609879}
+[REGISTER_USER:] in coming body {"username":"aaaaaaa","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NjEsInVzZXJuYW1lIjoiYWFhYWFhYSIsImlhdCI6MTc1NzYwNjY1NSwiZXhwIjoxNzU3NjEwMjU1fQ.CNZs5vWuMQlQ9i0EXo7tZZnRacSfbmYHkmy4vlC6hus
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":61,"username":"aaaaaaa","iat":1757606655,"exp":1757610255}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":61,"username":"aaaaaaa","iat":1757606655,"exp":1757610255}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":61,"username":"aaaaaaa","iat":1757606655,"exp":1757610255}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":61,"username":"aaaaaaa","iat":1757606655,"exp":1757610255}
