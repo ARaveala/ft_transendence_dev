@@ -1,0 +1,10 @@
+frontend/
+logs/
+#node_modules/
+
+.eslintrc.cjs
+.vscode
+
+
+README.md
+GeneralDocumentations
