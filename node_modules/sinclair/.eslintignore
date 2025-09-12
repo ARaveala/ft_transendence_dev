@@ -1,0 +1,8 @@
+*.yml
+*.yaml
+*.json
+*.md
+spec/*
+test/*
+node_modules/*
+examples/*

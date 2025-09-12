@@ -2,66 +2,71 @@
 
 export const API_PROTOCOL = {
   REGISTER_USER: {
-    path: '/register',
+    path: '/api/register',
     method: 'POST',
   },
   LOGIN_USER: {
-    path: '/login',
+    path: '/api/login',
     method: 'POST',
   },
   GET_USER: {
-    path: '/user/:id',
+    path: '/api/user/:id',
     method: 'GET',
   },
   UPDATE_PROFILE: {
-    path: '/profile/update',
+    path: '/api/profile/update',
     method: 'POST',
   },
   GET_PROFILE: {
-    path: '/profile',
+    path: '/api/profile',
     method: 'GET',
   },
   GET_LEADERBOARD: {
-    path: '/leaderboard',
+    path: '/api/leaderboard',
     method: 'GET',
   },
   ADD_FRIEND: {
-    path: '/friends/add',
+    path: '/api/friends/add',
     method: 'POST',
   },
   GET_FRIENDS: {
-    path: '/friends',
+    path: '/api/friends',
     method: 'GET',
   },
 
   GET_PLAYER: {
-    path: '/player',
+    path: '/api/player',
     method: 'GET',
   },
 
   CREATE_GAME: {
-    path:'/game/local',
+    path:'/api/game/local',
     method: 'POST',
   },
 
   CREATE_TOURNAMENT: {
-    path:'/tournament',
+    path:'/api/tournament',
     method: 'POST',
   },
 
   JOIN_TOURNAMENT: {
-    path:'/tournament/:id/join',
+    path:'/api/tournament/:id/join',
     method: 'POST',
   },
 
   START_TOURNAMENT: {
-    path:'/tournament/:id/start',
+    path:'/api/tournament/:id/start',
     method: 'POST',
   },
 
   TOURNAMENT_STATE: {
-    path: '/tournament/:id/state',
+    path: '/api/tournament/:id/state',
     method: 'POST',
+  },
+
+  DELETE_PROFILE: {
+	  path: '/api/profile',
+	  method: 'DELETE',
   }
 
 } as const;

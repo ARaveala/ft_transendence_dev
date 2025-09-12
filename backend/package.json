@@ -1,0 +1,50 @@
+{
+  "name": "my-first-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^7.4.0",
+    "@fastify/cors": "^8.5.0",
+    "@fastify/websocket": "^11.2.0",
+    "@sinclair/typebox": "^0.34.40",
+    "dotenv": "^17.2.1",
+    "fastify": "^4.29.1",
+    "jsonwebtoken": "^9.0.2",
+    "module-alias": "^2.2.3",
+    "sinclair": "^0.2.0",
+    "sqlite3": "^5.1.7",
+    "typebox": "^0.0.1"
+  },
+  "_moduleAliases": {
+    "@db": "database",
+    "@routes": "routes",
+    "@rUsers": "routes/user.js",
+    "@schemas": "schemas",
+    "@Wbs": "WebSocket",
+    "@context": "routes/context.js",
+    "@sharedSchemas": "shared/schemas.js",
+    "@sharedApi": "shared/apiProtocols.js",
+    "@sharedEcode": "shared/errorCodes.js",
+    "@errors": "utils/errorFormatter.js",
+    "@security": "security/security.js",
+    "@Rauth": "routes/auth",
+    "@Rprofile": "routes/profile",
+    "@Rgame": "routes/game.js",
+	"@logger": "logger.js"
+  },
+  "devDependencies": {
+    "@fastify/static": "^6.12.0",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-no-floating-promise": "^2.0.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-security": "^3.0.1",
+    "eslint-plugin-unicorn": "^48.0.1"
+  }
+}

@@ -1,0 +1,1305 @@
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"dev1","password":"password"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NTF9LCJ1c2VybmFtZSI6ImRldjEiLCJpYXQiOjE3NTc1ODc0NTEsImV4cCI6MTc1NzU5MTA1MX0.SGT31X9MmdgXgkfRIIf1bNblRKdcwyJIk7wq4ufsDhk
+[LOGINUSER] User registration result:{"id":51}
+[CREATE_GAME] checking token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NTF9LCJ1c2VybmFtZSI6ImRldjEiLCJpYXQiOjE3NTc1ODc0NTEsImV4cCI6MTc1NzU5MTA1MX0.SGT31X9MmdgXgkfRIIf1bNblRKdcwyJIk7wq4ufsDhk
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":51},"username":"dev1","iat":1757587451,"exp":1757591051}
+[CREATE_GAME] checking id {"id":51}
+[GETGAME] geting game called
+[CREATE_GAME] creat game results of game sessions {"owner":"{\"id\":51}","state":{},"phase":"setup","players":{},"payload":{"fps":60,"height":1,"width":1,"ballSize":1,"paddleSize":1,"paddleOffset":1,"paddleSpeed":10,"ballSpeed":2,"leftPaddleI":0,"rightPaddleI":1,"ballYI":2,"ballXI":3,"positions":[100,100,100,100],"ball":{"dx":3,"dy":1},"gameRunning":false,"keysDown":[false,false,false,false]}}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":51},"username":"dev1","iat":1757587451,"exp":1757591051}
+[GETGAME] geting game called
+[JOIN_GAME] added player {"owner":"{\"id\":51}","state":{},"phase":"setup","players":{},"payload":{"fps":60,"height":1,"width":1,"ballSize":1,"paddleSize":1,"paddleOffset":1,"paddleSpeed":10,"ballSpeed":2,"leftPaddleI":0,"rightPaddleI":1,"ballYI":2,"ballXI":3,"positions":[100,100,100,100],"ball":{"dx":3,"dy":1},"gameRunning":false,"keysDown":[false,false,false,false]}}
+[START_GAME] starting game
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":51},"username":"dev1","iat":1757587451,"exp":1757591051}
+[START_GAME] checking userId "{\"id\":51}"
+[GETGAME] geting game called
+[START_GAME] checking whats in game {"owner":"{\"id\":51}","state":{},"phase":"setup","players":{},"payload":{"fps":60,"height":1,"width":1,"ballSize":1,"paddleSize":1,"paddleOffset":1,"paddleSpeed":10,"ballSpeed":2,"leftPaddleI":0,"rightPaddleI":1,"ballYI":2,"ballXI":3,"positions":[100,100,100,100],"ball":{"dx":3,"dy":1},"gameRunning":false,"keysDown":[false,false,false,false]}}
+[START_GAME] checking comparison game.owner and id "{\"id\":51}" "{\"id\":51}"
+[START_GAME] debug1
+[START_GAME] debug2
+[GETGAME] geting game called
+[PLAYER INIT CASE::] after init 
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"dev1","password":"password"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NTF9LCJ1c2VybmFtZSI6ImRldjEiLCJpYXQiOjE3NTc1ODc1MjIsImV4cCI6MTc1NzU5MTEyMn0.FDPV4B9Udub3EJl2n23oPIZJgNvxjaNupWD6L9aDS5Y
+[LOGINUSER] User registration result:{"id":51}
+[CREATE_GAME] checking token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NTF9LCJ1c2VybmFtZSI6ImRldjEiLCJpYXQiOjE3NTc1ODc1MjIsImV4cCI6MTc1NzU5MTEyMn0.FDPV4B9Udub3EJl2n23oPIZJgNvxjaNupWD6L9aDS5Y
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":51},"username":"dev1","iat":1757587522,"exp":1757591122}
+[CREATE_GAME] checking id {"id":51}
+[GETGAME] geting game called
+[CREATE_GAME] creat game results of game sessions {"owner":"{\"id\":51}","state":{},"phase":"setup","players":{},"payload":{"fps":60,"height":1,"width":1,"ballSize":1,"paddleSize":1,"paddleOffset":1,"paddleSpeed":10,"ballSpeed":2,"leftPaddleI":0,"rightPaddleI":1,"ballYI":2,"ballXI":3,"positions":[100,100,100,100],"ball":{"dx":3,"dy":1},"gameRunning":false,"keysDown":[false,false,false,false]}}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":51},"username":"dev1","iat":1757587522,"exp":1757591122}
+[GETGAME] geting game called
+[JOIN_GAME] added player {"owner":"{\"id\":51}","state":{},"phase":"setup","players":{},"payload":{"fps":60,"height":1,"width":1,"ballSize":1,"paddleSize":1,"paddleOffset":1,"paddleSpeed":10,"ballSpeed":2,"leftPaddleI":0,"rightPaddleI":1,"ballYI":2,"ballXI":3,"positions":[100,100,100,100],"ball":{"dx":3,"dy":1},"gameRunning":false,"keysDown":[false,false,false,false]}}
+[START_GAME] starting game
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":51},"username":"dev1","iat":1757587522,"exp":1757591122}
+[START_GAME] checking userId "{\"id\":51}"
+[GETGAME] geting game called
+[START_GAME] checking whats in game {"owner":"{\"id\":51}","state":{},"phase":"setup","players":{},"payload":{"fps":60,"height":1,"width":1,"ballSize":1,"paddleSize":1,"paddleOffset":1,"paddleSpeed":10,"ballSpeed":2,"leftPaddleI":0,"rightPaddleI":1,"ballYI":2,"ballXI":3,"positions":[100,100,100,100],"ball":{"dx":3,"dy":1},"gameRunning":false,"keysDown":[false,false,false,false]}}
+[START_GAME] checking comparison game.owner and id "{\"id\":51}" "{\"id\":51}"
+[START_GAME] debug1
+[START_GAME] debug2
+[GETGAME] geting game called
+[PLAYER INIT CASE::] after init 
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"dev1","password":"password"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NTF9LCJ1c2VybmFtZSI6ImRldjEiLCJpYXQiOjE3NTc1ODc2MTEsImV4cCI6MTc1NzU5MTIxMX0.UKkrUbHgs0XP50Z_6YYqfoAl2KAHpIbeeRSWzdu-9Oo
+[LOGINUSER] User registration result:{"id":51}
+[CREATE_GAME] checking token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NTF9LCJ1c2VybmFtZSI6ImRldjEiLCJpYXQiOjE3NTc1ODc2MTEsImV4cCI6MTc1NzU5MTIxMX0.UKkrUbHgs0XP50Z_6YYqfoAl2KAHpIbeeRSWzdu-9Oo
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":51},"username":"dev1","iat":1757587611,"exp":1757591211}
+[CREATE_GAME] checking id {"id":51}
+[GETGAME] geting game called
+[CREATE_GAME] creat game results of game sessions {"owner":"{\"id\":51}","state":{},"phase":"setup","players":{},"payload":{"fps":60,"height":1,"width":1,"ballSize":1,"paddleSize":1,"paddleOffset":1,"paddleSpeed":10,"ballSpeed":2,"leftPaddleI":0,"rightPaddleI":1,"ballYI":2,"ballXI":3,"positions":[100,100,100,100],"ball":{"dx":3,"dy":1},"gameRunning":false,"keysDown":[false,false,false,false]}}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":51},"username":"dev1","iat":1757587611,"exp":1757591211}
+[GETGAME] geting game called
+[JOIN_GAME] added player {"owner":"{\"id\":51}","state":{},"phase":"setup","players":{},"payload":{"fps":60,"height":1,"width":1,"ballSize":1,"paddleSize":1,"paddleOffset":1,"paddleSpeed":10,"ballSpeed":2,"leftPaddleI":0,"rightPaddleI":1,"ballYI":2,"ballXI":3,"positions":[100,100,100,100],"ball":{"dx":3,"dy":1},"gameRunning":false,"keysDown":[false,false,false,false]}}
+[START_GAME] starting game
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":51},"username":"dev1","iat":1757587611,"exp":1757591211}
+[START_GAME] checking userId "{\"id\":51}"
+[GETGAME] geting game called
+[START_GAME] checking whats in game {"owner":"{\"id\":51}","state":{},"phase":"setup","players":{},"payload":{"fps":60,"height":1,"width":1,"ballSize":1,"paddleSize":1,"paddleOffset":1,"paddleSpeed":10,"ballSpeed":2,"leftPaddleI":0,"rightPaddleI":1,"ballYI":2,"ballXI":3,"positions":[100,100,100,100],"ball":{"dx":3,"dy":1},"gameRunning":false,"keysDown":[false,false,false,false]}}
+[START_GAME] checking comparison game.owner and id "{\"id\":51}" "{\"id\":51}"
+[START_GAME] debug1
+[START_GAME] debug2
+[GETGAME] geting game called
+[PLAYER INIT CASE::] after init 
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[REGISTER_USER:] in coming body {"username":"oooo","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] taking id from token
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[REGISTER_USER:] in coming body {"username":"poopoo","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] taking id from token
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[REGISTER_USER:] in coming body {"username":"stop","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJtZXNzYWdlIjoiVXNlciBhZGRlZCB5YXkhIiwidXNlcklkIjo1NX0sInVzZXJuYW1lIjoic3RvcCIsImlhdCI6MTc1NzYwNDMwOCwiZXhwIjoxNzU3NjA3OTA4fQ.7C5J0DwfxsZf3Wns25wM5gsBylofEhIPp03jWZSnYp8
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":55},"username":"stop","iat":1757604308,"exp":1757607908}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":55},"username":"stop","iat":1757604308,"exp":1757607908}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":55},"username":"stop","iat":1757604308,"exp":1757607908}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":55},"username":"stop","iat":1757604308,"exp":1757607908}
+[REGISTER_USER:] in coming body {"username":"fafaf","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJtZXNzYWdlIjoiVXNlciBhZGRlZCB5YXkhIiwidXNlcklkIjo1Nn0sInVzZXJuYW1lIjoiZmFmYWYiLCJpYXQiOjE3NTc2MDQ2NDUsImV4cCI6MTc1NzYwODI0NX0.vHK7SweUxC2It7KobM7pdO9JXi7RQGU9OusDy8yWvFg
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":56},"username":"fafaf","iat":1757604645,"exp":1757608245}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":56},"username":"fafaf","iat":1757604645,"exp":1757608245}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[REGISTER_USER:] in coming body {"username":"rarara","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJtZXNzYWdlIjoiVXNlciBhZGRlZCB5YXkhIiwidXNlcklkIjo1N30sInVzZXJuYW1lIjoicmFyYXJhIiwiaWF0IjoxNzU3NjA0NzQ5LCJleHAiOjE3NTc2MDgzNDl9.Gk0ohtS2mQShEVdVXP8eWlpRywVGIWIf9H9FzzP4Qxs
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":57},"username":"rarara","iat":1757604749,"exp":1757608349}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":57},"username":"rarara","iat":1757604749,"exp":1757608349}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":57},"username":"rarara","iat":1757604749,"exp":1757608349}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":57},"username":"rarara","iat":1757604749,"exp":1757608349}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[REGISTER_USER:] in coming body {"username":"nanana","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJtZXNzYWdlIjoiVXNlciBhZGRlZCB5YXkhIiwidXNlcklkIjo1OH0sInVzZXJuYW1lIjoibmFuYW5hIiwiaWF0IjoxNzU3NjA1OTIwLCJleHAiOjE3NTc2MDk1MjB9.KenG4QKgUWF07SkhcG0JUepCcbkzHPFolO8bWdnYdYs
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":58},"username":"nanana","iat":1757605920,"exp":1757609520}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":58},"username":"nanana","iat":1757605920,"exp":1757609520}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":58},"username":"nanana","iat":1757605920,"exp":1757609520}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":58},"username":"nanana","iat":1757605920,"exp":1757609520}
+[REGISTER_USER:] in coming body {"username":"hshdsh","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJtZXNzYWdlIjoiVXNlciBhZGRlZCB5YXkhIiwidXNlcklkIjo1OX0sInVzZXJuYW1lIjoiaHNoZHNoIiwiaWF0IjoxNzU3NjA2MTU0LCJleHAiOjE3NTc2MDk3NTR9.jTfC3IP0G2QUGhEfGOQodcng3Yu-dt7wYh8V661QgQs
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":59},"username":"hshdsh","iat":1757606154,"exp":1757609754}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"message":"User added yay!","userId":59},"username":"hshdsh","iat":1757606154,"exp":1757609754}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[REGISTER_USER:] in coming body {"username":"vAVAVAV","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NjAsInVzZXJuYW1lIjoidkFWQVZBViIsImlhdCI6MTc1NzYwNjI3OSwiZXhwIjoxNzU3NjA5ODc5fQ.8GC-aCC-_QW7B-A4IvKmRa2GkHTkGEa06xizOynWYI0
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":60,"username":"vAVAVAV","iat":1757606279,"exp":1757609879}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":60,"username":"vAVAVAV","iat":1757606279,"exp":1757609879}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":60,"username":"vAVAVAV","iat":1757606279,"exp":1757609879}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":60,"username":"vAVAVAV","iat":1757606279,"exp":1757609879}
+[REGISTER_USER:] in coming body {"username":"aaaaaaa","password":"password"}
+[REGISTER_USER] User registration result: [object Object]
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NjEsInVzZXJuYW1lIjoiYWFhYWFhYSIsImlhdCI6MTc1NzYwNjY1NSwiZXhwIjoxNzU3NjEwMjU1fQ.CNZs5vWuMQlQ9i0EXo7tZZnRacSfbmYHkmy4vlC6hus
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":61,"username":"aaaaaaa","iat":1757606655,"exp":1757610255}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":61,"username":"aaaaaaa","iat":1757606655,"exp":1757610255}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":61,"username":"aaaaaaa","iat":1757606655,"exp":1757610255}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":61,"username":"aaaaaaa","iat":1757606655,"exp":1757610255}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"dev1","password":"password"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NTF9LCJ1c2VybmFtZSI6ImRldjEiLCJpYXQiOjE3NTc2MTAwMjUsImV4cCI6MTc1NzYxMzYyNX0.Gd2u-zwgYxRmny_nUHZgsBgEWPDE7DP-FJo4leSLQMo
+[LOGINUSER] User registration result:{"id":51}
+[CREATE_GAME] checking token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NTF9LCJ1c2VybmFtZSI6ImRldjEiLCJpYXQiOjE3NTc2MTAwMjUsImV4cCI6MTc1NzYxMzYyNX0.Gd2u-zwgYxRmny_nUHZgsBgEWPDE7DP-FJo4leSLQMo
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":51},"username":"dev1","iat":1757610025,"exp":1757613625}
+[CREATE_GAME] checking id {"id":51}
+[GETGAME] geting game called
+[CREATE_GAME] creat game results of game sessions {"owner":"{\"id\":51}","state":{},"phase":"setup","players":{},"payload":{"fps":60,"height":1,"width":1,"ballSize":1,"paddleSize":1,"paddleOffset":1,"paddleSpeed":10,"ballSpeed":2,"leftPaddleI":0,"rightPaddleI":1,"ballYI":2,"ballXI":3,"positions":[100,100,100,100],"ball":{"dx":3,"dy":1},"gameRunning":false,"keysDown":[false,false,false,false]}}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":51},"username":"dev1","iat":1757610025,"exp":1757613625}
+[GETGAME] geting game called
+[JOIN_GAME] added player {"owner":"{\"id\":51}","state":{},"phase":"setup","players":{},"payload":{"fps":60,"height":1,"width":1,"ballSize":1,"paddleSize":1,"paddleOffset":1,"paddleSpeed":10,"ballSpeed":2,"leftPaddleI":0,"rightPaddleI":1,"ballYI":2,"ballXI":3,"positions":[100,100,100,100],"ball":{"dx":3,"dy":1},"gameRunning":false,"keysDown":[false,false,false,false]}}
+[START_GAME] starting game
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":51},"username":"dev1","iat":1757610025,"exp":1757613625}
+[START_GAME] checking userId "{\"id\":51}"
+[GETGAME] geting game called
+[START_GAME] checking whats in game {"owner":"{\"id\":51}","state":{},"phase":"setup","players":{},"payload":{"fps":60,"height":1,"width":1,"ballSize":1,"paddleSize":1,"paddleOffset":1,"paddleSpeed":10,"ballSpeed":2,"leftPaddleI":0,"rightPaddleI":1,"ballYI":2,"ballXI":3,"positions":[100,100,100,100],"ball":{"dx":3,"dy":1},"gameRunning":false,"keysDown":[false,false,false,false]}}
+[START_GAME] checking comparison game.owner and id "{\"id\":51}" "{\"id\":51}"
+[START_GAME] debug1
+[START_GAME] debug2
+[GETGAME] geting game called
+[PLAYER INIT CASE::] after init 
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
+[GETGAME] geting game called
