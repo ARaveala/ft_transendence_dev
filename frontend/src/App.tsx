@@ -29,7 +29,7 @@ import Navbar from "./components/layout/Navbar";
 // - Wraps page content inside <main>
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();                     // current URL path
-  const showNavbar = location.pathname !== "/";       // hide navbar on landing page
+  const showNavbar = location.pathname !== "/" && location.pathname !== "/game";       // hide navbar on landing page
   return (
     <>
       {showNavbar && <Navbar />}
