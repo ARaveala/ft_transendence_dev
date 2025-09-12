@@ -33,7 +33,7 @@ DO NOT PUSH TO MAIN (dont panic if you do , git main can be reverted with previo
 - Dev branch (once active), should have tested and working merges from testing branches , this should be activley
 pushed too and merged too , when simple tested changes have been made to prevent large conflicts
 
-- github ci pipeline [(a tool we should learn)](GeneralDocumentaion/gitCLIpipelineExample.md)
+- github ci pipeline [(a tool we should learn)](GeneralDocumentation/gitCLIpipelineExample.md)
     
 
 
