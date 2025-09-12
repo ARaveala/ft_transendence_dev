@@ -17,19 +17,18 @@ jobs:
         	run: npm install
 
     	- name: Run tests # would run self made tests
-        	run: npm test
-		# You can add reporting here too
+        	run: npm test # You can add reporting here too
 
-		- name: Run basic script
+        - name: Run basic script
         	run: node server.js # or any entry point you want to test
-	
-		- name: Lint code # checks for common syntax issues, Make sure you have a lint script in package.json 
+
+        - name: Lint code # checks for common syntax issues, Make sure you have a lint script in package.json 
         	run: npm run lint
 
-		# optional: Add a fun success message
+        # optional: Add a fun success message
     	- name: Celebrate success
         	if: success()
-        	run: echo "🚀 CI passed! Time to ship it!"
+        	run: echo "CI passed!"
 
       #  optional: Notify on failure (Slack, Discord, etc.)
       # - name: Send failure alert
