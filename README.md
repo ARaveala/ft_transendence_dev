@@ -33,7 +33,7 @@ DO NOT PUSH TO MAIN (dont panic if you do , git main can be reverted with previo
 - Dev branch (once active), should have tested and working merges from testing branches , this should be activley
 pushed too and merged too , when simple tested changes have been made to prevent large conflicts
 
-- github ci pipeline [(a tool we should learn)](GeneralDocumentation/gitCLIpipelineExample.md)
+- github ci pipeline [(a tool we should learn)](GeneralDocumenations/gitCLIpipelineExample.md)
     
 
 
@@ -74,4 +74,4 @@ package.json has aliases :
   }
 These are used for anything you'd normally require() or import using a relative path.
 
-[Link to how to use](HOWTOSTART.md)
+[Link to how to use](GeneralDocumenations/HOWTOSTART.md)
