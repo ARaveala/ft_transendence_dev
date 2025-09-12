@@ -10,16 +10,17 @@
     console.log("Window loaded");
   });
 // for remote play a seperate harness would need to repeate steps 
+// file does not use yet shared api-protocols , this change should be made .
   try {
-	// 1. Login to get cookie
-	await fetch('http://localhost:3000/login', {
+	// 1. Login to get cookie change to register to make it work without front end login seperatley
+	await fetch('http://localhost:3000/api/login', {
 	  method: 'POST',
 	  headers: { 'Content-Type': 'application/json' },
 	  body: JSON.stringify({ username: 'dev1', password: 'password' }),
 	  credentials: 'include' // important: tells fetch to store cookies
 	});
     // 2. Create game
-    let res = await fetch('http://localhost:3000/create-game', { 
+    let res = await fetch('http://localhost:3000/api/create-game', { 
 	  method: 'POST', 
 	  body: JSON.stringify({type: 'local', mode: 'vs'}),
 	  credentials: 'include' // important: tells fetch to store cookies  	
@@ -28,7 +29,7 @@
     console.log('Game created:', gameId);
 
     // 3. Join as guest
-    res = await fetch('http://localhost:3000/join-game', {
+    res = await fetch('http://localhost:3000/api/join-game', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ gameId, type: 'guest', mode: 'local', player_count: 2 }),
@@ -37,7 +38,7 @@
     console.log('Join response:', await res.json());
 
     // 4. Start game
-    res = await fetch('http://localhost:3000/start-game', {
+    res = await fetch('http://localhost:3000/api/start-game', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ gameId }),
