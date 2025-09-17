@@ -24,12 +24,20 @@ import SettingsPage from "./pages/SettingsPage";
 // Import shared layout components
 import Navbar from "./components/layout/Navbar";
 
+// Import AuthContext to manage user authentication state
+import { AuthProvider } from "./context/AuthContext";
+import { useAuth } from "./context/AuthContext";
+
 // Layout wrapper component
 // - Shows the Navbar unless user is on the LandingPage ("/")
 // - Wraps page content inside <main>
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const location = useLocation();                     // current URL path
-  const showNavbar = location.pathname !== "/" && location.pathname !== "/game";       // hide navbar on landing page
+  const location = useLocation();
+  const { isLoggedIn } = useAuth(); // get login status
+
+  // Show navbar if user is logged in OR if not on landing page
+  const showNavbar = isLoggedIn || location.pathname !== "/";
+
   return (
     <>
       {showNavbar && <Navbar />}
@@ -43,19 +51,21 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 // - Defines all application routes and maps them to page components
 export default function App() {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/game" element={<Game />} />
-          <Route path="/tournament" element={<Tournament />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/friends" element={<Friends />} />
-          <Route path="/profile" element={<Profile />} />
-		  <Route path="/settings" element={<SettingsPage />} />
-        </Routes>
-        </Layout>
-    </Router>
-  );
-}
+    <AuthProvider>
+		<Router>
+		<Layout>
+			<Routes>
+			<Route path="/" element={<LandingPage />} />
+			<Route path="/home" element={<HomePage />} />
+			<Route path="/game" element={<Game />} />
+			<Route path="/tournament" element={<Tournament />} />
+			<Route path="/leaderboard" element={<Leaderboard />} />
+			<Route path="/friends" element={<Friends />} />
+			<Route path="/profile" element={<Profile />} />
+			<Route path="/settings" element={<SettingsPage />} />
+			</Routes>
+			</Layout>
+		</Router>
+	</AuthProvider>  
+	    );
+	}
