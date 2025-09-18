@@ -64,9 +64,31 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
 
+  // SettingsPage;
+
   DELETE_PROFILE: {
 	  path: '/profile',
 	  method: 'DELETE',
+  },
+
+  CHANGE_LANGUAGE: {
+	  path: '/profile/language',
+	  method: 'PATCH',
+  },
+
+  CHANGE_USERNAME: {
+	  path: 'profile/username',
+	  method: 'PATCH',
+  },
+
+  CHANGE_PASSWORD: {
+	  path: 'profile/password',
+	  method: 'PATCH',
+  },
+
+  CHANGE_AVATAR: {
+	  path: 'profile/avatar',
+	  method: 'PATCH',
   }
 
 } as const;
