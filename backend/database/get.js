@@ -3,7 +3,6 @@ const db = require('./initDB.js');
 // naming can be changed 
 // get each element from database , such as score, name , status
 // userId is passed as ({object}) not (value) to allow adjustmenst such as do not show password
-<<<<<<< HEAD
 // this should be what is being returned
 /**
  * 		const mockProfile = {
@@ -30,10 +29,6 @@ this could be managed by routes calling 3 fucntions     const player = await db.
  */
 async function fetchUser({ userId }) {
 	console.log('Finside db::fetching user with ID:', userId);
-=======
-async function fetchUser({ userId }) {
-	console.log('Fetching user with ID:', userId);
->>>>>>> database
 		return new Promise((resolve, reject) => {
 			db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) =>{
 				if (err || !row) {
@@ -45,7 +40,6 @@ async function fetchUser({ userId }) {
 		});
 }
 
-<<<<<<< HEAD
 //async function getUserbyName({ username }) {
 //	console.log('Fetching user with username:', username);
 //		return new Promise((resolve, reject) => {
@@ -84,9 +78,6 @@ async function miniLogin(username, password) {
 }
 
 module.exports = { fetchUser, miniLogin };
-=======
-module.exports = { fetchUser };
->>>>>>> database
 //similar logic as below may be required
 //async function userRoutes(fastify, options) {
 //  await registerUser(fastify, options);
