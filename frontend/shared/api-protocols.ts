@@ -49,6 +49,16 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
 
+  GET_ALL_REGISTERED_PLAYERS: {
+    path: '/api/tournament/search',
+    method: 'GET'
+  },
+
+  ADD_PLAYER_TO_TOURNAMENT: {
+    path: '/api/tournament/add-player',
+    method: 'POST',
+  },
+
   JOIN_TOURNAMENT: {
     path:'/api/tournament/:id/join',
     method: 'POST',
@@ -64,10 +74,15 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
 
+  GET_TOURNAMENT_STATE: {
+    path: '/api/tournament/state',
+    method: 'GET',
+  },
+
   DELETE_PROFILE: {
 	  path: '/api/profile',
 	  method: 'DELETE',
-  }
+  },
 
 } as const;
 

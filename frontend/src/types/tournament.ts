@@ -1,28 +1,34 @@
-export interface Player {
-  id: string;
+export interface TournamentPlayer {
+  user_id: string;
+  username: string;
   alias: string;
   status: 'waiting' | 'ready' | 'playing' | 'finished';
   avatar?: string;
+  score: number;
 }
 
 export interface Match {
-  id: string;
-  player1: Player;
-  player2: Player;
-  winner?: Player;
+  match_id: string;
+  player1: TournamentPlayer;
+  player2: TournamentPlayer;
+  winner?: TournamentPlayer;
   score?: {
     player1: number;
     player2: number;
   };
-  status: 'pending' | 'active' | 'completed';
+  status: 'pending' | 'active' | 'finished';
+  lastUpdated: Date;
+  gameState?: any;
 }
 
 export interface Tournament {
-  id: string;
-  status: 'waiting' | 'active' | 'completed';
-  players: Player[];
+  tournament_id: string;
+  status: 'waiting' | 'active' | 'finished';
+  players: TournamentPlayer[];
   matches: Match[];
   bracket: Match[][];
   currentMatch?: Match;
+  winner?: TournamentPlayer;
   createdAt: Date;
+  lastUpdated?: Date
 }

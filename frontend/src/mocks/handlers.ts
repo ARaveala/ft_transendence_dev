@@ -6,6 +6,7 @@ import avatar3 from "../assets/avatars/avatar3.png";
 import { http, HttpResponse } from "msw";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile, PlayerPayload } from "../../shared/payloads";
+import { mockRegisteredPlayers } from "./players";
 
 
 const mockProfile: UserProfile = {
@@ -27,12 +28,6 @@ const mockProfile: UserProfile = {
     { user_id: "m2", opponent: "Player3", result: "loss", score: 18, timestamp: "2025-08-24T15:30:00" },
   ],
 };
-
-const mockPlayers: PlayerPayload = [
-  { user_id: "123", username: "PlayerOne", avatar: avatar1, score: 1200, rank: 1 },
-  { user_id: "124", username: "PlayerTwo", avatar: avatar2, score: 1100, rank: 2 },
-  { user_id: "125", username: "PlayerThree", avatar: avatar3, score: 950, rank: 3 },
-];
 
 export const handlers = [
 	//Mock for delete profile
@@ -68,7 +63,12 @@ export const handlers = [
 
   //Mock for leaderboard request
   http.get(API_PROTOCOL.GET_LEADERBOARD.path, () => {
-    return HttpResponse.json(mockPlayers, { status: 200 });
+    return HttpResponse.json(mockRegisteredPlayers, { status: 200 });
 }),
 
+  // Mock for tournament search: returns all registered players
+  http.get(API_PROTOCOL.GET_ALL_REGISTERED_PLAYERS.path, () => {
+    return HttpResponse.json(mockRegisteredPlayers, { status: 200 });
+  }),
 ];
+
