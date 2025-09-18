@@ -6,6 +6,10 @@ require('dotenv').config();
 // Create a Fastify instance
 // logger is enabled for debugging purposes
 
+// Create database
+require('./database/initDB');
+
+
 //const WebSocket = require('ws');
 
 const fastify = require('fastify')({ logger: true });

@@ -70,6 +70,8 @@ async function loginUser(fastify, options) {
 
 // delete user 
 
+
+
 // will this login also take the alias 
 /*async function loginUserTournament(fastify, options) {
 	const { DBinsert, secure } = options;

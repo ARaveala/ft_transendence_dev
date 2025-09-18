@@ -1,7 +1,8 @@
-CREATE TABLE users
+CREATE TABLE IF NOT EXISTS users
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
+    pword TEXT,
     avatar_file TEXT,
     mfa_enabled INTEGER NOT NULL DEFAULT 0,
     rank INTEGER NOT NULL DEFAULT 0,
@@ -11,7 +12,7 @@ CREATE TABLE users
     total_games INTEGER NOT NULL DEFAULT 0
 );
 
-CREATE TABLE games
+CREATE TABLE IF NOT EXISTS games
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tournament_id INTEGER,
