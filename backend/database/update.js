@@ -1,4 +1,4 @@
-const db = require('./initDB.js');
+const db = require('./db');
 const updateScoreSchema = require('@schemas/updateScore.js');
 
 function updateUserScore({userId, score}) {

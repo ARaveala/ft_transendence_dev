@@ -1,0 +1,38 @@
+name: transcendence
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      SQLITE_PATH: /data/database.sqlite
+    ports:
+      - "3000:3000"    # publish for quick API testing
+    volumes:
+      - backend_data:/data
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    env_file: .env
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    networks:
+      - app-net
+
+networks:
+  app-net:
+
+volumes:
+  backend_data:

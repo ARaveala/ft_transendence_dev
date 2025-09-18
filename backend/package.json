@@ -1,12 +1,19 @@
 {
+<<<<<<< HEAD
   "name": "my-first-backend",
   "version": "1.0.0",
   "main": "server.js",
   "type": "commonjs",
+=======
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "server.js",
+>>>>>>> database
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@fastify/cookie": "^7.4.0",
     "@fastify/cors": "^8.5.0",
     "@fastify/websocket": "^11.2.0",
@@ -18,10 +25,19 @@
     "sinclair": "^0.2.0",
     "sqlite3": "^5.1.7",
     "typebox": "^0.0.1"
+=======
+    "express": "^4.19.2",
+    "@fastify/static": "^8.2.0",
+    "@fastify/websocket": "^11.2.0",
+    "fastify": "^4.29.1",
+    "module-alias": "^2.2.3",
+    "sqlite3": "^5.1.7"
+>>>>>>> database
   },
   "_moduleAliases": {
     "@db": "database",
     "@routes": "routes",
+<<<<<<< HEAD
     "@rUsers": "routes/user.js",
     "@schemas": "schemas",
     "@Wbs": "WebSocket",
@@ -46,5 +62,8 @@
     "eslint-plugin-promise": "^7.2.1",
     "eslint-plugin-security": "^3.0.1",
     "eslint-plugin-unicorn": "^48.0.1"
+=======
+    "@schemas": "schemas"
+>>>>>>> database
   }
 }
