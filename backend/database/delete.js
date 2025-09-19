@@ -1,4 +1,4 @@
-// database/delete.js
+
 'use strict';
 
 /**

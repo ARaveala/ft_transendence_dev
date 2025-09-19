@@ -32,7 +32,7 @@ This should return user profile from db visable in thunder clients response wind
 
 ----
 
-You can make a POST request http://localhost:3000/register-user
+You can make a POST request http://localhost:3000/api/register
 This requires you fill in also json below 
 
 ```json
