@@ -200,7 +200,7 @@ export interface CreateTournamentPayload {
   host_id: string;                 // Logged-in player's user_id
   tournament_name: string;
   player_ids: string[];            // IDs of added players
-  max_players: number;             // minimum 3, max can be set
+  max_players: number;             // minimum 4, max can be set
 }
 
 export interface TournamentStateResponse {
@@ -214,14 +214,24 @@ export interface TournamentStateResponse {
 }
 
 export interface PlayerSearchRequest {
-  query: string;                      // The search term typed by the user
-  excludeIds?: string[];              // List of user IDs to exclude (already added players)???
+  query?: string;           // optional search term (used for search bar)
+  excludeIds?: string[];    // optional: players already added to the tournament
 }
 
 export interface PlayerSearchResponse {
   status: 'OK' | 'ERROR';
   error?: string;
-  players?: TournamentPlayer[];       // List of players matching the search query
+  players: TournamentPlayer[]; // filtered list of players
+}
+
+export interface RegisterAliasRequest {
+  user_id: string;
+  alias: string;
+}
+
+export interface RegisterAliasResponse {
+  status: 'OK' | 'ERROR';
+  error?: string;
 }
 
 export interface StartTournamentPayload {

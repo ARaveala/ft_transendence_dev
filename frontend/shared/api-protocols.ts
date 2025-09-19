@@ -59,6 +59,11 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
 
+  REGISTER_PLAYER_ALIAS: {
+    path: "/api/tournament/register-alias",
+    method: "POST",
+  },
+
   JOIN_TOURNAMENT: {
     path:'/api/tournament/:id/join',
     method: 'POST',

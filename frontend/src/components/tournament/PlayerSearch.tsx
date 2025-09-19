@@ -1,32 +1,16 @@
 import React, { useEffect, useState } from "react";
 import type { TournamentPlayer } from "../../types/tournament";
+import Button from "../ui/Button";
 
 interface PlayerSearchProps {
+  players: TournamentPlayer[]; // allRegisteredPlayers
   onAddPlayer: (player: TournamentPlayer) => void;
 }
 
-export const PlayerSearch: React.FC<PlayerSearchProps> = ({ onAddPlayer }) => {
-  const [players, setPlayers] = useState<TournamentPlayer[]>([]);
+export const PlayerSearch: React.FC<PlayerSearchProps> = ({ players, onAddPlayer }) => {
   const [query, setQuery] = useState("");
   const [filteredPlayers, setFilteredPlayers] = useState<TournamentPlayer[]>([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
-
-  // Fetch all players from MSW
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      try {
-        const res = await fetch("/api/tournament/search");
-        if (!res.ok) throw new Error("Failed to fetch players");
-        const data: TournamentPlayer[] = await res.json();
-        setPlayers(data);
-        setFilteredPlayers(data);
-        console.log("Fetched players:", data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchPlayers();
-  }, []);
 
   // Filter players based on search query
   useEffect(() => {
@@ -65,12 +49,11 @@ export const PlayerSearch: React.FC<PlayerSearchProps> = ({ onAddPlayer }) => {
           </option>
         ))}
       </select>
-      <button
+      <Button
         onClick={handleAddPlayer}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
       >
         Add Player
-      </button>
+      </Button>
     </div>
   );
 };

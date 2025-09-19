@@ -30,7 +30,8 @@ const mockProfile: UserProfile = {
 };
 
 export const handlers = [
-	//Mock for delete profile
+
+  //Mock for delete profile
 	http.delete(API_PROTOCOL.DELETE_PROFILE.path, async () => {
 	return HttpResponse.json(
 	{ status: 'DELETED' }, 
@@ -66,9 +67,20 @@ export const handlers = [
     return HttpResponse.json(mockRegisteredPlayers, { status: 200 });
 }),
 
-  // Mock for tournament search: returns all registered players
-  http.get(API_PROTOCOL.GET_ALL_REGISTERED_PLAYERS.path, () => {
-    return HttpResponse.json(mockRegisteredPlayers, { status: 200 });
+// Mock for tournament search / get all registered players
+  http.get(API_PROTOCOL.GET_ALL_REGISTERED_PLAYERS.path, async ({ request }) => {
+    const url = new URL(request.url);
+    const query = url.searchParams.get("query")?.toLowerCase() || "";
+    const excludeIdsParam = url.searchParams.get("excludeIds") || "";
+    const excludeIds = excludeIdsParam.split(",").filter(Boolean);
+
+    const filtered = mockRegisteredPlayers.filter(
+      (p) =>
+        p.username.toLowerCase().includes(query) &&
+        !excludeIds.includes(p.user_id)
+    );
+    return HttpResponse.json(filtered, { status: 200 });
   }),
+  
 ];
 

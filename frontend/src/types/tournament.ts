@@ -5,6 +5,8 @@ export interface TournamentPlayer {
   status: 'waiting' | 'ready' | 'playing' | 'finished';
   avatar?: string;
   score: number;
+  isSelf?: boolean;
+  password?: string; 
 }
 
 export interface Match {
