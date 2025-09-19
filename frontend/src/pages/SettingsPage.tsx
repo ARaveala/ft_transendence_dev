@@ -8,9 +8,16 @@ import type {
 	ChangeUsernameResponse,
 	ChangePasswordPayload,
 	ChangePasswordResponse,
+	UpdateProfilePayload,
 } from "../../shared/payloads";
+import avatar1 from "../assets/avatars/avatar1.png";
+import avatar2 from "../assets/avatars/avatar2.png";
+import avatar3 from "../assets/avatars/avatar3.png";
+import avatar4 from "../assets/avatars/avatar4.png";
 
-type Row = "language" | "username" | "password" | null;
+const availableAvatars = [avatar1, avatar2, avatar3, avatar4];
+
+type Row = "language" | "username" | "password" | "avatar" | null;
 
 const SettingsPage: React.FC = () => {
 	const { t, setLang } = useTranslation();
@@ -29,6 +36,7 @@ const SettingsPage: React.FC = () => {
 	const [currentPassword, setCurrentPassword] = useState("");
 	const [newPassword, setNewPassword] = useState("");
 	const [confirmNewPassword, setConfirmNewPassword] = useState("");
+	const [selectedAvatar, setSelectedAvatar] = useState<string>(availableAvatars[0]);
 
 	// Delete Profile state
 	const [deleting, setDeleting] = useState(false);
@@ -46,9 +54,14 @@ const SettingsPage: React.FC = () => {
 		setConfirmNewPassword("");
 	}
 
+	function resetAvatarForm() {
+		setSelectedAvatar(availableAvatars[0]);
+	}
+
 	function closeAndReset(row: Exclude<Row, null>) {
 		if (row === "username") resetUsernameForm();
 		if (row === "password") resetPasswordForm();
+		if (row === "avatar") resetAvatarForm();
 		setOpenRow(null);
 	}
 
@@ -63,6 +76,7 @@ const SettingsPage: React.FC = () => {
 
 		if (openRow === "username") resetUsernameForm();
 		if (openRow === "password") resetPasswordForm();
+		if (openRow === "avatar") resetAvatarForm();
 
 		setOpenRow(row);
 	}
@@ -148,6 +162,26 @@ const SettingsPage: React.FC = () => {
 		}
 	}
 
+	async function saveAvatar() {
+		setBusy(true); setMsg(null); setErr(null);
+		try {
+			const payload: UpdateProfilePayload = { avatar: selectedAvatar };
+			const res = await fetch(API_PROTOCOL.UPDATE_PROFILE.path, {
+				method: API_PROTOCOL.UPDATE_PROFILE.method,
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+			});
+			if (!res.ok) throw new Error("Failed to update avatar.");
+
+			setMsg(t("common.avatarUpdated"));
+			closeAndReset("avatar");
+		} catch (e: any) {
+			setErr(e?.message || "Could not update avatar.");
+		} finally {
+			setBusy(false);
+		}
+	}
+
 	async function handleDeleteProfile() {
 		setDeleting(true);
 		setDeleteError(null);
@@ -182,7 +216,7 @@ const SettingsPage: React.FC = () => {
 					onClick={() => toggle("language")}
 				/>
 				{openRow == "language" && (
-					<div className="px-4 pb-4">
+					<div className="px-4 pt-3 pb-4">
 						<label className="block mb-2 text-sm">{t("settings.languageSelect")}</label>
 						<select
 							value={language}
@@ -206,7 +240,7 @@ const SettingsPage: React.FC = () => {
 					onClick={() => toggle("username")}
 				/>
 				{openRow == "username" && (
-					<div className="px-4 pb-4">
+					<div className="px-4 pt-3 pb-4">
 						<label className="block mb-2 text-sm">{t("settings.usernameEnter")}</label>
 						<input
 							type="text"
@@ -228,7 +262,7 @@ const SettingsPage: React.FC = () => {
 					onClick={() => toggle("password")}
 				/>
 				{openRow === "password" && (
-					<div className="px-4 pb-4">
+					<div className="px-4 pt-3 pb-4">
 						<label className="block mb-2 text-sm">{t("settings.passwordCurrent")}</label>
 						<input
 							type="password"
@@ -260,15 +294,38 @@ const SettingsPage: React.FC = () => {
 
 				{/* Change Avatar row */}
 				<SettingButton
-					label="Change Avatar"
-					onClick={() => {}}
+					label={t("settings.changeAvatar")}
+					onClick={() => toggle("avatar")}
 				/>
-
-
-				<SettingButton
-					label="Change Email"
-					onClick={() => {}}
-				/>
+				{openRow === "avatar" && (
+					<div className="px-4 pt-3 pb-4">
+						<label className="block mb-2 text-sm">{t("settings.avatarSelect")}</label>
+						<div className="grid grid-cols-4 gap-3">
+							{availableAvatars.map((av) => (
+								<button
+									key={av}
+									type="button"
+									onClick={() => setSelectedAvatar(av)}
+									className={
+										"rounded-lg p-1 border " +
+										(selectedAvatar === av ? "border-blue-500" : "border-gray-700")
+									}
+									aria-label="Select avatar"
+								>
+									<img
+										src={av}
+										alt="Avatar choice"
+										className="w-16 h-16 rounded-full"
+									/>
+								</button>
+							))}
+						</div>
+						<div className="mt-3 flex gap-2">
+							<PrimaryTiny onClick={saveAvatar} disabled={busy}>{t("common.save")}</PrimaryTiny>
+							<SecondaryTiny onClick={() => closeAndReset("avatar")} disabled={busy}>{t("common.cancel")}</SecondaryTiny>
+						</div>
+					</div>
+				)}
 			</section>
 			{/* Danger Zone */}
 			<section className="mt-6 border border-red-500/30 bg-red-900/10 rounded-lg p-4">
