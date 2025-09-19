@@ -1,0 +1,43 @@
+{
+  "nav.home": "Hem",
+  "nav.game": "Spel",
+  "nav.tournament": "Turnering",
+  "nav.leaderboard": "Topplista",
+  "nav.friends": "Vänner",
+  "nav.profile": "Profil",
+  "nav.settings": "Inställningar",
+  "nav.exit": "Avsluta",
+
+  "settings.title": "Inställningar",
+  "settings.changeLanguage": "Byt språk",
+  "settings.languageSelect": "Välj nytt språk",
+  "settings.changeUsername": "Byt användarnamn",
+  "settings.usernameEnter": "Ange nytt användarnamn",
+  "settings.changePassword": "Byt lösenord",
+  "settings.passwordCurrent": "Nuvarande lösenord",
+  "settings.passwordNew": "Nytt lösenord",
+  "settings.passwordConfirm": "Bekräfta nytt lösenord",
+  "settings.changeAvatar": "Byt profilbild",
+  "settings.danger": "Farlig zon",
+  "settings.deleteText": "Att ta bort din profil raderar ditt konto, dina vänner och din matchhistorik. Detta kan inte ångras!",
+  "settings.delete": "Ta bort profil",
+
+  "lang.english": "Engelska",
+  "lang.finnish": "Finska",
+  "lang.swedish": "Svenska",
+
+  "common.save": "Spara",
+  "common.cancel": "Avbryt",
+  "common.deleted": "Raderad",
+  "common.languageUpdated": "Språk uppdaterat.",
+  "common.usernameUpdated": "Användarnamn uppdaterat.",
+  "common.passwordUpdated": "Lösenord uppdaterat.",
+  "common.deletedText": "Din profil har raderats!",
+
+  "error.usernameLength": "Användarnamnet måste vara 3–15 tecken.",
+  "error.passwordLength": "Det nya lösenordet måste vara minst 8 tecken.",
+  "error.passwordMatch": "Lösenorden matchar inte.",
+  "error.passwordRequired": "Nuvarande lösenord krävs.",
+
+  "notice.passwordLength": "Minst 8 tecken"
+}

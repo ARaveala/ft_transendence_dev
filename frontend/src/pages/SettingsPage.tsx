@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
+import { useTranslation } from "../shared/Translation";
 import type {
 	ChangeLanguagePayload,
 	ChangeLanguageResponse,
@@ -9,9 +10,13 @@ import type {
 	ChangePasswordResponse,
 } from "../../shared/payloads";
 
+type Row = "language" | "username" | "password" | null;
+
 const SettingsPage: React.FC = () => {
+	const { t, setLang } = useTranslation();
+
 	// Which row is open state
-	const [openRow, setOpenRow] = useState<null | "language" | "username" | "password">(null);
+	const [openRow, setOpenRow] = useState<Row>(null);
 
 	// Inline status
 	const [msg, setMsg] = useState<string | null>(null);
@@ -19,7 +24,7 @@ const SettingsPage: React.FC = () => {
 	const [busy, setBusy] = useState(false);
 
 	// Forms
-	const [language, setLanguage] = useState("en");
+	const [language, setLanguage] = useState<"en" | "fi" | "sv">("en");
 	const [username, setUsername] = useState("");
 	const [currentPassword, setCurrentPassword] = useState("");
 	const [newPassword, setNewPassword] = useState("");
@@ -30,11 +35,36 @@ const SettingsPage: React.FC = () => {
 	const [deleted, setDeleted] = useState(false);
 	const [deleteError, setDeleteError] = useState<string | null>(null);
 
+	// Clear forms
+	function resetUsernameForm() {
+		setUsername("");
+	}
+
+	function resetPasswordForm() {
+		setCurrentPassword("");
+		setNewPassword("");
+		setConfirmNewPassword("");
+	}
+
+	function closeAndReset(row: Exclude<Row, null>) {
+		if (row === "username") resetUsernameForm();
+		if (row === "password") resetPasswordForm();
+		setOpenRow(null);
+	}
+
 	// Set row state (if same row clicked again, it closes it)
-	function toggle(row: "language" | "username" | "password") {
+	function toggle(row: Exclude<Row, null>) {
 		setMsg(null);
 		setErr(null);
-		setOpenRow((prev) => (prev === row ? null : row));
+		if (openRow === row) {
+			closeAndReset(row);
+			return;
+		}
+
+		if (openRow === "username") resetUsernameForm();
+		if (openRow === "password") resetPasswordForm();
+
+		setOpenRow(row);
 	}
 
 	async function saveLanguage() {
@@ -46,12 +76,13 @@ const SettingsPage: React.FC = () => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
 			});
-			if (!res.ok) throw new Error("Failed to update language");
+			if (!res.ok) throw new Error("Failed to update language.");
 
 			const data = (await res.json()) as ChangeLanguageResponse;
 			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update language.");
 			
-			setMsg("Language updated.");
+			setLang(language);
+			setMsg(t("common.languageUpdated"));
 			setOpenRow(null);
 		} catch (e: any) {
 			setErr(e?.message || "Could not update language.");
@@ -64,7 +95,7 @@ const SettingsPage: React.FC = () => {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
 			const value = username.trim();
-			if (value.length < 3 || value.length > 15) throw new Error("Username must be between 3-15 characters.");
+			if (value.length < 3 || value.length > 15) throw new Error(t("error.usernameLength"));
 			const payload: ChangeUsernamePayload = { username: value };
 			const res = await fetch(API_PROTOCOL.CHANGE_USERNAME.path, {
 				method: API_PROTOCOL.CHANGE_USERNAME.method,
@@ -76,7 +107,8 @@ const SettingsPage: React.FC = () => {
 			const data = (await res.json()) as ChangeUsernameResponse;
 			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update username.");
 
-			setMsg("Username updated.");
+			setMsg(t("common.usernameUpdated"));
+			resetUsernameForm();
 			setOpenRow(null);
 		} catch (e: any) {
 			setErr(e?.message || "Could not update username.");
@@ -88,9 +120,9 @@ const SettingsPage: React.FC = () => {
 	async function savePassword() {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
-			if (newPassword.length < 8) throw new Error("New password must be at least 8 characters.");
-			if (newPassword !== confirmNewPassword) throw new Error("Passwords do not match.");
-			if (!currentPassword) throw new Error ("Current password is required.");
+			if (newPassword.length < 8) throw new Error(t("error.passwordLength"));
+			if (newPassword !== confirmNewPassword) throw new Error(t("error.passwordMatch"));
+			if (!currentPassword) throw new Error (t("error.passwordRequired"));
 			const payload: ChangePasswordPayload = {
 				current_password: currentPassword,
 				new_password: newPassword,
@@ -105,7 +137,8 @@ const SettingsPage: React.FC = () => {
 			const data = (await res.json()) as ChangePasswordResponse;
 			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update password.");
 
-			setMsg("Password updated.");
+			setMsg(t("common.passwordUpdated"));
+			resetPasswordForm();
 			setOpenRow(null);
 			setCurrentPassword(""); setNewPassword(""); setConfirmNewPassword("");
 		} catch (e: any) {
@@ -135,7 +168,7 @@ const SettingsPage: React.FC = () => {
 				
 	return (
 		<div className="p-6 max-w-4xl mx-auto">
-			<h1 className="text-3xl font-bold mb-4">Settings</h1>
+			<h1 className="text-3xl font-bold mb-4">{t("settings.title")}</h1>
 
 			{/* Inline status */}
 			{msg && <p className="mb-3 text-green-300">{msg}</p>}
@@ -145,73 +178,73 @@ const SettingsPage: React.FC = () => {
 			<section className ="bg-gray-800/50 rounded-lg border border-gray-700 divide-y divide-gray-700">
 				{/* Change Language row */}
 				<SettingButton
-					label="Change Language"
+					label={t("settings.changeLanguage")}
 					onClick={() => toggle("language")}
 				/>
 				{openRow == "language" && (
 					<div className="px-4 pb-4">
-						<label className="block mb-2 text-sm">Language</label>
+						<label className="block mb-2 text-sm">{t("settings.languageSelect")}</label>
 						<select
 							value={language}
 							onChange={(e) => setLanguage(e.target.value)}
 							className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm"
 						>
-							<option value="en">English</option>
-							<option value="fi">Finnish</option>
-							<option value="sv">Swedish</option>
+							<option value="en">{t("lang.english")}</option>
+							<option value="fi">{t("lang.finnish")}</option>
+							<option value="sv">{t("lang.swedish")}</option>
 						</select>
 						<div className="mt-3 flex gap-2">
-							<PrimaryTiny onClick={saveLanguage} disabled={busy}>Save</PrimaryTiny>
-							<SecondaryTiny onClick={() => setOpenRow(null)} disabled={busy}>Cancel</SecondaryTiny>
+							<PrimaryTiny onClick={saveLanguage} disabled={busy}>{t("common.save")}</PrimaryTiny>
+							<SecondaryTiny onClick={() => closeAndReset("language")} disabled={busy}>{t("common.cancel")}</SecondaryTiny>
 						</div>
 					</div>
 				)}
 
 				{/* Change Username row */}
 				<SettingButton
-					label="Change Username"
+					label={t("settings.changeUsername")}
 					onClick={() => toggle("username")}
 				/>
 				{openRow == "username" && (
 					<div className="px-4 pb-4">
-						<label className="block mb-2 text-sm">New username</label>
+						<label className="block mb-2 text-sm">{t("settings.usernameEnter")}</label>
 						<input
 							type="text"
 							value={username}
 							onChange={(e) => setUsername(e.target.value)}
 							className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm"
-							placeholder="Enter new username"
+							placeholder={t("settings.usernameEnter")}
 						/>
 						<div className="mt-3 flex gap-2">
-							<PrimaryTiny onClick={saveUsername} disabled={busy}>Save</PrimaryTiny>
-							<SecondaryTiny onClick={() => setOpenRow(null)} disabled={busy}>Cancel</SecondaryTiny>
+							<PrimaryTiny onClick={saveUsername} disabled={busy}>{t("common.save")}</PrimaryTiny>
+							<SecondaryTiny onClick={() => closeAndReset("username")} disabled={busy}>{t("common.cancel")}</SecondaryTiny>
 						</div>
 					</div>
 				)}
 
 				{/* Change Password row */}
 				<SettingButton
-					label="Change Password"
+					label={t("settings.changePassword")}
 					onClick={() => toggle("password")}
 				/>
 				{openRow === "password" && (
 					<div className="px-4 pb-4">
-						<label className="block mb-2 text-sm">Current password</label>
+						<label className="block mb-2 text-sm">{t("settings.passwordCurrent")}</label>
 						<input
 							type="password"
 							value={currentPassword}
 							onChange={(e) => setCurrentPassword(e.target.value)}
 							className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm"
 						/>
-						<label className="block mt-3 mb-2 text-sm">New password</label>
+						<label className="block mt-3 mb-2 text-sm">{t("settings.passwordNew")}</label>
 						<input
 							type="password"
 							value={newPassword}
 							onChange={(e) => setNewPassword(e.target.value)}
 							className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm"
-							placeholder="At least 8 characters"
+							placeholder={t("notice.passwordLength")}
 						/>
-						<label className="block mt-3 mb-2 text-sm">Confirm new password</label>
+						<label className="block mt-3 mb-2 text-sm">{t("settings.passwordConfirm")}</label>
 						<input
 							type="password"
 							value={confirmNewPassword}
@@ -219,8 +252,8 @@ const SettingsPage: React.FC = () => {
 							className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm"
 						/>
 						<div className="mt-3 flex gap-2">
-							<PrimaryTiny onClick={savePassword} disabled={busy}>Save</PrimaryTiny>
-							<SecondaryTiny onClick={() => setOpenRow(null)} disabled={busy}>Cancel</SecondaryTiny>
+							<PrimaryTiny onClick={savePassword} disabled={busy}>{t("common.save")}</PrimaryTiny>
+							<SecondaryTiny onClick={() => closeAndReset("password")} disabled={busy}>{t("common.cancel")}</SecondaryTiny>
 						</div>
 					</div>
 				)}
@@ -239,14 +272,13 @@ const SettingsPage: React.FC = () => {
 			</section>
 			{/* Danger Zone */}
 			<section className="mt-6 border border-red-500/30 bg-red-900/10 rounded-lg p-4">
-				<h2 className="text-red-400 font-semibold mb-2">Danger Zone</h2>
+				<h2 className="text-red-400 font-semibold mb-2">{t("settings.danger")}</h2>
 				<p className="text-sm text-red-200 mb-3">
-					Deleting your profile removes your account, friends, and match history.
-					This action is <span className="font-semibold">irreversible</span>!
+					{t("settings.deleteText")}
 				</p>
 
 				{deleteError && <p className="text-red-300 text-sm mb-2">{deleteError}</p>}
-				{deleted && <p className="text-red-300 text-sm mb-2">Your profile has been deleted!</p>}
+				{deleted && <p className="text-red-300 text-sm mb-2">{t("common.deletedText")}</p>}
 				<button
 					type="button"
 					onClick={handleDeleteProfile}
@@ -259,7 +291,7 @@ const SettingsPage: React.FC = () => {
 							 : "bg-red-600 hover:bg-red-700"
 					}`}
 				>
-					{deleted ? "Deleted" : deleting ? "Deleting..." : "Delete Profile"}
+					{deleted ? t("common.deleted") : deleting ? "Deleting..." : t("settings.delete")}
 				</button>
 			</section>
 		</div>

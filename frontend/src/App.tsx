@@ -24,6 +24,9 @@ import SettingsPage from "./pages/SettingsPage";
 // Import shared layout components
 import Navbar from "./components/layout/Navbar";
 
+// Translation
+import { TranslationProvider } from "./shared/Translation";
+
 // Layout wrapper component
 // - Shows the Navbar unless user is on the LandingPage ("/")
 // - Wraps page content inside <main>
@@ -44,18 +47,20 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 export default function App() {
   return (
     <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/game" element={<Game />} />
-          <Route path="/tournament" element={<Tournament />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/friends" element={<Friends />} />
-          <Route path="/profile" element={<Profile />} />
-		  <Route path="/settings" element={<SettingsPage />} />
-        </Routes>
-        </Layout>
+		<TranslationProvider>
+      		<Layout>
+        		<Routes>
+          			<Route path="/" element={<LandingPage />} />
+          			<Route path="/home" element={<HomePage />} />
+          			<Route path="/game" element={<Game />} />
+          			<Route path="/tournament" element={<Tournament />} />
+          			<Route path="/leaderboard" element={<Leaderboard />} />
+          			<Route path="/friends" element={<Friends />} />
+          			<Route path="/profile" element={<Profile />} />
+		  			<Route path="/settings" element={<SettingsPage />} />
+        		</Routes>
+        	</Layout>
+		</TranslationProvider>
     </Router>
   );
 }

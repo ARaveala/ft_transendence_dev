@@ -1,0 +1,43 @@
+{
+  "nav.home": "Etusivu",
+  "nav.game": "Peli",
+  "nav.tournament": "Turnaus",
+  "nav.leaderboard": "Tulostaulukko",
+  "nav.friends": "Ystävät",
+  "nav.profile": "Profiili",
+  "nav.settings": "Asetukset",
+  "nav.exit": "Poistu",
+
+  "settings.title": "Asetukset",
+  "settings.changeLanguage": "Vaihda kieli",
+  "settings.languageSelect": "Valitse uusi kieli",
+  "settings.changeUsername": "Vaihda käyttäjänimi",
+  "settings.usernameEnter": "Syötä uusi käyttäjänimi",
+  "settings.changePassword": "Vaihda salasana",
+  "settings.passwordCurrent": "Nykyinen salasana",
+  "settings.passwordNew": "Uusi salasana",
+  "settings.passwordConfirm": "Vahvista uusi salasana",
+  "settings.changeAvatar": "Vaihda avatar",
+  "settings.danger": "Vaaravyöhyke",
+  "settings.deleteText": "Profiilin poistaminen poistaa tilisi, ystävät ja otteluhistorian. Toiminto on peruuttamaton!",
+  "settings.delete": "Poista profiili",
+
+  "lang.english": "Englanti",
+  "lang.finnish": "Suomi",
+  "lang.swedish": "Ruotsi",
+
+  "common.save": "Tallenna",
+  "common.cancel": "Peruuta",
+  "common.deleted": "Poistettu",
+  "common.languageUpdated": "Kieli päivitetty.",
+  "common.usernameUpdated": "Käyttäjänimi päivitetty.",
+  "common.passwordUpdated": "Salasana päivitetty.",
+  "common.deletedText": "Profiilisi on poistettu!",
+
+  "error.usernameLength": "Käyttäjänimen pituuden tulee olla 3-15 merkkiä.",
+  "error.passwordLength": "Uuden salasanan tulee olla vähintään 8 merkkiä.",
+  "error.passwordMatch": "Salasanat eivät täsmää.",
+  "error.passwordRequired": "Nykyinen salasana on pakollinen.",
+
+  "notice.passwordLength": "Vähintään 8 merkkiä"
+}

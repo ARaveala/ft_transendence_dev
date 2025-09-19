@@ -1,0 +1,44 @@
+{
+  "nav.home": "Home",
+  "nav.game": "Game",
+  "nav.tournament": "Tournament",
+  "nav.leaderboard": "Leaderboard",
+  "nav.friends": "Friends",
+  "nav.profile": "Profile",
+  "nav.settings": "Settings",
+  "nav.exit": "Exit",
+
+  "settings.title": "Settings",
+  "settings.changeLanguage": "Change language",
+  "settings.languageSelect": "Select new language",
+  "settings.changeUsername": "Change username",
+  "settings.usernameEnter": "Enter new username",
+  "settings.changePassword": "Change password",
+  "settings.passwordCurrent": "Current password",
+  "settings.passwordNew": "New password",
+  "settings.passwordConfirm": "Confirm new password",
+  "settings.changeAvatar": "Change avatar",
+  "settings.danger": "Danger zone",
+  "settings.deleteText": "Deleting your profile removes your account, friends, and match history. This action is irreversible!",
+  "settings.delete": "Delete profile",
+
+  "lang.english": "English",
+  "lang.finnish": "Finnish",
+  "lang.swedish": "Swedish",
+
+  "common.save": "Save",
+  "common.cancel": "Cancel",
+  "common.deleted": "Deleted",
+  "common.languageUpdated": "Language updated.",
+  "common.usernameUpdated": "Username updated.",
+  "common.passwordUpdated": "Password updated.",
+  "common.deletedText": "Your profile has been deleted!",
+
+  "error.usernameLength": "Username must be between 3-15 characters.",
+  "error.passwordLength": "New password must be at least 8 characters.",
+  "error.passwordMatch": "Passwords do not match.",
+  "error.passwordRequired": "Current password is required.",
+
+  "notice.passwordLength": "At least 8 characters"
+
+}
