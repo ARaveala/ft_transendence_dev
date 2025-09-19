@@ -44,29 +44,29 @@ function insertUser({ username, password, score, status }) {
 
 // this fucntion has to look inside database and confirm if username and password match
 // dev style right now just utalizes simple create a new user logic 
-function loginUser({ username, password}) {
-    console.log('Incoming user data:', { username, password});
-	const score = 0; // this is only dev !!
-	const status = "online"; // status should be changed to online after verificiation
-	// this would be easiest with a change status function that i call from apiroute.
-    return new Promise((resolve, reject) => {
-        db.run(
-            `INSERT INTO users (username, password, score, status) VALUES (?, ?, ?, ?)`,
-            [username, password, score, status],
-            function (err) {
-                if (err) {
-                    reject({ error: 'Failed to add user', details: err });
-                } else {
-                    resolve({userId: this.lastID, user: username });
-                }
-            }
-        );
-    });
-}
-// change status fucntion 
+// function loginUser({ username, password}) {
+//     console.log('Incoming user data:', { username, password});
+// 	const score = 0; // this is only dev !!
+// 	const status = "online"; // status should be changed to online after verificiation
+// 	// this would be easiest with a change status function that i call from apiroute.
+//     return new Promise((resolve, reject) => {
+//         db.run(
+//             `INSERT INTO users (username, password, score, status) VALUES (?, ?, ?, ?)`,
+//             [username, password, score, status],
+//             function (err) {
+//                 if (err) {
+//                     reject({ error: 'Failed to add user', details: err });
+//                 } else {
+//                     resolve({userId: this.lastID, user: username });
+//                 }
+//             }
+//         );
+//     });
+// }
+// // change status fucntion 
 
 module.exports = {
 	insertUser, 
-	loginUser
+	// loginUser
 };
 
