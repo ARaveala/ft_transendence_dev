@@ -18,6 +18,7 @@
   "settings.passwordNew": "Nytt lösenord",
   "settings.passwordConfirm": "Bekräfta nytt lösenord",
   "settings.changeAvatar": "Byt profilbild",
+  "settings.avatarSelect": "Välj nytt avatar",
   "settings.danger": "Farlig zon",
   "settings.deleteText": "Att ta bort din profil raderar ditt konto, dina vänner och din matchhistorik. Detta kan inte ångras!",
   "settings.delete": "Ta bort profil",

@@ -18,6 +18,7 @@
   "settings.passwordNew": "New password",
   "settings.passwordConfirm": "Confirm new password",
   "settings.changeAvatar": "Change avatar",
+  "settings.avatarSelect": "Select new avatar",
   "settings.danger": "Danger zone",
   "settings.deleteText": "Deleting your profile removes your account, friends, and match history. This action is irreversible!",
   "settings.delete": "Delete profile",
@@ -32,6 +33,7 @@
   "common.languageUpdated": "Language updated.",
   "common.usernameUpdated": "Username updated.",
   "common.passwordUpdated": "Password updated.",
+  "common.avatarUpdated": "Avatar updated.",
   "common.deletedText": "Your profile has been deleted!",
 
   "error.usernameLength": "Username must be between 3-15 characters.",

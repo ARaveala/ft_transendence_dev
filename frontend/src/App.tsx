@@ -23,6 +23,8 @@ import SettingsPage from "./pages/SettingsPage";
 
 // Import shared layout components
 import Navbar from "./components/layout/Navbar";
+// Translation
+import { TranslationProvider } from "./shared/Translation";
 
 // Import AuthContext to manage user authentication state
 import { AuthProvider } from "./context/AuthContext";
@@ -53,6 +55,7 @@ export default function App() {
   return (
     <AuthProvider>
 		<Router>
+			<TranslationProvider>
 		<Layout>
 			<Routes>
 			<Route path="/" element={<LandingPage />} />
@@ -65,6 +68,7 @@ export default function App() {
 			<Route path="/settings" element={<SettingsPage />} />
 			</Routes>
 			</Layout>
+			</TranslationProvider>
 		</Router>
 	</AuthProvider>  
 	    );

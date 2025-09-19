@@ -18,6 +18,7 @@
   "settings.passwordNew": "Uusi salasana",
   "settings.passwordConfirm": "Vahvista uusi salasana",
   "settings.changeAvatar": "Vaihda avatar",
+  "settings.avatarSelect": "Valitse uusi avatar",
   "settings.danger": "Vaaravyöhyke",
   "settings.deleteText": "Profiilin poistaminen poistaa tilisi, ystävät ja otteluhistorian. Toiminto on peruuttamaton!",
   "settings.delete": "Poista profiili",
