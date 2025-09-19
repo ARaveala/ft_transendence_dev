@@ -130,7 +130,12 @@
 		process.exit(1);
 	}
 	};
-
+	fastify.ready(err => {
+	  if (err) throw err;
+	  console.log('\n=== Registered routes ===');
+	  console.log(fastify.printRoutes());
+	  console.log('=========================\n');
+	});
 	start();
 
 

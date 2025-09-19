@@ -45,8 +45,15 @@ Navigate to backend directory npm start (to start the "server")
 Open thunder client and make new request to simple test backend
 
 ----
+#### docker 
 
+To Build the backend image run command: docker build -t backend .
+Then to run server run command: docker run --rm -p 3000:3000 backend
 
+- To access images shell run command: docker exec -it <images_name> sh
+- To access database run command in images shell: sqlite3 data/app.sqlite
+- If you want to see what tables we have run command in sqlite: .tables
+- If you want to see what's inside users table run command in sqlite: SELECT * FROM users;
 
 ----
 
@@ -63,3 +70,4 @@ This requires you fill in also json below
 
 as the shared directories grow in both frontend and backend, we can utalize the api protocols and payloads as examples
 ---
+
