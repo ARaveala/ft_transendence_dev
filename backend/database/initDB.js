@@ -57,12 +57,13 @@
 // );
 
 // module.exports = db;
+
 'use strict';
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-const DB_DIR  = process.env.DB_DIR  || '/app/data';
+const DB_DIR  = process.env.DB_DIR  || '/app/data/';
 const DB_FILE = process.env.DB_FILE || 'app.sqlite';
 const DB_PATH = process.env.DB_PATH || path.join(DB_DIR, DB_FILE);
 const INIT_SQL_PATH = process.env.INIT_SQL || path.join(__dirname, 'init.sql');

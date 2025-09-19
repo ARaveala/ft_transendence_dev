@@ -7,6 +7,14 @@ required installs :
 
 ---
 
+To Build the backend image run command:
+docker build -t backend .
+
+Then to run server run command:
+docker run --rm -p 3000:3000 backend
+
+---
+
 Navigate to practise1 folder
 
 Install dependencies from package.json using npm install, this will create a node_modules folder
@@ -44,3 +52,16 @@ WebSocket functionality is in progress—basic setup is working, but fuller feat
 Please fork or branch code and play with it, break it , do what you want with it.
 
 The Dockerfile has not yet been tested .
+
+---
+To access images shell run command:
+docker exec -it <images_name> sh
+
+To access database run command in images shell:
+sqlite3 data/app.sqlite
+
+If you want to see what tables we have run command in sqlite:
+.tables
+
+If you want to see what's inside users table run command in sqlite:
+SELECT * FROM users;

@@ -2,8 +2,9 @@ CREATE TABLE IF NOT EXISTS users
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
-    pword TEXT,
+    password TEXT NOT NULL,
     avatar_file TEXT,
+    status TEXT NOT NULL DEFAULT 'offline',
     mfa_enabled INTEGER NOT NULL DEFAULT 0,
     rank INTEGER NOT NULL DEFAULT 0,
     score INTEGER NOT NULL DEFAULT 0,

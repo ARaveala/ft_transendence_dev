@@ -1,4 +1,4 @@
-
+'use strict';
 require('module-alias/register'); // enables aliases
 // env file
 require('dotenv').config();
@@ -7,7 +7,7 @@ require('dotenv').config();
 // logger is enabled for debugging purposes
 
 // Create database
-require('./database/initDB');
+const { ready } = require('./database/initDB');
 
 
 //const WebSocket = require('ws');
@@ -15,7 +15,7 @@ require('./database/initDB');
 const fastify = require('fastify')({ logger: true });
 const {log} = require('@logger'); //dev
 // use stict mode for better error handling
-'use strict';
+
 // set up fucntion userRoutes , require from user.js
 //this will be split later into multiple files we can use this now as the tetsing ground
 const userRoutes = require('@routes/user.js');
@@ -108,10 +108,9 @@ const start = async () => {
 
 	try {
 		log('STARTING SERVER', '---------------------------------------------');
-	//await fastify.register(require('@fastify/cors'), {
-    //  		origin: '*', // Allow all origins (for testing only)
-    //});
-//    await fastify.listen({ port: 3000 });
+    // wait for DB init before opening sockets or HTTP
+    await ready;
+    log('DB ready -> STARTING SERVER', '---------------------------------------------');
 	// have added for testing a local host binding to test docker ability to connect to browser
     fastify.listen({ port: 3000, host: '0.0.0.0' }, err => {
 	  if (err) {
@@ -121,12 +120,19 @@ const start = async () => {
 	  fastify.log.info('Server listening on port 3000')
 	});
 	setUpWebSockets(fastify.server);
-    console.log('WebSocket server is running');
+  console.log('WebSocket server is running');
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
   }
 };
+
+fastify.ready(err => {
+  if (err) throw err;
+  console.log('\n=== Registered routes ===');
+  console.log(fastify.printRoutes());
+  console.log('=========================\n');
+});
 
 start();
 

@@ -29,7 +29,7 @@ function insertUser({ username, password, score, status }) {
 
     return new Promise((resolve, reject) => {
         db.run(
-            `INSERT INTO users (username, pword, score) VALUES (?, ?, ?)`,
+            `INSERT INTO users (username, password, score, status) VALUES (?, ?, ?, ?)`,
             [username, password, score, status],
             function (err) {
                 if (err) {

@@ -21,22 +21,25 @@
 # CMD ["node", "server.js"]
 
 # --- build/runtime image ---
-FROM node:20-alpine
+FROM node:20-bookworm-slim
 
-# Create app directory
 WORKDIR /app
 
-# Install prod deps first for better layer caching
 COPY package*.json ./
 RUN npm ci --omit=dev
-RUN apk add --no-cache sqlite
 
-# Copy the rest of your code
-# If your files live under src/, database/, migrations/, etc., copy them all
+# Optional: sqlite CLI for debugging
+RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 && rm -rf /var/lib/apt/lists/*
+
 COPY . .
-
-# Ensure the data directory exists (SQLite lives here)
 RUN mkdir -p /app/data
 
-# Default command can be your API; we’ll override it to run the smoke test
-CMD ["node", "src/server.js"]
+# # Expose the port Fastify listens on
+EXPOSE 3000
+
+ENV NODE_ENV=production \
+    DB_DIR=/app/data \
+    DB_FILE=app.sqlite \
+    INIT_SQL=/app/database/init.sql
+
+CMD ["node", "server.js"]
