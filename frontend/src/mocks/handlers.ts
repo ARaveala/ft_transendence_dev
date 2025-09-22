@@ -6,6 +6,9 @@ import avatar3 from "../assets/avatars/avatar3.png";
 import { http, HttpResponse } from "msw";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile, PlayerPayload } from "../../shared/payloads";
+import type { VerifyPlayerPayload } from "../../shared/payloads";
+import type { TournamentPlayer, Match, Tournament } from "../types/tournament";
+import { TBD_PLAYER } from "../../shared/constants";
 import { mockRegisteredPlayers } from "./players";
 
 
@@ -33,10 +36,10 @@ export const handlers = [
 
   //Mock for delete profile
 	http.delete(API_PROTOCOL.DELETE_PROFILE.path, async () => {
-	return HttpResponse.json(
-	{ status: 'DELETED' }, 
-	{ status: 200 }
-	);
+	  return HttpResponse.json(
+	    { status: 'DELETED' },
+	    { status: 200 }
+	  );
 	}),
 
   // Mock for registration response
@@ -49,7 +52,104 @@ export const handlers = [
     );
   }),
 
-// Mock for profile fetch
+  // Mock for password verification
+  http.post(API_PROTOCOL.VERIFY_PLAYER.path, async ({ request }) => {
+    const body = (await request.json()) as VerifyPlayerPayload;
+    const { username, password } = body;
+
+  const player = mockRegisteredPlayers.find((p) => p.username === username);
+
+  if (!player) {
+    return HttpResponse.json(
+      { valid: false, error: "Player not found" },
+      { status: 200 }
+    );
+  }
+
+  if (player.password !== password) {
+    return HttpResponse.json(
+      { valid: false, error: "Invalid password" },
+      { status: 200 }
+    );
+  }
+  return HttpResponse.json({ valid: true }, { status: 200 });
+}),
+
+  // Mock for starting a tournament
+  http.post(API_PROTOCOL.START_TOURNAMENT.path, async ({ request }) => {
+    const players = (await request.json()) as TournamentPlayer[] ;
+
+    if (players.length < 4) {
+      return HttpResponse.json(
+        { status: "ERROR", error: "Need 4 players to start", tournament_id: "" },
+        { status: 400 }
+      );
+    }
+     // Assign a tournament ID
+    const tournamentId = "tourney-" + Date.now();
+
+    // First round matches
+    const firstRound: Match[] = [
+      {
+        match_id: "m1",
+        player1: players[0],
+        player2: players[1],
+        winner: TBD_PLAYER,
+        status: "pending",
+        score: { player1: 0, player2: 0 },
+      },
+      {
+        match_id: "m2",
+        player1: players[2],
+        player2: players[3],
+        winner: TBD_PLAYER,
+        status: "pending",
+        score: { player1: 0, player2: 0 },
+      },
+    ];
+
+    // Bracket: array of rounds, each round is an array of matches
+    const bracket: Match[][] = [
+      firstRound,  // first round with real players
+      firstRound.map(() => ({
+        match_id: "tbd3",
+        player1: {...TBD_PLAYER },
+        player2: {...TBD_PLAYER },
+        winner: {...TBD_PLAYER },
+        status: "pending",
+        score: { player1: 0, player2: 0 },
+      })),
+      // final round placeholder
+      [
+        {
+          match_id: "tbd_final",
+          player1: {...TBD_PLAYER },
+          player2: {...TBD_PLAYER },
+          winner: {...TBD_PLAYER },
+          status: "pending",
+          score: { player1: 0, player2: 0 },
+        },
+      ],
+    ];
+
+    const tournament: Tournament = {
+      tournament_id: tournamentId,
+      status: "ongoing",
+      players,
+      matches: firstRound,
+      bracket,
+      currentMatch: firstRound[0],
+      createdAt: new Date(),
+    };
+
+      return HttpResponse.json(
+        { status: "OK", tournament_id: tournamentId, players, matches: firstRound },
+        { status: 200 }
+      );
+    }),
+  ];
+
+  // Mock for profile fetch
   http.get(API_PROTOCOL.GET_PROFILE.path, () => {
     return HttpResponse.json(mockProfile, { status: 200 });
   }),
@@ -80,7 +180,5 @@ export const handlers = [
         !excludeIds.includes(p.user_id)
     );
     return HttpResponse.json(filtered, { status: 200 });
-  }),
-  
-];
+  });
 

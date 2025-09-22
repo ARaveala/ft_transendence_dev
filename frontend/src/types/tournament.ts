@@ -18,14 +18,14 @@ export interface Match {
     player1: number;
     player2: number;
   };
-  status: 'pending' | 'active' | 'finished';
-  lastUpdated: Date;
-  gameState?: any;
+  status: 'pending' | 'ongoing' | 'finished';
+  //lastUpdated: Date;
+  //gameState?: any;
 }
 
 export interface Tournament {
   tournament_id: string;
-  status: 'waiting' | 'active' | 'finished';
+  status: 'waiting' | 'ongoing' | 'finished';
   players: TournamentPlayer[];
   matches: Match[];
   bracket: Match[][];

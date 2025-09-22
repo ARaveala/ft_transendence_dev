@@ -2,14 +2,15 @@
 // Holds a state of all players
 // Updates player data when child component changes something
 // Tracks validation of alias, password
-// Handles "Start Tournament" 
+// Handles "Start tournament" 
 
 import React, { useEffect, useState } from "react";
 import PlayerList from "./PlayerList";
 import { PlayerSearch } from "./PlayerSearch";
-import type { TournamentPlayer, Tournament } from "../../types/tournament";
+import type { TournamentPlayer, Tournament, Match } from "../../types/tournament";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
-import { PlayerSearchRequest, PlayerSearchResponse } from '../../../shared/payloads';
+import { TBD_PLAYER } from "../../../shared/constants";
+import { PlayerSearchRequest, PlayerSearchResponse, StartTournamentResponse } from '../../../shared/payloads';
 import Button from "../ui/Button";
 
 interface TournamentSetupProps {
@@ -21,9 +22,9 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onTournamentStarted, 
   const [tournamentPlayers, setTournamentPlayers] = useState<TournamentPlayer[]>([
     { user_id: "current",
       username: "currentUser",
-      alias: "", 
-      status: "waiting", 
-      score: 0, 
+      alias: "",
+      status: "waiting",
+      score: 0,
       isSelf: true },
   ]);
   const [allRegisteredPlayers, setAllRegisteredPlayers] = useState<TournamentPlayer[]>([]);
@@ -59,10 +60,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onTournamentStarted, 
   // Add a registered player to the tournament
   const handleAddPlayer = (player: TournamentPlayer) => {
     if (tournamentPlayers.length >= 4) return;
-
-    // Prevent duplicates
-    const alreadyInTournament = tournamentPlayers.some((p) => p.user_id === player.user_id);
-    if (alreadyInTournament) return;
+    if (tournamentPlayers.some((p) => p.user_id === player.user_id)) return;
 
     setTournamentPlayers((prev) => [
       ...prev,
@@ -73,21 +71,61 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onTournamentStarted, 
         alias: "",       // ensure alias starts empty
         status: "waiting",
       },
-  ]);
+    ]);
   };
 
   const handleStartTournament = async () => {
     try {
-      const res = await fetch(API_PROTOCOL.REGISTER_PLAYER_ALIAS.path, {
+      const res = await fetch(API_PROTOCOL.START_TOURNAMENT.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tournamentPlayers),
       });
 
       if (!res.ok) throw new Error("Failed to start tournament");
-      const result: Tournament = await res.json();
 
-      onTournamentStarted(result);
+      const data: StartTournamentResponse = await res.json();
+
+      if (data.status !== "OK") {
+        console.error("Tournament start error:", data.error);
+        return;
+      }
+
+  const firstRound = data.matches;
+
+  const bracket: Match[][] = [
+    firstRound,
+    firstRound.map(() => ({
+      match_id: "tbd",
+      player1: { ...TBD_PLAYER },
+      player2: { ...TBD_PLAYER },
+      winner: { ...TBD_PLAYER },
+      status: "pending",
+      score: { player1: 0, player2: 0 },
+    })),
+      [
+      {
+        match_id: "tbd-final",
+        player1: { ...TBD_PLAYER },
+        player2: { ...TBD_PLAYER },
+        winner: { ...TBD_PLAYER },
+        status: "pending",
+        score: { player1: 0, player2: 0 },
+      },
+    ],
+  ];
+
+    const tournament: Tournament = {
+      tournament_id: data.tournament_id,
+      players: data.players,
+      matches: firstRound,
+      status: "ongoing",
+      bracket,
+      currentMatch: firstRound[0],
+      createdAt: new Date(),
+    };
+
+    onTournamentStarted(tournament);
     } catch (err) {
       console.error(err);
     }
@@ -127,7 +165,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onTournamentStarted, 
           <Button
             onClick={handleStartTournament}
           >
-            Start Tournament
+            Start tournament
           </Button>
         )}
       </div>

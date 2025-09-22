@@ -224,6 +224,16 @@ export interface PlayerSearchResponse {
   players: TournamentPlayer[]; // filtered list of players
 }
 
+export interface VerifyPlayerPayload {
+  username: string;
+  password: string;
+}
+
+export interface VerifyPlayerResponse {
+  valid: boolean;
+  error?: string;
+}
+
 export interface RegisterAliasRequest {
   user_id: string;
   alias: string;
@@ -235,7 +245,17 @@ export interface RegisterAliasResponse {
 }
 
 export interface StartTournamentPayload {
+  players: TournamentPlayer[];
+}
+
+export interface StartTournamentResponse {
+  status: 'OK' | 'ERROR';
+  error?: string;
   tournament_id: string;
+  players: TournamentPlayer[];
+  matches: Match[];               // info on first matches
+  bracket: Match[][];
+  createdAt: Date;
 }
 
 export interface MatchResultPayload {
@@ -260,12 +280,6 @@ export interface JoinTournamentResponse {
   status: 'OK' | 'ERROR';
   error?: string;
   players?: string[];       // updated list of aliases
-}
-
-export interface StartTournamentResponse {
-  status: 'OK' | 'ERROR';
-  error?: string;
-  current_match?: MatchInfo;    // first match info
 }
 
 export interface MatchInfo {

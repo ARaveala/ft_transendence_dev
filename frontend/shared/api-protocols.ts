@@ -54,6 +54,11 @@ export const API_PROTOCOL = {
     method: 'GET'
   },
 
+  VERIFY_PLAYER: {
+  path: '/api/tournament/verify-player',
+  method: 'POST',
+  },
+
   ADD_PLAYER_TO_TOURNAMENT: {
     path: '/api/tournament/add-player',
     method: 'POST',
@@ -69,10 +74,15 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
 
-  START_TOURNAMENT: {
-    path:'/api/tournament/:id/start',
+   START_TOURNAMENT: {
+    path:'/api/tournament/start',
     method: 'POST',
   },
+
+  /*START_TOURNAMENT: {
+    path:'/api/tournament/:id/start',
+    method: 'POST',
+  }, */
 
   TOURNAMENT_STATE: {
     path: '/api/tournament/:id/state',
