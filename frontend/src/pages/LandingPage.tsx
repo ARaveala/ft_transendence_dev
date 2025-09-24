@@ -31,34 +31,35 @@ const handleSubmit = async (data: RegisterUserPayload) => {
 	}
 
 	// //fetch user profile after successful login or registration - currently not working because backend does not return user data
-	// const profileRes = await fetch(API_PROTOCOL.GET_PROFILE.path, {
-	// 	method: API_PROTOCOL.GET_PROFILE.method,
-	// 	credentials: "include",
-	// });
-	// if (!profileRes.ok) throw new Error("Failed to fetch user profile");
+	const profileRes = await fetch(API_PROTOCOL.GET_PROFILE.path, {
+		method: API_PROTOCOL.GET_PROFILE.method,
+		credentials: "include",
+	 });
+	 //console.log("Profile fetch response status:", profileRes.status);
+	//if (!profileRes.ok) throw new Error("Failed to fetch user profile");
 
-	// const userProfile = await profileRes.json();
+	const userProfile = await profileRes.json();
 
 	// === Mock profile for development ===
-	const userProfile: UserProfile = {
-	user_id: "mock-1",
-	username: data.username || "PlayerOne",
-	avatarFile: "avatars/avatar1.png",
-	twoFactor: false,
-	rank: 5,
-	score: 1200,
-	victories: 15,
-	losses: 7,
-	totalMatches: 22,
-	friends: [
-		{ id: "1", username: "Player2", avatar: "/avatars/avatar2.png" },
-		{ id: "2", username: "Player3", avatar: "/avatars/avatar3.png" },
-	],
-	matchHistory: [
-		{ id: "m1", opponent: "Player2", result: "win", score: 21, timestamp: "2025-08-25T12:00:00" },
-		{ id: "m2", opponent: "Player3", result: "loss", score: 18, timestamp: "2025-08-24T15:30:00" },
-	],
-	};
+	//const userProfile: UserProfile = {
+	//user_id: "mock-1",
+	//username: data.username || "PlayerOne",
+	//avatarFile: "avatars/avatar1.png",
+	//twoFactor: false,
+	//rank: 5,
+	//score: 1200,
+	//victories: 15,
+	//losses: 7,
+	//totalMatches: 22,
+	//friends: [
+	//	{ id: "1", username: "Player2", avatar: "/avatars/avatar2.png" },
+	//	{ id: "2", username: "Player3", avatar: "/avatars/avatar3.png" },
+	//],
+	//matchHistory: [
+	//	{ id: "m1", opponent: "Player2", result: "win", score: 21, timestamp: "2025-08-25T12:00:00" },
+	//	{ id: "m2", opponent: "Player3", result: "loss", score: 18, timestamp: "2025-08-24T15:30:00" },
+	//],
+	//};
 	loginUser(userProfile); // Update AuthContext with logged-in user
 
 	// Success: notify user, close modal, and update login state

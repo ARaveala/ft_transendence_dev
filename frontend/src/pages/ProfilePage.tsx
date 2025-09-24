@@ -24,6 +24,9 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
         const res = await fetch(API_PROTOCOL.GET_PROFILE.path, {
         credentials: "include", // send HttpOnly cookie
         });
+		//const raw = await res.text();
+		//console.log("Raw response:", raw);
+
         const data: UserProfile = await res.json();
 
         if (!data.avatarFile) {
@@ -61,7 +64,8 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
       if (!res.ok) throw new Error("Update failed");
 
       const updatedProfile: UserProfile = await res.json();
-      setProfile(updatedProfile);
+	  console.log("Updated profile response:", updatedProfile);
+	  setProfile(updatedProfile);
       setSelectedAvatar(updatedProfile.avatarFile || avatar1);
       alert("Profile updated successfully!");
     } catch (err) {
