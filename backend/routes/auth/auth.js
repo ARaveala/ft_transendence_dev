@@ -33,7 +33,7 @@ async function registerUser(fastify, options) {
 		const token = secure.generateToken(result.userId, username);
 		log('LOGINUSER', `token on creation ${token}`);
 		secure.setAuthCookie(reply, token)
-			reply.send(result);
+			reply.code(200).send('ok');
 		} catch (err) {
 			reply.code(500).send(err);
 		}

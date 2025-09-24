@@ -33,7 +33,7 @@ async function getUser(fastify, options) {
 
 		const mockProfile = {
 				username: "PlayerOne",
-				avatarFile: "avatars/avatar1.png",
+				avatarFile: "../../database/assets/avatar1.png",
 				twoFactor: false,
 				rank: 5,
 				score: 1200,
@@ -51,11 +51,18 @@ async function getUser(fastify, options) {
 			};
 
 		//const userId = request.params.id;
-		console.log('Fetching user with ID:', userId);
+		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
 		try {
 			console.log("debug :: inside try block");
+			//const test = userId.id;//parseInt(userId, 10); //base of 10, make sure its a number
+			//console.log('Checking value of test:', test, 'with type', typeof test);
 			const result = await DBget.fetchUser({userId});
 			console.log("the user we should be returning is :", result);
+			const { password, ...safeUser } = result;
+			mockProfile.username = safeUser.username;
+			//mockP
+			console.log("show mock profile", mockProfile);
+			//reply.send(safeUser);
 			reply.send(mockProfile);
 		} catch (err) {
 			reply.code(500).send(err);

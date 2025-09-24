@@ -24,18 +24,18 @@ avatarFile: "avatars/avatar1.png",
 				friends: 0 (format unknown)
 				matchHistory: 0 (format unknown)
  */
-function insertUser({ username, password, score, status }) {
-    console.log('Incoming user data:', { username, password, score, status });
+function insertUser({ username, password}) {
+    console.log('Incoming user data:', { username, password});
 
     return new Promise((resolve, reject) => {
         db.run(
-            `INSERT INTO users (username, password, score, status) VALUES (?, ?, ?, ?)`,
-            [username, password, score, status],
+            `INSERT INTO users (username, password, avatar_file) VALUES (?, ?, ?)`,
+            [username, password, 'frontend/src/assets/avatars/avatar1.png'],
             function (err) {
                 if (err) {
                     reject({ error: 'Failed to add user', details: err });
                 } else {
-                    resolve({ message: 'User added yay!', userId: this.lastID });
+                    resolve({ userId: this.lastID });
                 }
             }
         );

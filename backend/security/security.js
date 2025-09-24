@@ -40,7 +40,8 @@ function getUserIdFromToken(token) {
 	try {
 		const decoded = jwt.verify(token, JWT_SECRET);
 		log('GET USER ID FROM TOKEN', `decoded token ${JSON.stringify(decoded)}`);
-		return JSON.stringify(decoded.id); // or whatever claim you expect
+//		return JSON.stringify(decoded.id); // or whatever claim you expect
+		return decoded.id; // or whatever claim you expect
 	} catch (err) {
 		console.error('Invalid or expired token:', err.message);
 		return null; // or throw a custom error if you want to handle it upstream
