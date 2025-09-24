@@ -38,8 +38,8 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onTournamentStarted, 
         const res = await fetch(fullUrl);
         
         if (!res.ok) throw new Error("Failed to fetch players");
-        const data: TournamentPlayer[] = await res.json();
-        setAllRegisteredPlayers(data);
+        const data = await res.json() as PlayerSearchResponse;
+        setAllRegisteredPlayers(data.players || []);
       } catch (err) {
         console.error(err);
       }

@@ -6,7 +6,7 @@ import avatar3 from "../assets/avatars/avatar3.png";
 import { http, HttpResponse } from "msw";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile, PlayerPayload } from "../../shared/payloads";
-import type { VerifyPlayerPayload } from "../../shared/payloads";
+import type { VerifyPlayerPayload, PlayerSearchResponse } from "../../shared/payloads";
 import type { TournamentPlayer, Match, Tournament } from "../types/tournament";
 import { TBD_PLAYER } from "../../shared/constants";
 import { mockRegisteredPlayers } from "./players";
@@ -147,7 +147,6 @@ export const handlers = [
         { status: 200 }
       );
     }),
-  ];
 
   // Mock for profile fetch
   http.get(API_PROTOCOL.GET_PROFILE.path, () => {
@@ -179,6 +178,12 @@ export const handlers = [
         p.username.toLowerCase().includes(query) &&
         !excludeIds.includes(p.user_id)
     );
-    return HttpResponse.json(filtered, { status: 200 });
-  });
+    const response: PlayerSearchResponse = {
+    status: "OK",
+    players: filtered,
+  };
+
+  return HttpResponse.json(response, { status: 200 });
+  }),
+];
 
