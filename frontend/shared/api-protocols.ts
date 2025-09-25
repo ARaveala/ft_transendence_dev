@@ -48,6 +48,16 @@ export const API_PROTOCOL = {
     path:'/api/tournament',
     method: 'POST',
   },
+  
+  GET_ALL_REGISTERED_PLAYERS: {
+    path: '/api/tournament/search',
+    method: 'GET'
+  },
+
+  ADD_PLAYER_TO_TOURNAMENT: {
+    path: '/api/tournament/add-player',
+    method: 'POST',
+  },
 
   JOIN_TOURNAMENT: {
     path:'/api/tournament/:id/join',

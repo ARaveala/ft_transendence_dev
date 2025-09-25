@@ -6,6 +6,8 @@ import avatar3 from "../assets/avatars/avatar3.png";
 import { http, HttpResponse } from "msw";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile, PlayerPayload } from "../../shared/payloads";
+import { mockRegisteredPlayers } from "./players";
+
 
 
 const mockProfile: UserProfile = {
@@ -123,4 +125,8 @@ export const handlers = [
     return HttpResponse.json(mockPlayers, { status: 200 });
 }),
 
+ // Mock for tournament search: returns all registered players
+  http.get(API_PROTOCOL.GET_ALL_REGISTERED_PLAYERS.path, () => {
+    return HttpResponse.json(mockRegisteredPlayers, { status: 200 });
+  }),
 ];

@@ -197,18 +197,47 @@ export interface GameStateUpdate {
 // Tournament
 
 export interface CreateTournamentPayload {
+  host_id: string;                 // Logged-in player's user_id
   tournament_name: string;
+  player_ids: string[];            // IDs of added players
   max_players: number;             // minimum 3, max can be set
 }
 
-export interface CreateTournamentResponse {
+export interface TournamentStateResponse {
   status: 'OK' | 'ERROR';
   error?: string;
-  tournament_id?: string;     // unique ID for the tournament
+  tournament_id?: string;             // unique ID for the tournament
   tournament_name?: string;
   max_players?: number;
-  created_at?: string;        // timestamp
+  created_at?: string;                // timestamp
+  updated_tournament?: Tournament;    // Current state of the tournament
 }
+
+export interface PlayerSearchRequest {
+  query: string;                      // The search term typed by the user
+  excludeIds?: string[];              // List of user IDs to exclude (already added players)???
+}
+
+export interface PlayerSearchResponse {
+  status: 'OK' | 'ERROR';
+  error?: string;
+  players?: TournamentPlayer[];       // List of players matching the search query
+}
+
+export interface StartTournamentPayload {
+  tournament_id: string;
+}
+
+export interface MatchResultPayload {
+  tournament_id: string;
+  match_id: string;
+  winner_id: string;              // user_id of winner
+  score: {
+    player1: number;
+    player2: number;
+  };
+}
+
 
 
 // Should these go over API endpoint or websocket??
