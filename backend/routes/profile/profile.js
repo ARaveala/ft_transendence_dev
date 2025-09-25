@@ -23,6 +23,13 @@ async function getUser(fastify, options) {
 	const { DBget, secure } = options;
 	fastify.get(API_PROTOCOL.GET_PROFILE.path,{
 	}, async (request, reply) => {
+		// just for testing check no fail after remove
+		//if (!request.user.id) {
+		//  console.warn("Unauthorized access to /api/profile — no valid user ID");
+		//  reply.code(401).send({ error: "Unauthorized" });
+		//  return;
+		//}
+
 		const token = request.cookies.auth_token;
 
 		console.log('Cookies in get User:', request.cookies);
@@ -57,10 +64,21 @@ async function getUser(fastify, options) {
 			//const test = userId.id;//parseInt(userId, 10); //base of 10, make sure its a number
 			//console.log('Checking value of test:', test, 'with type', typeof test);
 			
-			const result = await DBget.fetchUser({userId});
-			console.log("the user we should be returning is :", result);
-			const { password, ...safeUser } = result;
-			mockProfile.username = safeUser.username;
+			const profile = await DBget.fetchUser({userId});
+			const friends = await DBget.getFriendsForPlayer({userId});
+			const matchHistory = await DBget.getMatchHistory({userId});
+			console.log("the user we should be returning is :", profile);
+			//const { password, ...safeUser } = profile;
+			mockProfile.username = profile.username;
+			mockProfile.avatarFile = profile.avatar_file;
+			mockProfile.mfa_enabled = profile.mfa_enabled === 1; // convert to boolean
+			mockProfile.rank = profile.rank;
+			mockProfile.score = profile.score;
+			mockProfile.wins = profile.victories;
+			mockProfile.losses = profile.losses;
+			mockProfile.total_games = profile.totalMatches;
+			mockProfile.friends = friends || [];
+			mockProfile.matchHistory = matchHistory || [];
 			//mockP
 			console.log("show mock profile", mockProfile);
 			//console.log("show mock profile", safeUser);

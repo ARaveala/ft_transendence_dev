@@ -68,6 +68,33 @@ async function loginUser(fastify, options) {
 	});
 }
 
+async function logoutUser(fastify, options) {
+	const { DBget, secure } = options;
+	fastify.post(API_PROTOCOL.LOGIN_USER.path, {
+	}, async (request, reply) => {
+		//const { username, password} = request.body;
+		//log('LOGOUT', `Incoming user data: ${JSON.stringify(request.body)}`);
+		try {
+		// here it looks to find if user exists and password matches.
+			const token = request.cookies.auth_token;
+
+			//console.log('Cookies in logout User:', request.cookies);
+
+			const userId = secure.getUserIdFromToken(token);
+			log('LOGINUSER', `token on creation ${token}`);
+			//secure.setAuthCookie(reply, token);
+			// change status function once everything verified
+
+			
+			//log('LOGINUSER', `User registration result:${JSON.stringify(result)}`);
+			reply.code(200).send('ok');
+			//reply.send(result);
+		} catch (err) {
+			console.log(('Error during login:', err));
+			reply.code(500).send(err);
+		}
+	});
+}
 // delete user 
 
 // will this login also take the alias 

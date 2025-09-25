@@ -64,6 +64,10 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
 
+  LOGOUT_USER: {
+	path: '/api/logout',
+	method: 'POST',
+  },
 // SettingsPage;
 
   DELETE_PROFILE: {

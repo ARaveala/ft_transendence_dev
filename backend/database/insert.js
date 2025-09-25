@@ -34,11 +34,7 @@ function insertUser({ username, password}) {
             function (err) {
                 if (err) {
                     reject({ error: 'Failed to add user', details: err });
-                } else {
-				//	db.all('SELECT * FROM users', (err, rows) => {
-				//	  console.log('All users:', rows);
-				//	});
-	
+                } else {	
                     resolve({ id: this.lastID });
                 }
             }

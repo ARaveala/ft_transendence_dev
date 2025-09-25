@@ -30,6 +30,10 @@ const API_PROTOCOL = {
 		method: 'GET',
 
 	},
+	LOGOUT_USER: {
+		path: '/api/logout',
+		method: 'POST',
+	}
 };
 
 //const API_PROTOCOL = {

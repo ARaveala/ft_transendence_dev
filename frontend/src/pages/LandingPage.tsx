@@ -41,7 +41,7 @@ const handleSubmit = async (data: RegisterUserPayload) => {
 	//if (!profileRes.ok) throw new Error("Failed to fetch user profile");
 
 	const userProfile = await profileRes.json();
-	 console.log("Fetched user profile:", userProfile);
+	console.log("Fetched user profile:", userProfile);
 	
 	
 	 // === Mock profile for development ===
