@@ -6,6 +6,9 @@ import avatar3 from "../assets/avatars/avatar3.png";
 import { http, HttpResponse } from "msw";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile, PlayerPayload } from "../../shared/payloads";
+import type { VerifyPlayerPayload, PlayerSearchResponse } from "../../shared/payloads";
+import type { TournamentPlayer, Match, Tournament } from "../types/tournament";
+import { TBD_PLAYER } from "../../shared/constants";
 import { mockRegisteredPlayers } from "./players";
 
 

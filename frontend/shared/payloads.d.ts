@@ -202,16 +202,69 @@ export interface CreateTournamentPayload {
   max_players: number;             // minimum 4, max can be set
 }
 
-export interface CreateTournamentResponse {
+export interface TournamentStateResponse {
   status: 'OK' | 'ERROR';
   error?: string;
   tournament_id?: string;     // unique ID for the tournament
   tournament_name?: string;
   max_players?: number;
   created_at?: string;        // timestamp
+  updated_tournament?: Tournament;    // Current state of the tournament
 }
 
+export interface PlayerSearchRequest {
+  query?: string;           // optional search term (used for search bar)
+  excludeIds?: string[];    // optional: players already added to the tournament
+}
 
+export interface PlayerSearchResponse {
+  status: 'OK' | 'ERROR';
+  error?: string;
+  players: TournamentPlayer[]; // filtered list of players
+}
+
+export interface VerifyPlayerPayload {
+  username: string;
+  password: string;
+}
+
+export interface VerifyPlayerResponse {
+  valid: boolean;
+  error?: string;
+}
+
+export interface RegisterAliasRequest {
+  user_id: string;
+  alias: string;
+}
+export interface RegisterAliasResponse {
+  status: 'OK' | 'ERROR';
+  error?: string;
+}
+
+export interface StartTournamentPayload {
+  players: TournamentPlayer[];
+}
+
+export interface StartTournamentResponse {
+  status: 'OK' | 'ERROR';
+  error?: string;
+  tournament_id: string;
+  players: TournamentPlayer[];
+  matches: Match[];               // info on first matches
+  bracket: Match[][];
+  createdAt: Date;
+}
+
+export interface MatchResultPayload {
+  tournament_id: string;
+  match_id: string;
+  winner_id: string;              // user_id of winner
+  score: {
+    player1: number;
+    player2: number;
+  };
+}
 // Should these go over API endpoint or websocket??
 
 export interface JoinTournamentPayload {
@@ -287,7 +340,7 @@ export interface ChangePasswordResponse {
 	error?: string;
 }
 
-/* over websocket??
+// over websocket??
 
 export interface TournamentState {
   tournament_id: string;
@@ -296,6 +349,12 @@ export interface TournamentState {
   current_match?: MatchInfo;                    // ongoing match
   upcoming_matches: MatchInfo[];                // matches yet to be played
   finished_matches: FinishedMatch[];            // completed matches
+}
+
+export interface TournamentFinished {
+  tournament_id: string;
+  winner: string;
+  final_results: Results[];
 }
 
 export interface FinishedMatch {
@@ -313,6 +372,7 @@ export interface TournamentFinished {
   final_results: Results[];
 }
 
+/*
 export interface Results {
   alias: string;
   position: number;
