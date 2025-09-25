@@ -197,8 +197,7 @@ export interface GameStateUpdate {
 // Tournament
 
 export interface CreateTournamentPayload {
-  host_id: string;                 // Logged-in player's user_id
-  tournament_name: string;
+  host_id: string;                 // Logged-in player's user_id 
   player_ids: string[];            // IDs of added players
   max_players: number;             // minimum 4, max can be set
 }
@@ -302,8 +301,6 @@ export interface MatchResultResponse {
   updated_tournament?: TournamentState;
 }
 
-/* over websocket??
-
 export interface TournamentState {
   tournament_id: string;
   status: 'WAITING' | 'RUNNING' | 'FINISHED';
@@ -311,6 +308,12 @@ export interface TournamentState {
   current_match?: MatchInfo;                    // ongoing match
   upcoming_matches: MatchInfo[];                // matches yet to be played
   finished_matches: FinishedMatch[];            // completed matches
+}
+
+export interface TournamentFinished {
+  tournament_id: string;
+  winner: string;
+  final_results: Results[];
 }
 
 export interface FinishedMatch {
@@ -322,16 +325,10 @@ export interface FinishedMatch {
   scorePlayer2: number;
 }
 
-export interface TournamentFinished {
-  tournament_id: string;
-  winner: string;
-  final_results: Results[];
-}
-
+/*
 export interface Results {
   alias: string;
   position: number;
-}
-
-*/
+} 
+  */
 

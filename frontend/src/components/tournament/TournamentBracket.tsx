@@ -41,67 +41,58 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({ tournament, onSta
 
     {/* Line from Winner to Final */}
     <div className="relative">
-      <svg width="50" height="40" className="absolute left-1/2 transform -translate-x-1/2 bg-red-200">
-        <line x1="1" y1="0" x2="1" y2="40" stroke="#374151" strokeWidth="2" />
-      </svg>
+      <svg width="2" height="86" className="absolute -top-8 left-1/2">
+            <line x1="1" y1="0" x2="1" y2="86" stroke="#374151" strokeWidth="2" />
+          </svg>
     </div>
 
     {/* Final */}
-    <div className="flex justify-center gap-32 relative">
-      <div className="flex flex-col items-center gap-2">
-        <div className="p-3 bg-gray-800 text-white rounded-xl w-40 text-center">
-          {finalMatch.player1.alias}
+    <div className="flex flex-col items-center gap-2 relative">
+      <div className="relative flex justify-center gap-72 items-center">
+        <div className="flex flex-col items-center gap-2 relative">
+          <div className="p-3 bg-gray-800 text-white rounded-xl w-40 text-center">
+            {finalMatch.player1.alias}
+          </div>
         </div>
-      </div>
-      <div className="flex flex-col items-center gap-2">
-        <div className="p-3 bg-gray-800 text-white rounded-xl w-40 text-center">
-          {finalMatch.player2.alias}
+        <div className="flex flex-col items-center gap-2 relative">
+          <div className="p-3 bg-gray-800 text-white rounded-xl w-40 text-center">
+            {finalMatch.player2.alias}
+          </div>
         </div>
-      </div>
       
-      {/* Horizontal line connecting final players */}
-      <svg width="160" height="2" className="absolute top-8 left-1/2 transform -translate-x-1/2 bg-blue-200">
-        <line x1="0" y1="1" x2="160" y2="1" stroke="#374151" strokeWidth="2" />
-      </svg>
+        {/* Horizontal line connecting final players */}
+        <svg width="290" height="20" className="absolute top-8 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <line x1="0" y1="1" x2="290" y2="1" stroke="#374151" strokeWidth="2" />
+        </svg>
       
-      {/* Vertical line down from center */}
-      <svg width="2" height="60" className="absolute top-16 left-1/2 transform -translate-x-1/2  bg-green-200">
-        <line x1="1" y1="0" x2="1" y2="60" stroke="#374151" strokeWidth="2" />1
-      </svg>
+        {/* Vertical line down from final player1 center */}
+        <svg width="2" height="50" className="absolute top-12 left-20">
+          <line x1="1" y1="0" x2="1" y2="50" stroke="#374151" strokeWidth="2" />
+        </svg>
+        {/* Vertical line down from final player2 center */}
+        <svg width="2" height="50" className="absolute top-12 right-20">
+          <line x1="1" y1="0" x2="1" y2="50" stroke="#374151" strokeWidth="2" />
+        </svg>
     </div>
 
-    <Button
-      onClick={() => onStartMatch?.(finalMatch)}
-      disabled={!isMatchPlayable(finalMatch, 2)}
-      className={
-        isMatchPlayable(finalMatch, 2)
-          ? "bg-blue-500 text-white hover:bg-blue-600"
-          : "bg-gray-500 text-gray-300 cursor-not-allowed"
-      }
-    >
-      Play final
-    </Button>
-
-    {/* Lines connecting to Round 1 */}
-    <div className="relative w-full flex justify-center">
-      <svg width="400" height="60" className="absolute bg-yellow-200">
-        {/* Horizontal line across */}
-        <line x1="50" y1="30" x2="350" y2="30" stroke="#374151" strokeWidth="2" />
-        {/* Vertical lines down to matches */}
-        {firstRound.map((_, idx) => {
-          const xPos = 50 + (idx * 300 / (firstRound.length - 1));
-          return (
-            <line key={idx} x1={xPos} y1="30" x2={xPos} y2="60" stroke="#374151" strokeWidth="2" />
-          );
-        })}
-      </svg>
+      <Button
+        onClick={() => onStartMatch?.(finalMatch)}
+        disabled={!isMatchPlayable(finalMatch, 2)}
+        className={
+          (isMatchPlayable(finalMatch, 2)
+            ? "bg-blue-500 text-white hover:bg-blue-600"
+            : "bg-gray-500 text-gray-300 cursor-not-allowed") + " -mt-6"
+        }
+      >
+        Play final
+      </Button>
     </div>
 
     {/* Round 1 Matches */}
-    <div className="flex justify-center gap-32 mt-8">
+    <div className="flex justify-center gap-28 mt-8">
       {firstRound.map((match, idx) => (
-        <div key={match.match_id} className="flex flex-col items-center gap-2 relative">
-          <div className="flex gap-2">
+        <div key={match.match_id} className="flex flex-col items-center gap-6 relative">
+          <div className="flex gap-3">
             <div className="p-3 bg-gray-800 text-white rounded-xl w-40 text-center">
               {match.player1.alias}
             </div>
@@ -110,14 +101,18 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({ tournament, onSta
             </div>
           </div>
           
-          {/* Horizontal line connecting the two players in this match */}
-          <svg width="166" height="100" className="absolute bg-purple-200">
-            <line x1="1" y1="4" x2="166" y2="4" stroke="#374151" strokeWidth="2" />
+          {/* Horizontal line connecting players */}
+          <svg width="170" height="3" className="absolute -top-14 left-20">
+            <line x1="0" y1="1" x2="170" y2="1" stroke="#374151" strokeWidth="2" />
           </svg>
-          
-          {/* Vertical line up from center of match */}
-          <svg width="2" height="20" className="absoluteleft-1/2 transform -translate-x-1/2 bg-pink-200">
-            <line x1="1" y1="0" x2="1" y2="20" stroke="#374151" strokeWidth="2" />
+
+          {/* Vertical line up from first players */}
+          <svg width="2" height="56" className="absolute -top-14 left-20">
+            <line x1="1" y1="0" x2="1" y2="56" stroke="#374151" strokeWidth="2" />
+          </svg>
+          {/* Vertical line up from second players */}
+          <svg width="2" height="56" className="absolute -top-14 right-20">
+            <line x1="1" y1="0" x2="1" y2="56" stroke="#374151" strokeWidth="2" />
           </svg>
 
           <Button

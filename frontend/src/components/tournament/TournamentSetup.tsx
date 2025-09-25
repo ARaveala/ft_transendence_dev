@@ -75,11 +75,18 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onTournamentStarted, 
   };
 
   const handleStartTournament = async () => {
+    const payload = tournamentPlayers.map(p => ({
+      username: p.username,
+      alias: p.alias,
+      password: p.isSelf ? undefined : p.password,
+      isSelf: p.isSelf
+    }));
+
     try {
       const res = await fetch(API_PROTOCOL.START_TOURNAMENT.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(tournamentPlayers),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Failed to start tournament");
