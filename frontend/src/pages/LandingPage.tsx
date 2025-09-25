@@ -31,16 +31,20 @@ const handleSubmit = async (data: RegisterUserPayload) => {
 	}
 
 	// //fetch user profile after successful login or registration - currently not working because backend does not return user data
+	//await new Promise((resolve) => setTimeout(resolve, 1000)); // short delay
+
 	const profileRes = await fetch(API_PROTOCOL.GET_PROFILE.path, {
 		method: API_PROTOCOL.GET_PROFILE.method,
-		credentials: "include",
+		credentials: "include"
 	 });
 	 //console.log("Profile fetch response status:", profileRes.status);
 	//if (!profileRes.ok) throw new Error("Failed to fetch user profile");
 
 	const userProfile = await profileRes.json();
-
-	// === Mock profile for development ===
+	 console.log("Fetched user profile:", userProfile);
+	
+	
+	 // === Mock profile for development ===
 	//const userProfile: UserProfile = {
 	//user_id: "mock-1",
 	//username: data.username || "PlayerOne",

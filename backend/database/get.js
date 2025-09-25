@@ -30,14 +30,27 @@ this could be managed by routes calling 3 fucntions     const player = await db.
 async function fetchUser({ userId }) {
 	console.log('Finside db::fetching user with ID:', userId);
 	const test = userId.id;//parseInt(userId, 10); //base of 10, make sure its a number
+		//db.all("SELECT * FROM users", (err, rows) => {
+		//  console.log("All users in DB:", rows);
+		//});
 
 		return new Promise((resolve, reject) => {
 			db.get('SELECT * FROM users WHERE id = ?', [test], (err, row) =>{
-				if (err || !row) {
-					reject({ error: 'REJECT in fetch User not found' });
-				} else {
-					resolve(row || { error: 'User not found OR in fetch' });
-				}
+				if (err) {
+  				  console.error('DB error:', err);
+  				  reject({ error: 'DB error fecth' });
+  				} else if (!row) {
+  				  console.warn('User not found for ID:', userId);
+  				  reject({ error: 'User not found fecth' });
+  				} else {
+  				  console.log('User found:', row);
+  				  resolve(row);
+  				}
+//				if (err || !row) {
+//					reject({ error: 'REJECT in fetch User not found' });
+//				} else {
+//					resolve(row || { error: 'User not found OR in fetch' });
+//				}
 			});
 		});
 }

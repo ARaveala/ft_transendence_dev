@@ -35,12 +35,48 @@ function insertUser({ username, password}) {
                 if (err) {
                     reject({ error: 'Failed to add user', details: err });
                 } else {
-                    resolve({ userId: this.lastID });
+				//	db.all('SELECT * FROM users', (err, rows) => {
+				//	  console.log('All users:', rows);
+				//	});
+	
+                    resolve({ id: this.lastID });
                 }
             }
         );
     });
 }
+
+
+//function insertUser({ username, password }) {
+//  console.log('Incoming user data:', { username, password });
+//
+//  return new Promise((resolve, reject) => {
+//    db.serialize(() => {
+//      db.run(
+//        `INSERT INTO users (username, password, avatar_file) VALUES (?, ?, ?)`,
+//        [username, password, 'frontend/src/assets/avatars/avatar1.png'],
+//        function (err) {
+//          if (err) {
+//            reject({ error: 'Failed to add user', details: err });
+//          } else {
+//            const userId = this.lastID;
+//
+//            // Force a read to flush visibility
+//            db.get("SELECT id FROM users WHERE id = ?", [userId], (err, row) => {
+//              if (err || !row) {
+//                reject({ error: 'Post-insert read failed', details: err });
+//              } else {
+//                resolve({ userId }); // Now safe to use in registerUser
+//              }
+//            });
+//          }
+//        }
+//      );
+//    });
+//  });
+//}
+//
+
 
 // this fucntion has to look inside database and confirm if username and password match
 // dev style right now just utalizes simple create a new user logic 

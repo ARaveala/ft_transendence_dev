@@ -24,9 +24,6 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
         const res = await fetch(API_PROTOCOL.GET_PROFILE.path, {
         credentials: "include", // send HttpOnly cookie
         });
-		//const raw = await res.text();
-		//console.log("Raw response:", raw);
-
         const data: UserProfile = await res.json();
 
         if (!data.avatarFile) {

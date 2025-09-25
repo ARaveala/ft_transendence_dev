@@ -33,8 +33,8 @@ async function getUser(fastify, options) {
 
 		const mockProfile = {
 				username: "PlayerOne",
-				avatarFile: "../../database/assets/avatar1.png",
-				twoFactor: false,
+				avatarFile: undefined,
+				mfa_enabled: false,
 				rank: 5,
 				score: 1200,
 				victories: 15,
@@ -56,12 +56,15 @@ async function getUser(fastify, options) {
 			console.log("debug :: inside try block");
 			//const test = userId.id;//parseInt(userId, 10); //base of 10, make sure its a number
 			//console.log('Checking value of test:', test, 'with type', typeof test);
+			
 			const result = await DBget.fetchUser({userId});
 			console.log("the user we should be returning is :", result);
 			const { password, ...safeUser } = result;
 			mockProfile.username = safeUser.username;
 			//mockP
 			console.log("show mock profile", mockProfile);
+			//console.log("show mock profile", safeUser);
+			
 			//reply.send(safeUser);
 			reply.send(mockProfile);
 		} catch (err) {

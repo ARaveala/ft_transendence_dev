@@ -27,12 +27,12 @@ async function registerUser(fastify, options) {
 
 		log('REGISTER_USER:', `in coming body ${JSON.stringify(request.body)}`);
 		try {
-		const result = await DBinsert.insertUser({ username, password, score, status });
-		log('REGISTER_USER', `User registration result: ${result}`);
+			const result = await DBinsert.insertUser({ username, password, score, status });
+			log('REGISTER_USER', `User registration result: ${result}`);
 
-		const token = secure.generateToken(result.userId, username);
-		log('LOGINUSER', `token on creation ${token}`);
-		secure.setAuthCookie(reply, token)
+			const token = secure.generateToken(result, username);
+			log('LOGINUSER', `token on creation ${token}`);
+			secure.setAuthCookie(reply, token)
 			reply.code(200).send('ok');
 		} catch (err) {
 			reply.code(500).send(err);
