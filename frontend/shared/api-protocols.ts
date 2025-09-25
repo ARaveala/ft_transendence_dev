@@ -54,9 +54,19 @@ export const API_PROTOCOL = {
     method: 'GET'
   },
 
+   VERIFY_PLAYER: {
+  path: '/api/tournament/verify-player',
+  method: 'POST',
+  },
+
   ADD_PLAYER_TO_TOURNAMENT: {
     path: '/api/tournament/add-player',
     method: 'POST',
+  },
+
+  REGISTER_PLAYER_ALIAS: {
+    path: "/api/tournament/register-alias",
+    method: "POST",
   },
 
   JOIN_TOURNAMENT: {
@@ -68,6 +78,11 @@ export const API_PROTOCOL = {
     path:'/api/tournament/:id/start',
     method: 'POST',
   },
+  
+  /*START_TOURNAMENT: {
+    path:'/api/tournament/:id/start',
+    method: 'POST',
+  }, */
 
   TOURNAMENT_STATE: {
     path: '/api/tournament/:id/state',
