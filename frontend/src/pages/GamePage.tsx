@@ -24,6 +24,7 @@ useEffect(() => {
 	const checkAuth = async () => {
 		if (!isLoggedIn) {
 			try {
+				console.log('refreshing session to check login');
 				await refreshSession(); // fetch user profile
 			} catch (err) {
 				console.error("Failed to refresh session", err);

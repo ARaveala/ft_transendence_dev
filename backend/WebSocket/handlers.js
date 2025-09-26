@@ -58,12 +58,17 @@ function attachPlayerToGame(ws, session) {
 
 	const game = getGame(ws.gameId);
 	//if (!game) return false; throw, make sure its being caught
-    const player = game.players.get(ws.playerId);
+	console.log('player id from token', ws.playerId.id);
+    const player = game.players.get(ws.playerId.id);
 	if (!player) {
+		console.log('acces player ready state', player.ready);
+		console.log("Player not found in game, player id", player.playerId,'player itesle', player);
 		ws.send(JSON.stringify({ error: 'Player not found in game' }));
 		ws.close();
 		return;
 	}
+	ws.player = player
+	console.log("Attached player to ws:", ws.player);
 	player.ws = ws;
 	player.ready = 'true';
 	//console.log("CHEKCING:: initplayer after updating", Array.from(players.entries()));
@@ -73,7 +78,7 @@ function attachPlayerToGame(ws, session) {
 function getGameContext(ws, data, playerinit) {
     if (!playerinit) return undefined;
 
-    const gameId = ws.gameId || Number(data.gameId); // i would like to remove the need for this at all for saftey 
+    const gameId = ws.gameId;// || Number(data.gameId); // i would like to remove the need for this at all for saftey 
     const game = getGame(gameId);
     if (!game) return undefined;
 

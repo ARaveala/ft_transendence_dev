@@ -35,6 +35,9 @@ const games = new Map(); // gameId -> { owner, players, state, loop }
  * 														    ws (the websocket)
  * 															role (player1/player2)
  * 															alias (game nickname)
+ * 															ready (boolean)
+ * 															disconnectedAt (timestamp or undefined)
+ * 															pauseTimeout (timeout handle or undefined)
  * 																 			
  * 														}
  * 				}
@@ -117,7 +120,7 @@ async function createGame(fastify, options) {
 	    log('CREATE_GAME', `checking id ${user1}`);
 		// local or remote should be type, mode is vs or tournament
 		const gameId = createGameMap(user1, type, mode);
-		addPlayer(gameId, user1, {type: "login", ws: undefined, role: "player1", alias: undefined, ready: false});
+		addPlayer(gameId, user1.id, {type: "login", ws: undefined, role: "player1", alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined});
 		log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
 		reply.send({ status: 'game created' , gameId});
 	   } catch (err) {
@@ -138,7 +141,7 @@ async function joinGame(fastify, options) {
 				const token = request.cookies.auth_token;
 			// this also verifies the token
 				const userId = secure.getUserIdFromToken(token);
-				addPlayer(gameId, userId, {type: "login", ws: undefined, role: "player"+player_count, alias: undefined});
+				addPlayer(gameId, userId.id, {type: "login", ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined});
 			}
 			else {
 
@@ -160,7 +163,7 @@ async function joinGame(fastify, options) {
 					userId = 'AI' + generateRandomId();
 				}
 
-				addPlayer(gameId, userId, {type: type, ws: undefined, role: "player"+player_count, alias: undefined});
+				addPlayer(gameId, userId.id, {type: type, ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined});
 				log('JOIN_GAME', `added player ${JSON.stringify(getGame(gameId))}`);
 			}
 				reply.send({ player: "player"+player_count, status: 'ready', });
@@ -182,19 +185,21 @@ async function startGame(fastify, options) {
     try { 
 //		log('START_GAME',`debug1`);
 		const token = request.cookies.auth_token;
-//		log('STAR_GAME', `checking tokn ${token}`);
+		log('STAR_GAME', `checking tokn ${token}`);
 		const userId = secure.getUserIdFromToken(token);
 		log('START_GAME',`checking userId ${JSON.stringify(userId)}`);
 		const game = getGame(gameId);
 		log('START_GAME',`checking whats in game ${JSON.stringify(game)}`);
 		if (!game) return reply.code(404).send({ error: 'Game not found' });
 		log('START_GAME', `checking comparison game.owner and id ${JSON.stringify(game.owner)} ${JSON.stringify(userId)}`);
-		if (game.owner !== userId) {
+		if (game.owner.id !== userId.id) {
+			log('START_GAME',`not owner of game`);
 			return reply.code(403).send({ error: 'Only the owner can start the game' });
 		}
-
+		log('START_GAME',`debug0`);
     	// Check players, if multiplayer this must be compared to player count
 		if (game.players.size < 2) {
+			log('START_GAME',`not enough players to start`);
 			return reply.code(400).send({ error: 'Not enough players to start' });
 		}
 		log('START_GAME',`debug1`);
