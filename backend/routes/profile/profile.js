@@ -24,14 +24,14 @@ async function getUser(fastify, options) {
 	fastify.get(API_PROTOCOL.GET_PROFILE.path,{
 	}, async (request, reply) => {
 		// just for testing check no fail after remove
-		//if (!request.user.id) {
+
+
+		const token = request.cookies.auth_token;
+		//if (!token.user.id) {
 		//  console.warn("Unauthorized access to /api/profile — no valid user ID");
 		//  reply.code(401).send({ error: "Unauthorized" });
 		//  return;
 		//}
-
-		const token = request.cookies.auth_token;
-
 		console.log('Cookies in get User:', request.cookies);
 
 		const userId = secure.getUserIdFromToken(token);

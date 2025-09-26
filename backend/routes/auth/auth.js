@@ -70,7 +70,7 @@ async function loginUser(fastify, options) {
 
 async function logoutUser(fastify, options) {
 	const { DBget, secure } = options;
-	fastify.post(API_PROTOCOL.LOGIN_USER.path, {
+	fastify.post(API_PROTOCOL.LOGOUT_USER.path, {
 	}, async (request, reply) => {
 		//const { username, password} = request.body;
 		//log('LOGOUT', `Incoming user data: ${JSON.stringify(request.body)}`);
@@ -81,7 +81,10 @@ async function logoutUser(fastify, options) {
 			//console.log('Cookies in logout User:', request.cookies);
 
 			const userId = secure.getUserIdFromToken(token);
-			log('LOGINUSER', `token on creation ${token}`);
+			// should verify seperatley , unless we need to check anything the 
+			// user is activly involved in like a game ...for some reason
+			secure.clearAuthCookie(reply, token);
+			//log('LOGINUSER', `token on creation ${token}`);
 			//secure.setAuthCookie(reply, token);
 			// change status function once everything verified
 
@@ -149,6 +152,7 @@ async function logoutUser(fastify, options) {
 async function authRoutes(fastify, options) {
   await registerUser(fastify, options);
   await loginUser(fastify, options);
+  await logoutUser(fastify, options);
   // deleteUser(fastify, option)
 }
 

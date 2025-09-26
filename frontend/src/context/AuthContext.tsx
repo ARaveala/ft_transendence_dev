@@ -58,11 +58,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 	const logoutUser = async () => {
 		try {
 			// Call backend logout endpoint
-			// const res = await fetch(API_PROTOCOL.LOGOUT_USER.path, {
-			// 	method: API_PROTOCOL.LOGOUT_USER.method,
-			// 	credentials: "include", // include cookies in request
-			// });
-			// if (!res.ok) throw new Error("Logout failed");
+			const res = await fetch(API_PROTOCOL.LOGOUT_USER.path, {
+				method: API_PROTOCOL.LOGOUT_USER.method,
+				credentials: "include", // include cookies in request
+			});
+			if (!res.ok) throw new Error("Logout failed");
 
 			// Clear user state on successful logout
 			setUser(null);
