@@ -43,8 +43,12 @@ async function registerUser(fastify, options) {
 // result change may affect frontend testing due to incorrect path
 async function loginUser(fastify, options) {
 	const { DBget, secure } = options;
-	fastify.post(API_PROTOCOL.LOGIN_USER.path, {
-	}, async (request, reply) => {
+	fastify.route({
+		method: API_PROTOCOL.LOGIN_USER.method,
+		url: API_PROTOCOL.LOGIN_USER.path,
+		handler: async (request, reply) => {
+		//schema: { body: schemas.LoginUser },
+
 		const { username, password} = request.body;
 		log('LOGINUSER', `Incoming user data: ${JSON.stringify(request.body)}`);
 		try {
@@ -65,7 +69,9 @@ async function loginUser(fastify, options) {
 			console.log(('Error during login:', err));
 			reply.code(500).send(err);
 		}
+	}
 	});
+
 }
 
 async function logoutUser(fastify, options) {
