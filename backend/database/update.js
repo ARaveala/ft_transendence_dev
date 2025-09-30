@@ -40,4 +40,27 @@ function updateUsername(username, userId) {
 		);
 	});
 }
-module.exports = { updateUserScore , updateUsername};
+
+function updatePassword(password, userId) {
+	console.log('updating username for user:', { password, userId});
+
+	return new Promise((resolve, reject) => {
+		db.run(
+			`UPDATE users SET password = ? WHERE id = ?`,
+			[password, userId],
+			function (err) {
+				if (err) {
+					reject({ error: 'Failed to update the password', details: err});
+				} else if (this.changes === 0) {
+					reject({ error: 'User not found , no changes made' });
+				} else {
+					resolve({ message: 'password updated', userId: userId, newPassword: password});
+				}
+			}
+		);
+	});
+}
+module.exports = { updateUserScore,
+	updateUsername,
+	updatePassword,
+};

@@ -117,7 +117,8 @@ async function getMatchHistory({ userId }) {
 		);
 	});
 }
-				
+
+//needs some adjustment for clarity
 async function checkUsernameAvailable( username ) {
 	console.log('Fetching user with username:', username);
 		return new Promise((resolve, reject) => {
@@ -131,6 +132,18 @@ async function checkUsernameAvailable( username ) {
 		});
 }
 
+async function checkPasswordMatch( password ) {
+	console.log('Fetching user with password:', );
+		return new Promise((resolve, reject) => {
+			db.get('SELECT * FROM users WHERE password = ?', [password], (err, row) =>{
+				if (err || !row) {
+					reject({ error: 'password does not match' });
+				} else {
+					resolve({ok: 'password match'});
+				}
+			});
+		});
+}
 // mini example of checking player exists and password matches . 
 
 async function miniLogin(username, password) {
@@ -160,6 +173,7 @@ module.exports = { fetchUser,
 	getFriendsForPlayer, 
 	getMatchHistory,
 	checkUsernameAvailable,
+	checkPasswordMatch,
 };
 //similar logic as below may be required
 //async function userRoutes(fastify, options) {

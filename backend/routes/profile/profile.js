@@ -138,6 +138,64 @@ async function updateUsername(fastify, options) {
 	});
 }
 
+//export interface ChangePasswordPayload {
+//	current_password: string;
+//	new_password: string;
+//}
+//
+//export interface ChangePasswordResponse {
+//	status: 'UPDATED' | 'ERROR';
+//	error?: string;
+//}
+
+async function updatePassword(fastify, options) {
+	const { DBupdate, DBget, secure } = options;
+	fastify.route({
+		method: API_PROTOCOL.CHANGE_PASSWORD.method,
+		url: API_PROTOCOL.CHANGE_PASSWORD.path,
+		handler: async (request, reply) => {
+		//schema: { body: schemas.ChangeUsername }, dosnt exist yet 
+		const { current_password, new_password } = request.body;
+		try {
+
+			const token = request.cookies.auth_token;
+			const userId = secure.getUserIdFromToken(token);
+			if (userId){
+				const check = await DBget.checkPasswordMatch(current_password);
+				console.log('checking check', check)
+				//might need more in depth error handling
+				if (check.error) {
+					//update the username
+					reply.code(400).send({
+						status: 'ERROR',
+						error: 'current password does not match'
+					})
+				}
+				//update password after checks valid
+				const res = await DBupdate.updatePassword(new_password, userId.id);
+				console.log('checking res', res);
+			}
+
+			//const profile = await DBget.fetchUser({userId});
+			//if (!profile) {
+			//	console.log('error in fetching user id or profile ');
+			//	reply.code(404).send({
+			//		status: 'ERROR',
+			//		error: 'no such user'
+			//	})
+			//}
+
+			reply.code(200).send({
+				status: 'UPDATED',
+			});
+		} catch (err) {
+			console.log(('Error during login:', err));
+			reply.code(500).send(err);
+		}
+	}
+	});
+}
+
 
 //async function updateProfile (fastify, options) {
 //	const { ?, ? } = options;
@@ -166,6 +224,7 @@ async function updateUsername(fastify, options) {
 async function profileRoutes(fastify, options) {
 	await getUser(fastify, options);
 	await updateUsername(fastify, options);
+	await updatePassword(fastify, options);
 	//await updateProfile(fastify, options);
 }
 module.exports = profileRoutes
