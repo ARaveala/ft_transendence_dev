@@ -22,7 +22,7 @@ export const PlayerSearch: React.FC<PlayerSearchProps> = ({ players, onAddPlayer
 
   const handleAddPlayer = () => {
     if (!selectedPlayerId) return;
-    const player = players.find((p) => p.user_id === selectedPlayerId);
+    const player = players.find((p) => p.username === selectedPlayerId);
     if (player) onAddPlayer(player);
     setSelectedPlayerId("");
     setQuery(""); // reset search
@@ -44,7 +44,7 @@ export const PlayerSearch: React.FC<PlayerSearchProps> = ({ players, onAddPlayer
       >
         <option value="">Select player</option>
         {filteredPlayers.map((p) => (
-          <option key={p.user_id} value={p.user_id}>
+          <option key={p.username} value={p.username}>
             {p.username}
           </option>
         ))}

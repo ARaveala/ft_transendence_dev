@@ -96,7 +96,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
         const canEditAlias = player.isSelf || (!!player.password && !passwordError);
 
         return (
-          <div key={player.user_id} className="flex flex-col gap-1">
+          <div key={player.username} className="flex flex-col gap-1">
             <div className="flex gap-2 items-center">
               <input
                 type="text"

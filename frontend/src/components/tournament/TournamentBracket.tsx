@@ -1,15 +1,15 @@
 import React from "react";
-import type { Tournament, Match } from "../../types/tournament";
+import type { TournamentState, Match } from "../../types/tournament";
 import { TBD_PLAYER } from "../../../shared/constants";
 import Button from "../ui/Button";
 
 interface TournamentBracketProps {
-  tournament: Tournament;
+  tournament: TournamentState;
   onStartMatch?: (match: Match) => void;
 }
 
 const TournamentBracket: React.FC<TournamentBracketProps> = ({ tournament, onStartMatch }) => {
-  const firstRound = tournament.matches; // 2 matches with 4 players
+  const firstRound = tournament.bracket[0]; // 2 matches with 4 players
 
   // Final match placeholder (between the 2 winners of round 1)
   const finalMatch: Match = {
@@ -24,8 +24,8 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({ tournament, onSta
     if (round === 1) return true; // round 1 always playable
     // final match only playable if both winners exist
     return (
-      match.player1.user_id !== TBD_PLAYER.user_id &&
-      match.player2.user_id !== TBD_PLAYER.user_id
+      match.player1.alias !== TBD_PLAYER.alias &&
+      match.player2.alias !== TBD_PLAYER.alias
     );
   };
 
@@ -78,11 +78,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({ tournament, onSta
       <Button
         onClick={() => onStartMatch?.(finalMatch)}
         disabled={!isMatchPlayable(finalMatch, 2)}
-        className={
-          (isMatchPlayable(finalMatch, 2)
-            ? "bg-blue-500 text-white hover:bg-blue-600"
-            : "bg-gray-500 text-gray-300 cursor-not-allowed") + " -mt-6"
-        }
+        className="-mt-6"
       >
         Play final
       </Button>
@@ -118,11 +114,6 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({ tournament, onSta
           <Button
             onClick={() => onStartMatch?.(match)}
             disabled={!isMatchPlayable(match, 1)}
-            className={
-              isMatchPlayable(match, 1)
-                ? "bg-blue-500 text-white hover:bg-blue-600"
-                : "bg-gray-500 text-gray-300 cursor-not-allowed"
-            }
           >
             Play match {idx + 1}
           </Button>

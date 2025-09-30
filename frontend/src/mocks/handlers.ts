@@ -7,7 +7,7 @@ import { http, HttpResponse } from "msw";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile, PlayerPayload } from "../../shared/payloads";
 import type { VerifyPlayerPayload, PlayerSearchResponse } from "../../shared/payloads";
-import type { TournamentPlayer, Match, Tournament } from "../types/tournament";
+import type { TournamentPlayer, Match, TournamentState } from "../types/tournament";
 import { TBD_PLAYER } from "../../shared/constants";
 import { mockRegisteredPlayers } from "./players";
 
@@ -72,8 +72,36 @@ export const handlers = [
       { status: 200 }
     );
   }
-  return HttpResponse.json({ valid: true }, { status: 200 });
-}),
+    return HttpResponse.json({ valid: true }, { status: 200 });
+  }),
+
+  // Mock for creating a new tournament
+  http.post(API_PROTOCOL.CREATE_TOURNAMENT.path, async ({ request }) => {
+  const tournamentId = "tour-" + Date.now();
+
+  const tournament: TournamentState = {
+    tournament_id: tournamentId,
+    status: "waiting",
+    players: [
+      {
+        username: "currentUser",
+        alias: "",
+        status: "waiting",
+        score: 0,
+        isSelf: true,
+      },
+    ],
+    bracket: [],            // no matches yet
+    currentMatch: undefined,
+    createdAt: new Date(),
+  };
+
+  return HttpResponse.json(
+    { status: "OK", tournament },
+    { status: 200 }
+  );
+  }),
+
 
   // Mock for starting a tournament
   http.post(API_PROTOCOL.START_TOURNAMENT.path, async ({ request }) => {
@@ -132,18 +160,17 @@ export const handlers = [
       ],
     ];
 
-    const tournament: Tournament = {
+    const tournament: TournamentState = {
       tournament_id: tournamentId,
       status: "ongoing",
       players,
-      matches: firstRound,
       bracket,
       currentMatch: firstRound[0],
       createdAt: new Date(),
     };
 
       return HttpResponse.json(
-        { status: "OK", tournament_id: tournamentId, players, matches: firstRound },
+        { status: "OK", tournament},
         { status: 200 }
       );
     }),
@@ -170,13 +197,13 @@ export const handlers = [
   http.get(API_PROTOCOL.GET_ALL_REGISTERED_PLAYERS.path, async ({ request }) => {
     const url = new URL(request.url);
     const query = url.searchParams.get("query")?.toLowerCase() || "";
-    const excludeIdsParam = url.searchParams.get("excludeIds") || "";
+    const excludeIdsParam = url.searchParams.get("excludeUsernames") || "";
     const excludeIds = excludeIdsParam.split(",").filter(Boolean);
 
     const filtered = mockRegisteredPlayers.filter(
       (p) =>
         p.username.toLowerCase().includes(query) &&
-        !excludeIds.includes(p.user_id)
+        !excludeIds.includes(p.username)
     );
     const response: PlayerSearchResponse = {
     status: "OK",

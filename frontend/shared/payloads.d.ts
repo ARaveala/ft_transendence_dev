@@ -197,20 +197,27 @@ export interface GameStateUpdate {
 // Tournament
 
 export interface CreateTournamentPayload {
-  host_id: string;                 // Logged-in player's user_id 
-  player_ids: string[];            // IDs of added players
-  max_players: number;             // minimum 4, max can be set
+  max_players?: 4;
 }
 
-export interface TournamentStateResponse {
+export interface CreateTournamentResponse {
   status: 'OK' | 'ERROR';
   error?: string;
-  tournament_id?: string;             // unique ID for the tournament
-  tournament_name?: string;
-  max_players?: number;
-  created_at?: string;                // timestamp
-  updated_tournament?: Tournament;    // Current state of the tournament
+  tournament: TournamentState;
 }
+
+// type used in frontend
+
+/*export interface TournamentState {
+  tournament_id: string;
+  status: 'waiting' | 'ongoing' | 'finished';
+  players: TournamentPlayer[];
+  currentMatch?: Match;
+  bracket: Match[][];
+  winner?: TournamentPlayer;
+  createdAt?: Date;
+  lastUpdated?: Date
+} */
 
 export interface PlayerSearchRequest {
   query?: string;           // optional search term (used for search bar)
@@ -233,28 +240,24 @@ export interface VerifyPlayerResponse {
   error?: string;
 }
 
-export interface RegisterAliasRequest {
-  user_id: string;
-  alias: string;
+export interface RemovePlayerPayload {
+  tournament_id: string;
+  username: string;
 }
 
-export interface RegisterAliasResponse {
+export interface RemovePlayerResponse {
   status: 'OK' | 'ERROR';
-  error?: string;
+  tournament: TournamentState;
 }
 
 export interface StartTournamentPayload {
-  players: TournamentPlayer[];
+  tournament_id: string;
 }
 
 export interface StartTournamentResponse {
   status: 'OK' | 'ERROR';
   error?: string;
-  tournament_id: string;
-  players: TournamentPlayer[];
-  matches: Match[];               // info on first matches
-  bracket: Match[][];
-  createdAt: Date;
+  tournament: TournamentState;  
 }
 
 export interface MatchResultPayload {
@@ -268,18 +271,6 @@ export interface MatchResultPayload {
 }
 
 // Should these go over API endpoint or websocket??
-
-export interface JoinTournamentPayload {
-  tournament_id: string;
-  tournament_name: string;
-  alias: string;                  // player's temporary alias for the tournament
-}
-
-export interface JoinTournamentResponse {
-  status: 'OK' | 'ERROR';
-  error?: string;
-  players?: string[];       // updated list of aliases
-}
 
 export interface MatchInfo {
   game_id: string;
@@ -301,14 +292,6 @@ export interface MatchResultResponse {
   updated_tournament?: TournamentState;
 }
 
-export interface TournamentState {
-  tournament_id: string;
-  status: 'WAITING' | 'RUNNING' | 'FINISHED';
-  players: string[];                            // aliases in this tournament
-  current_match?: MatchInfo;                    // ongoing match
-  upcoming_matches: MatchInfo[];                // matches yet to be played
-  finished_matches: FinishedMatch[];            // completed matches
-}
 
 export interface TournamentFinished {
   tournament_id: string;
