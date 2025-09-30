@@ -185,10 +185,12 @@ const SettingsPage: React.FC = () => {
 	async function handleDeleteProfile() {
 		setDeleting(true);
 		setDeleteError(null);
+		console.log('in delete profile front end ');
 		try {
 			const res = await fetch(API_PROTOCOL.DELETE_PROFILE.path, {
 				method: API_PROTOCOL.DELETE_PROFILE.method,
-				headers: { "Content-Type": "application/json" },
+				//headers: { "Content-Type": "application/json" },
+				credentials: "include", // include cookies in request
 			});
 			if (!res.ok) throw new Error("Failed to delete profile.");
 

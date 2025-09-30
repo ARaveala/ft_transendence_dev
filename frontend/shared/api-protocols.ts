@@ -96,7 +96,7 @@ export const API_PROTOCOL = {
 // SettingsPage;
 
   DELETE_PROFILE: {
-	  path: '/profile',
+	  path: '/api/profile',
 	  method: 'DELETE',
   },
 

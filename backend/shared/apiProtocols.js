@@ -1,5 +1,8 @@
 const path = require("path");
 
+
+// Shared endpoint definitions for frontend & backend
+
 const API_PROTOCOL = {
 	REGISTER_USER: {
 		path: '/api/register',
@@ -33,47 +36,37 @@ const API_PROTOCOL = {
 	LOGOUT_USER: {
 		path: '/api/logout',
 		method: 'POST',
-	}
+	},
+	// SettingsPage;
+
+  DELETE_PROFILE: {
+	  path: '/api/profile',
+	  method: 'DELETE',
+  },
+
+  CHANGE_LANGUAGE: {
+	  path: '/profile/language',
+	  method: 'PATCH',
+  },
+
+  CHANGE_USERNAME: {
+	  path: 'profile/username',
+	  method: 'PATCH',
+  },
+
+  CHANGE_PASSWORD: {
+	  path: 'profile/password',
+	  method: 'PATCH',
+  },
+
+  CHANGE_AVATAR: {
+	  path: 'profile/avatar',
+	  method: 'PATCH',
+  }
+
 };
 
-//const API_PROTOCOL = {
-//  REGISTER_USER: {
-//    path: '/api/register',
-//    method: 'POST',
-//  },
-//  LOGIN_USER: {
-//    path: '/api/login',
-//    method: 'POST',
-//  },
-//  GET_USER: {
-//    path: '/api/profile',
-//    method: 'GET',
-//  },
-//  UPDATE_PROFILE: {
-//    path: '/api/profile/update',
-//    method: 'POST',
-//  },
-//  //GET_PROFILE: {
-//  //  path: '/api/profile',
-//  //  method: 'GET',
-//  //},
-//  GET_LEADERBOARD: {
-//    path: '/api/leaderboard',
-//    method: 'GET',
-//  },
-//  ADD_FRIEND: {
-//    path: '/api/friends/add',
-//    method: 'POST',
-//  },
-//  GET_FRIENDS: {
-//    path: '/api/friends',
-//    method: 'GET',
-//  },
-//
-//  GET_PLAYER: {
-//    path: '/api/player',
-//    method: 'GET',
-//  }
+
 //} //as const; was in file that is .ts
 module.exports = { API_PROTOCOL };
 

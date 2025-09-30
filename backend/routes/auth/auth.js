@@ -136,30 +136,44 @@ async function logoutUser(fastify, options) {
 }*/
 
 //
-//async function deleteUser(fastify, option) {
-//	const {secure, ?} = option;
-//	fastify.post(API_PROTOCOL.DELET_USER.path, {
-//	}, async (request, reply) => {
-//		const {username, password} = request.body; // do we want user to type password in last time for delete?
-//		console.log("DELETE USER ");
-//		try	{
-//			const token = request.cookies.auth_token;
-//			const userId = secure.getUserIdFromToken(token);
-//			const result = DBdelete(userId);
-//			reply.code(200).send("ok");//?
-//		}
-//		catch {
-//			reply.code(500).send(err);
-//		}
-//	});
-//
-//}
+async function deleteUser(fastify, option) {
+	const {secure, DBdelete} = option;
+	fastify.route({
+		method: API_PROTOCOL.DELETE_PROFILE.method,
+		url: API_PROTOCOL.DELETE_PROFILE.path,
+		handler: async (request, reply) => {
+	//fastify.post(API_PROTOCOL.DELETE_PROFILE.path, {
+	//}, async (request, reply) => {
+		//const {username, password} = request.body; // do we want user to type password in last time for delete?
+		console.log("DELETE USER ");
+		try	{
+			const token = request.cookies.auth_token;
+			const userId = secure.getUserIdFromToken(token);
+			console.log('checking id in delete backend', userId.id, 'type', typeof userId.id);
+			const result = await DBdelete.deleteUserById(userId.id);
+			// is result is 1 , a row was deleted
+			//if row is 0 , user was not found
+			if (result === 1) {
+				reply.code(200).send("ok");//?
+			}
+			if (result == 0) {
+				reply.code(400).send("user not found");
+			}
+			console.log("result of delete user", result);
+		}
+		catch {
+			reply.code(500).send('error deleting user');
+		}
+		}
+	});
+
+}
 //
 async function authRoutes(fastify, options) {
   await registerUser(fastify, options);
   await loginUser(fastify, options);
   await logoutUser(fastify, options);
-  // deleteUser(fastify, option)
+  await deleteUser(fastify, options)
 }
 
 module.exports = authRoutes;
