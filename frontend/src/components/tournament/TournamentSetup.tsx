@@ -10,7 +10,7 @@ import { PlayerSearch } from "./PlayerSearch";
 import type { TournamentPlayer, TournamentState, Match } from "../../types/tournament";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
 import { TBD_PLAYER } from "../../../shared/constants";
-import { PlayerSearchRequest, PlayerSearchResponse, StartTournamentResponse } from '../../../shared/payloads';
+import { PlayerSearchRequest, PlayerSearchResponse, StartTournamentPayload, StartTournamentResponse } from '../../../shared/payloads';
 import Button from "../ui/Button";
 
 interface TournamentSetupProps {
@@ -22,7 +22,7 @@ interface TournamentSetupProps {
 const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTournamentUpdated, onCancel }) => {
   const [tournamentPlayers, setTournamentPlayers] = useState<TournamentPlayer[]>([
     { 
-      username: "currentUser",    //
+      username: "currentUser",
       alias: "",
       status: "waiting",
       score: 0,
@@ -35,22 +35,20 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTourname
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        
         const res = await fetch(API_PROTOCOL.GET_ALL_REGISTERED_PLAYERS.path);
-        //const fullUrl = API_PROTOCOL.GET_ALL_REGISTERED_PLAYERS.path;
-        //const res = await fetch(fullUrl);
-        
         if (!res.ok) throw new Error("Failed to fetch players");
-        const data = await res.json() as PlayerSearchResponse;
-        setAllRegisteredPlayers(data.players || []);
+
+        const data: PlayerSearchResponse = await res.json();
+
+        setAllRegisteredPlayers(data.players || []);  // Return an empty array if backend returns nothing
       } catch (err) {
         console.error(err);
+        setAllRegisteredPlayers([]); // fallback in case of error
       }
     };
-    fetchPlayers();
-  }, []);
+  fetchPlayers();
+}, []);
 
-  
   // Update a single tournament player’s data
   const handleUpdatePlayer = (index: number, updates: Partial<TournamentPlayer>) => {
     setTournamentPlayers((prev) => {
@@ -78,16 +76,20 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTourname
   };
 
   const handleStartTournament = async () => {
-    const payload = tournamentPlayers.map(p => ({
-      username: p.username,
-      alias: p.alias,
-      password: p.isSelf ? undefined : p.password,
-      isSelf: p.isSelf
-    }));
+    if (!tournament) return;
 
+  const payload: StartTournamentPayload = {
+      tournament_id: tournament.tournament_id,
+      players: tournamentPlayers.map(p => ({
+        username: p.username,
+        alias: p.alias,
+        password: p.isSelf ? undefined : p.password,
+        isSelf: p.isSelf,
+    })),
+  };
     try {
       const res = await fetch(API_PROTOCOL.START_TOURNAMENT.path, {
-        method: "POST",
+        method: API_PROTOCOL.START_TOURNAMENT.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });

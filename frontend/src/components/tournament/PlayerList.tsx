@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from "react";
 import type { TournamentPlayer } from "../../types/tournament";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
+import { VerifyPlayerPayload, VerifyPlayerResponse } from "../../../shared/payloads";
 import Button from "../ui/Button";
 
 interface PlayerListProps {
@@ -56,14 +57,15 @@ const PlayerList: React.FC<PlayerListProps> = ({
   const handlePasswordBlur = async (index: number, username: string, password: string) => {
   if (!password) return;
 
+  const payload: VerifyPlayerPayload = { username, password };
   try {
     const res = await fetch(API_PROTOCOL.VERIFY_PLAYER.path, {
-      method: "POST",
+      method: API_PROTOCOL.VERIFY_PLAYER.method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify(payload),
     });
 
-    const data: { valid: boolean; error?: string } = await res.json();
+    const data: VerifyPlayerResponse = await res.json();
     const newErrors = [...errors];
 
     if (!data.valid) {

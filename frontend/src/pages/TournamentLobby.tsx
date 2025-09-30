@@ -3,9 +3,9 @@ import TournamentHeader from "../components/tournament/TournamentHeader";
 import TournamentBracket from "../components/tournament/TournamentBracket";
 import TournamentSetup from "../components/tournament/TournamentSetup";
 import type { TournamentState, Match } from "../types/tournament";
-import { CreateTournamentResponse } from "../../shared/payloads";
 import Button from "../components/ui/Button";
-import { API_PROTOCOL } from "../../shared/api-protocols"; 
+import { API_PROTOCOL } from "../../shared/api-protocols";
+import { CreateTournamentPayload, CreateTournamentResponse, StartTournamentMatchPayload, StartTournamentMatchResponse } from "../../shared/payloads";
 
 const TournamentLobby: React.FC = () => {
   const [tournament, setTournament] = useState<TournamentState | null>(null);
@@ -13,16 +13,15 @@ const TournamentLobby: React.FC = () => {
   const [loadingMatchId, setLoadingMatchId] = useState<string | null>(null);
   const [activeGameId, setActiveGameId] = useState<string | null>(null);
   const [currentGameMatch, setCurrentGameMatch] = useState<Match | null>(null);
-  const [gameId, setGameId] = useState<string | null>(null);
 
   // Create a new tournament as soon as the user clicks "Start a new tournament"
-
   const handleCreateTournament = async () => {
+    const payload: CreateTournamentPayload = { max_players: 4 };
     try {
       const res = await fetch(API_PROTOCOL.CREATE_TOURNAMENT.path, {
-        method: "POST",
+        method: API_PROTOCOL.CREATE_TOURNAMENT.method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ max_players: 4 }),
+        body: JSON.stringify(payload),
     });
 
     const data: CreateTournamentResponse = await res.json();
@@ -51,18 +50,24 @@ const TournamentLobby: React.FC = () => {
     if (!tournament) return;
     setLoadingMatchId(match.match_id);
 
+    const payload: StartTournamentMatchPayload = { match_id: match.match_id };
+
     try {
       const res = await fetch(`/api/tournament/${tournament.tournament_id}/start-match`, {
-        method: "POST",
+        method: API_PROTOCOL.START_TOURNAMENT_MATCH.method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ match_id: match.match_id }),
+        body: JSON.stringify(payload),
      });
 
-      const updatedTournament: TournamentState = await res.json();
-      setTournament(updatedTournament);                               // Updates bracket, winners, etc.
-      setCurrentGameMatch(match);
-      setGameId(match.match_id);
-      setActiveGameId(match.match_id);
+      const data: StartTournamentMatchResponse = await res.json();
+
+      if (data.status === "OK") {
+          setTournament(data.tournament);
+          setCurrentGameMatch(match);
+          setActiveGameId(match.match_id);
+      } else {
+        console.error ("Error starting match:", data.error);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -70,9 +75,8 @@ const TournamentLobby: React.FC = () => {
     }
   };
 
-  const handleMatchEnd = () => {        // Called when the match finishes, just clear current match
+  const handleMatchEnd = () => {        // Called when the match finishes, just clears current match
     setCurrentGameMatch(null);
-    setGameId(null);
     setActiveGameId(null);
   };
 
@@ -81,7 +85,7 @@ const TournamentLobby: React.FC = () => {
     <div className="p-6 max-w-4xl mx-auto">
       <TournamentHeader />
 
-      {/* Start Tournament Button */}
+      {/* Start New Tournament Button */}
       {!tournament && !showSetup && (
         <div className="flex flex-col items-center mt-8">
           <Button

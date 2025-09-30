@@ -6,7 +6,7 @@ import avatar3 from "../assets/avatars/avatar3.png";
 import { http, HttpResponse } from "msw";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile, PlayerPayload } from "../../shared/payloads";
-import type { VerifyPlayerPayload, PlayerSearchResponse } from "../../shared/payloads";
+import type { StartTournamentPayload, VerifyPlayerPayload, PlayerSearchResponse } from "../../shared/payloads";
 import type { TournamentPlayer, Match, TournamentState } from "../types/tournament";
 import { TBD_PLAYER } from "../../shared/constants";
 import { mockRegisteredPlayers } from "./players";
@@ -108,9 +108,11 @@ export const handlers = [
 
   // Mock for starting a tournament
   http.post(API_PROTOCOL.START_TOURNAMENT.path, async ({ request }) => {
-    const players = (await request.json()) as TournamentPlayer[] ;
 
-    if (players.length < 4) {
+    const payload = (await request.json()) as StartTournamentPayload & { players: TournamentPlayer[] };
+    const players = payload.players;
+
+    if (!players || players.length < 4) {
       return HttpResponse.json(
         { status: "ERROR", error: "Need 4 players to start", tournament_id: "" },
         { status: 400 }

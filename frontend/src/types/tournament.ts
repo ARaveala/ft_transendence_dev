@@ -1,5 +1,4 @@
 export interface TournamentPlayer {
-  //user_id: string;
   username: string;
   alias: string;
   status: 'waiting' | 'ready' | 'playing' | 'finished';

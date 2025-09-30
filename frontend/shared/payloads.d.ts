@@ -197,7 +197,7 @@ export interface GameStateUpdate {
 // Tournament
 
 export interface CreateTournamentPayload {
-  max_players?: 4;
+  max_players?: number;
 }
 
 export interface CreateTournamentResponse {
@@ -240,24 +240,30 @@ export interface VerifyPlayerResponse {
   error?: string;
 }
 
-export interface RemovePlayerPayload {
-  tournament_id: string;
-  username: string;
-}
-
-export interface RemovePlayerResponse {
-  status: 'OK' | 'ERROR';
-  tournament: TournamentState;
-}
-
 export interface StartTournamentPayload {
   tournament_id: string;
+  players: {
+    username: string;
+    alias: string;
+    password?: string;
+    isSelf?: boolean;
+  }[];
 }
 
 export interface StartTournamentResponse {
   status: 'OK' | 'ERROR';
   error?: string;
-  tournament: TournamentState;  
+  tournament: TournamentState;
+}
+
+export interface StartTournamentMatchPayload {
+  match_id: string;
+}
+
+export interface StartTournamentMatchResponse {
+  status: "OK" | "ERROR";
+  error?: string;
+  tournament: TournamentState;
 }
 
 export interface MatchResultPayload {
