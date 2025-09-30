@@ -32,6 +32,8 @@ const mockProfile: UserProfile = {
   ],
 };
 
+let currentTournament: TournamentState | null = null;
+
 export const handlers = [
 
   //Mock for delete profile
@@ -96,12 +98,13 @@ export const handlers = [
     createdAt: new Date(),
   };
 
+  currentTournament = tournament;
+
   return HttpResponse.json(
     { status: "OK", tournament },
     { status: 200 }
   );
   }),
-
 
   // Mock for starting a tournament
   http.post(API_PROTOCOL.START_TOURNAMENT.path, async ({ request }) => {
@@ -114,12 +117,12 @@ export const handlers = [
       );
     }
      // Assign a tournament ID
-    const tournamentId = "tourney-" + Date.now();
+    const tournamentId = currentTournament?.tournament_id || "tour-" + Date.now();
 
     // First round matches
     const firstRound: Match[] = [
       {
-        match_id: "m1",
+        match_id: "round1match1",
         player1: players[0],
         player2: players[1],
         winner: TBD_PLAYER,
@@ -127,7 +130,7 @@ export const handlers = [
         score: { player1: 0, player2: 0 },
       },
       {
-        match_id: "m2",
+        match_id: "round1match2",
         player1: players[2],
         player2: players[3],
         winner: TBD_PLAYER,
@@ -136,28 +139,19 @@ export const handlers = [
       },
     ];
 
+    const final: Match = {
+      match_id: "finalmatch",
+      player1: { ...TBD_PLAYER },
+      player2: { ...TBD_PLAYER },
+      winner: { ...TBD_PLAYER },
+      status: "pending",
+      score: { player1: 0, player2: 0 },
+    };
+
     // Bracket: array of rounds, each round is an array of matches
     const bracket: Match[][] = [
       firstRound,  // first round with real players
-      firstRound.map(() => ({
-        match_id: "tbd3",
-        player1: {...TBD_PLAYER },
-        player2: {...TBD_PLAYER },
-        winner: {...TBD_PLAYER },
-        status: "pending",
-        score: { player1: 0, player2: 0 },
-      })),
-      // final round placeholder
-      [
-        {
-          match_id: "tbd_final",
-          player1: {...TBD_PLAYER },
-          player2: {...TBD_PLAYER },
-          winner: {...TBD_PLAYER },
-          status: "pending",
-          score: { player1: 0, player2: 0 },
-        },
-      ],
+      [final],
     ];
 
     const tournament: TournamentState = {
@@ -169,11 +163,13 @@ export const handlers = [
       createdAt: new Date(),
     };
 
+    currentTournament = tournament;
+
       return HttpResponse.json(
         { status: "OK", tournament},
         { status: 200 }
       );
-    }),
+  }),
 
   // Mock for profile fetch
   http.get(API_PROTOCOL.GET_PROFILE.path, () => {
@@ -212,5 +208,50 @@ export const handlers = [
 
   return HttpResponse.json(response, { status: 200 });
   }),
+
+  // Mock for starting a tournament match
+  http.post('/api/tournament/:tournamentId/start-match', async ({ params, request }) => {
+  const { tournamentId } = params;
+  const { match_id } = await request.json();
+  
+  console.log('Mock: Starting match', match_id, 'in tournament', tournamentId);
+
+  if (!currentTournament) {
+      return HttpResponse.json(
+        { error: 'No tournament found' },
+        { status: 404 }
+      );
+    }
+  
+  const updatedBracket = currentTournament.bracket.map(round =>
+      round.map(match => {
+        if (match.match_id !== match_id) return match;
+
+         const winner = Math.random() > 0.5 ? match.player1 : match.player2;
+      return {
+        ...match,
+        winner,
+        status: "finished" as const,
+      };
+    })
+  );
+
+  let updatedTournament: TournamentState = {
+    ...currentTournament,
+    bracket: updatedBracket,
+    };
+    
+    if (match_id === "final") {
+    const finalMatch = updatedBracket.flat().find(m => m.match_id === "final");
+    if (finalMatch?.winner) {
+      updatedTournament = { ...updatedTournament, winner: finalMatch.winner };
+    }
+  }
+   currentTournament = updatedTournament;
+
+  return HttpResponse.json(updatedTournament);
+  }),
+
 ];
+
 

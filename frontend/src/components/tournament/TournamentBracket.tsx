@@ -5,10 +5,15 @@ import Button from "../ui/Button";
 
 interface TournamentBracketProps {
   tournament: TournamentState;
+  loadingMatchId?: string | null;
   onStartMatch?: (match: Match) => void;
 }
 
-const TournamentBracket: React.FC<TournamentBracketProps> = ({ tournament, onStartMatch }) => {
+const TournamentBracket: React.FC<TournamentBracketProps> = ({
+  tournament,
+  loadingMatchId,
+  onStartMatch 
+}) => {
   const firstRound = tournament.bracket[0]; // 2 matches with 4 players
 
   // Final match placeholder (between the 2 winners of round 1)
@@ -21,13 +26,16 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({ tournament, onSta
   };
 
   const isMatchPlayable = (match: Match, round: number): boolean => {
-    if (round === 1) return true; // round 1 always playable
+    if (round === 1) return match.status === "pending";
     // final match only playable if both winners exist
     return (
       match.player1.alias !== TBD_PLAYER.alias &&
-      match.player2.alias !== TBD_PLAYER.alias
+      match.player2.alias !== TBD_PLAYER.alias &&
+      match.status === "pending"
     );
   };
+
+  const isLoading = (match: Match) => loadingMatchId === match.match_id;
 
   return (
   <div className="flex flex-col items-center mt-10 gap-8 relative">
@@ -77,7 +85,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({ tournament, onSta
 
       <Button
         onClick={() => onStartMatch?.(finalMatch)}
-        disabled={!isMatchPlayable(finalMatch, 2)}
+        disabled={!isMatchPlayable(finalMatch, 2) || isLoading(finalMatch)}
         className="-mt-6"
       >
         Play final
@@ -113,7 +121,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({ tournament, onSta
 
           <Button
             onClick={() => onStartMatch?.(match)}
-            disabled={!isMatchPlayable(match, 1)}
+            disabled={!isMatchPlayable(match, 1) || isLoading(match)}
           >
             Play match {idx + 1}
           </Button>

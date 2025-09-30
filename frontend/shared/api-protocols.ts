@@ -55,34 +55,14 @@ export const API_PROTOCOL = {
   },
 
   VERIFY_PLAYER: {
-  path: '/api/tournament/verify-player',
-  method: 'POST',
-  },
-
-  ADD_PLAYER_TO_TOURNAMENT: {
-    path: '/api/tournament/add-player',
+    path: '/api/tournament/verify-player',
     method: 'POST',
   },
 
-  REGISTER_PLAYER_ALIAS: {
-    path: "/api/tournament/register-alias",
-    method: "POST",
-  },
-
-  JOIN_TOURNAMENT: {
-    path:'/api/tournament/:id/join',
-    method: 'POST',
-  },
-
-   START_TOURNAMENT: {
-    path:'/api/tournament/start',
-    method: 'POST',
-  },
-
-  /*START_TOURNAMENT: {
+  START_TOURNAMENT: {
     path:'/api/tournament/:id/start',
     method: 'POST',
-  }, */
+  },
 
   TOURNAMENT_STATE: {
     path: '/api/tournament/:id/state',
@@ -94,10 +74,35 @@ export const API_PROTOCOL = {
     method: 'GET',
   },
 
+  START_TOURNAMENT_MATCH: {
+    path: '/api/tournament/:id/start-match',
+    method: 'POST',
+  },
+
+  LOGOUT_USER: {
+	  path: '/api/logout',
+	  method: 'POST',
+  },
+
   DELETE_PROFILE: {
 	  path: '/api/profile',
 	  method: 'DELETE',
   },
+
+  CHANGE_USERNAME: {
+	  path: 'profile/username',
+	  method: 'PATCH',
+  },
+
+  CHANGE_PASSWORD: {
+	  path: 'profile/password',
+	  method: 'PATCH',
+  },
+
+  CHANGE_AVATAR: {
+	  path: 'profile/avatar',
+	  method: 'PATCH',
+  }
 
 } as const;
 
