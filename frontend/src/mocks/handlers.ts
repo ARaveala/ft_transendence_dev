@@ -212,7 +212,7 @@ export const handlers = [
   // Mock for starting a tournament match
   http.post('/api/tournament/:tournamentId/start-match', async ({ params, request }) => {
   const { tournamentId } = params;
-  const { match_id } = await request.json();
+  const { match_id } = await request.json() as { match_id: string };
   
   console.log('Mock: Starting match', match_id, 'in tournament', tournamentId);
 
