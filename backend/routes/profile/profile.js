@@ -91,6 +91,47 @@ async function getUser(fastify, options) {
 	});
 }
 
+async function updateUsername(fastify, options) {
+	const { DBupdate, DBget, secure } = options;
+	fastify.route({
+		method: API_PROTOCOL.CHANGE_USERNAME.method,
+		url: API_PROTOCOL.CHANGE_USERNAME.path,
+		handler: async (request, reply) => {
+		//schema: { body: schemas.ChangeUsername }, dosnt exist yet 
+
+		const { username } = request.body;
+		//log('LOGINUSER', `Incoming user data: ${JSON.stringify(request.body)}`);
+		try {
+
+			const token = request.cookies.auth_token;
+			const userId = secure.getUserIdFromToken(token);
+			if (userId){
+				//update the username
+				const res = await DBupdate.updateUsername(username, userId.id);
+				console.log('checking res', res);
+			}
+
+			const profile = await DBget.fetchUser({userId});
+			if (!profile) {
+				console.log('error in fetching user id or profile ');
+				reply.code(404).send({
+					status: 'ERROR',
+					error: 'no such user'
+				})
+			}
+
+			reply.code(200).send({
+				status: 'UPDATED',
+				profile: profile,
+			});
+		} catch (err) {
+			console.log(('Error during login:', err));
+			reply.code(500).send(err);
+		}
+	}
+	});
+}
+
 
 //async function updateProfile (fastify, options) {
 //	const { ?, ? } = options;
@@ -118,6 +159,7 @@ async function getUser(fastify, options) {
 
 async function profileRoutes(fastify, options) {
 	await getUser(fastify, options);
+	await updateUsername(fastify, options);
 	//await updateProfile(fastify, options);
 }
 module.exports = profileRoutes

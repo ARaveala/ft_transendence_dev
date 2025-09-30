@@ -156,7 +156,7 @@ async function deleteUser(fastify, option) {
 			if (result === 1) {
 				reply.code(200).send("ok");//?
 			}
-			if (result == 0) {
+			if (result === 0) {
 				reply.code(400).send("user not found");
 			}
 			console.log("result of delete user", result);

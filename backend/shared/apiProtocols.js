@@ -45,22 +45,22 @@ const API_PROTOCOL = {
   },
 
   CHANGE_LANGUAGE: {
-	  path: '/profile/language',
+	  path: 'api/profile/language',
 	  method: 'PATCH',
   },
 
   CHANGE_USERNAME: {
-	  path: 'profile/username',
+	  path: '/api/profile/username',
 	  method: 'PATCH',
   },
 
   CHANGE_PASSWORD: {
-	  path: 'profile/password',
+	  path: '/api/profile/password',
 	  method: 'PATCH',
   },
 
   CHANGE_AVATAR: {
-	  path: 'profile/avatar',
+	  path: '/api/profile/avatar',
 	  method: 'PATCH',
   }
 

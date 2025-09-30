@@ -21,5 +21,23 @@ function updateUserScore({userId, score}) {
 	});
 }
 
+function updateUsername(username, userId) {
+	console.log('updating username for user:', { username, userId});
 
-module.exports = { updateUserScore };
+	return new Promise((resolve, reject) => {
+		db.run(
+			`UPDATE users SET username = ? WHERE id = ?`,
+			[username, userId],
+			function (err) {
+				if (err) {
+					reject({ error: 'Failed to update the username', details: err});
+				} else if (this.changes === 0) {
+					reject({ error: 'User not found , no changes made' });
+				} else {
+					resolve({ message: 'username updated', userId: userId, newUsername: username});
+				}
+			}
+		);
+	});
+}
+module.exports = { updateUserScore , updateUsername};

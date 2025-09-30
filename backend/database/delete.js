@@ -32,7 +32,7 @@ function deleteUserById(id) {
 }
 
 /**
- * Optional convenience: delete by username (unique).
+ * Optional convenience: delete by username (unique). may be not needed
  */
 function deleteUserByUsername(username) {
   return new Promise((resolve, reject) => {
