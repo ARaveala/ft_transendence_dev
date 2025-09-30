@@ -118,18 +118,18 @@ async function getMatchHistory({ userId }) {
 	});
 }
 				
-//async function getUserbyName({ username }) {
-//	console.log('Fetching user with username:', username);
-//		return new Promise((resolve, reject) => {
-//			db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) =>{
-//				if (err || !row) {
-//					reject({ error: 'User not found' });
-//				} else {
-//					resolve(row || { error: 'User not found' });
-//				}
-//			});
-//		});
-//}
+async function checkUsernameAvailable( username ) {
+	console.log('Fetching user with username:', username);
+		return new Promise((resolve, reject) => {
+			db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) =>{
+				if (err || !row) {
+					resolve({ error: 'Username available' });
+				} else {
+					reject({error: 'Username not available'});
+				}
+			});
+		});
+}
 
 // mini example of checking player exists and password matches . 
 
@@ -155,7 +155,12 @@ async function miniLogin(username, password) {
   });
 }
 
-module.exports = { fetchUser, miniLogin, getFriendsForPlayer, getMatchHistory };
+module.exports = { fetchUser, 
+	miniLogin, 
+	getFriendsForPlayer, 
+	getMatchHistory,
+	checkUsernameAvailable,
+};
 //similar logic as below may be required
 //async function userRoutes(fastify, options) {
 //  await registerUser(fastify, options);

@@ -98,15 +98,21 @@ async function updateUsername(fastify, options) {
 		url: API_PROTOCOL.CHANGE_USERNAME.path,
 		handler: async (request, reply) => {
 		//schema: { body: schemas.ChangeUsername }, dosnt exist yet 
-
 		const { username } = request.body;
-		//log('LOGINUSER', `Incoming user data: ${JSON.stringify(request.body)}`);
 		try {
 
 			const token = request.cookies.auth_token;
 			const userId = secure.getUserIdFromToken(token);
 			if (userId){
-				//update the username
+				const check = await DBget.checkUsernameAvailable(username);
+				console.log('checking check', check)
+				if (check.taken) {
+					//update the username
+					reply.code(400).send({
+						status: 'ERROR',
+						error: 'username not available'
+					})
+				}	
 				const res = await DBupdate.updateUsername(username, userId.id);
 				console.log('checking res', res);
 			}
