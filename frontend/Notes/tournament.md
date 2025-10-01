@@ -72,3 +72,41 @@ export interface Match {
 14. 
 
 
+## Files related to tournament
+
+### TournamentLobby.tsx
+ 
+The main controller for the tournament flow
+
+ Responsibilities:
+ - Displays the header and main layout for the tournament page
+ - Manages tournament state (create → setup → bracket → active matches)
+ - Creates a new tournament via backend API
+ - Handles setup phase (adding and verifying players)
+ - Switches to the bracket view once setup is complete
+ - Starts individual matches and displays the Pong game in an iframe overlay
+ - Cleans up active match state when a match ends
+ 
+ State Flow:
+ - `tournament = null`: No tournament yet → show "Start new tournament" button
+ - `tournament && showSetup = true`: Tournament created → show setup (player list)
+ - `tournament && !showSetup`: Tournament ready/ongoing → show tournament bracket
+ - `currentGameMatch && activeGameId`: A match is active → show Pong iframe
+
+### TournamentSetup.tsx
+
+Manages the setup phase of a tournament
+
+  Responsibilities:
+  - Fetches all registered players from the backend
+  - Lets the user add up to 3 additional players (the logged in player is always included)
+  - Displays the selected players with the method for updating their alias or remove them
+  - Ensures the setup is valid before allowing the tournament to start
+  - When "Start tournament" is clicked, sends the tournament + player data to backend,
+    builds the initial bracket structure, and notifies the parent via `onTournamentUpdated`
+
+ State Flow:
+  - `tournamentPlayers`: list of players in the tournament (starts with current user)
+  - `allRegisteredPlayers`: all players fetched from backend (used for PlayerSearch)
+  - `canStart`: set to `true` when validation passes (from PlayerList)
+ 

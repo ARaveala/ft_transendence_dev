@@ -8,13 +8,19 @@ import { API_PROTOCOL } from "../../shared/api-protocols";
 import { CreateTournamentPayload, CreateTournamentResponse, StartTournamentMatchPayload, StartTournamentMatchResponse } from "../../shared/payloads";
 
 const TournamentLobby: React.FC = () => {
-  const [tournament, setTournament] = useState<TournamentState | null>(null);
-  const [showSetup, setShowSetup] = useState(false);
-  const [loadingMatchId, setLoadingMatchId] = useState<string | null>(null);
-  const [activeGameId, setActiveGameId] = useState<string | null>(null);
+  const [tournament, setTournament] = useState<TournamentState | null>(null);      // Main tournament state (null means there is no tournament yet)
+  const [showSetup, setShowSetup] = useState(false);                               // Indicates whether we are in tournament setup mode (adding players etc.)     
+  const [loadingMatchId, setLoadingMatchId] = useState<string | null>(null);       // Used to track which match is currently being started/loading
+  const [activeGameId, setActiveGameId] = useState<string | null>(null);           // Game state: which match is currently active
   const [currentGameMatch, setCurrentGameMatch] = useState<Match | null>(null);
 
-  // Create a new tournament as soon as the user clicks "Start a new tournament"
+   /*
+   * Creates a new tournament
+   *  Triggered when user clicks "Start a new tournament"
+   * - Sends a request to backend
+   * - Stores tournament state in React
+   * - Switches UI into setup mode
+   */
   const handleCreateTournament = async () => {
     const payload: CreateTournamentPayload = { max_players: 4 };
     try {
@@ -37,6 +43,10 @@ const TournamentLobby: React.FC = () => {
     }
   };
 
+  /*
+   * Updates tournament state
+   * - Called by child components when tournament setup or matches update the data
+   */
   const handleTournamentUpdated = (updated: TournamentState) => {
     setTournament(updated);
   };
@@ -46,6 +56,12 @@ const TournamentLobby: React.FC = () => {
     setTournament(null);
   };
 
+  /*
+   * Starts a specific match
+   * - Sends a start request to backend
+   * - Marks the match as loading (disables UI during request)
+   * - If successful, activates the Pong game iframe
+   */
   const handleStartMatch = async (match: Match) => {
     if (!tournament) return;
     setLoadingMatchId(match.match_id);
@@ -62,8 +78,8 @@ const TournamentLobby: React.FC = () => {
       const data: StartTournamentMatchResponse = await res.json();
 
       if (data.status === "OK") {
-          setTournament(data.tournament);
-          setCurrentGameMatch(match);
+          setTournament(data.tournament);      // Updates tournament state with new match info
+          setCurrentGameMatch(match);          // Sets active game state (triggers Pong iframe)
           setActiveGameId(match.match_id);
       } else {
         console.error ("Error starting match:", data.error);
@@ -75,7 +91,9 @@ const TournamentLobby: React.FC = () => {
     }
   };
 
-  const handleMatchEnd = () => {        // Called when the match finishes, just clears current match
+  // Ends a match - Simply clears the current game state and closes iframe
+
+  const handleMatchEnd = () => {
     setCurrentGameMatch(null);
     setActiveGameId(null);
   };

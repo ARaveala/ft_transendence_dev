@@ -20,6 +20,7 @@ interface TournamentSetupProps {
 }
 
 const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTournamentUpdated, onCancel }) => {
+   // Players currently in the tournament (starts with logged-in user)
   const [tournamentPlayers, setTournamentPlayers] = useState<TournamentPlayer[]>([
     { 
       username: "currentUser",
@@ -28,10 +29,12 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTourname
       score: 0,
       isSelf: true },
   ]);
+  // All registered players
   const [allRegisteredPlayers, setAllRegisteredPlayers] = useState<TournamentPlayer[]>([]);
+  // Tracks whether tournament can start (set by PlayerList validation)
   const [canStart, setCanStart] = useState(false);
 
-  // Fetch all registered players from backend
+  // Fetches all registered players from backend
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
@@ -58,9 +61,9 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTourname
     });
   };
 
-  // Add a registered player to the tournament
+  // Add a player (from PlayerSearch) to the tournament
   const handleAddPlayer = (player: TournamentPlayer) => {
-    if (tournamentPlayers.length >= 4) return;
+    if (tournamentPlayers.length >= 4) return;              // max number of players reached
   
     setTournamentPlayers(prev => [
       ...prev,
@@ -68,12 +71,18 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTourname
         username: player.username,
         alias: "",       // alias must start empty
         isSelf: false,   // new player is never the logged-in user
-        password: "",    // initialize empty password field
+        password: "",    // initializes empty password field
         status: "waiting",
         score: 0,
       },
     ]);
   };
+
+  /* Starts the tournament:
+    - Sends tournament + player data to backend
+    - Builds an initial bracket with placeholder (TBD) matches
+    - Notifies parent via `onTournamentUpdated`
+  */
 
   const handleStartTournament = async () => {
     if (!tournament) return;
@@ -83,7 +92,6 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTourname
       players: tournamentPlayers.map(p => ({
         username: p.username,
         alias: p.alias,
-        password: p.isSelf ? undefined : p.password,
         isSelf: p.isSelf,
     })),
   };
@@ -103,6 +111,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTourname
         return;
       }
 
+  // Builds bracket structure: first round + placeholders for later rounds
   const firstRound = data.tournament.bracket[0];
 
   const bracket: Match[][] = [
@@ -127,6 +136,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTourname
     ],
   ];
 
+   // Constructs TournamentState and notifies parent
     const tournamentState: TournamentState = {
       tournament_id: data.tournament.tournament_id,
       status: "ongoing",
@@ -149,7 +159,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTourname
       </div>
 
       <div className="mt-4">
-        <PlayerSearch players={allRegisteredPlayers} onAddPlayer={handleAddPlayer} />
+        <PlayerSearch players={allRegisteredPlayers} addedPlayers={tournamentPlayers} onAddPlayer={handleAddPlayer} />
       </div>
 
       <div className="mt-20">

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import type { TournamentPlayer } from "../../types/tournament";
 import Button from "../ui/Button";
 
@@ -10,56 +10,38 @@ interface PlayerSearchProps {
 
 export const PlayerSearch: React.FC<PlayerSearchProps> = ({ 
   players,
-  addedPlayers = [],
+  addedPlayers,
   onAddPlayer, 
 }) => {
   const [query, setQuery] = useState("");
   const [selectedPlayerUsername, setSelectedPlayerUsername] = useState("");
 
+  const tournamentFull = addedPlayers.length >= 4; // max 3 other players
+
   // Filter players based on query and exclude already added players
-  const getFilteredPlayers = useCallback(() =>
-    players.filter((p) => 
-      p.username.toLowerCase().includes(query.toLowerCase()) &&
-        !addedPlayers.some(
-          (ap) => ap.username.toLowerCase() === p.username.toLowerCase()
-        )
-    ), [players, addedPlayers, query]);
+  const filteredPlayers = useMemo(() => {
+    const queryLower = query.toLowerCase();
+    const addedUsernames = new Set(addedPlayers.map(p => p.username.toLowerCase()));
 
-    const filteredPlayers = useMemo(() => {
-      const newFilteredPlayers = getFilteredPlayers();
-
-      if (
-        selectedPlayerUsername && !newFilteredPlayers.some(
-          (p) => p.username.toLowerCase() === selectedPlayerUsername.toLowerCase()
-      )
-    ) {
-      setSelectedPlayerUsername("");
-    }
-  return newFilteredPlayers;
-  }, [getFilteredPlayers, selectedPlayerUsername]);
+    return players.filter(p => {
+      const matchesQuery = p.username.toLowerCase().includes(queryLower);
+      const notAdded = !addedUsernames.has(p.username.toLowerCase());
+      return matchesQuery && notAdded;
+    });
+  }, [players, addedPlayers, query]);
 
   const handleAddPlayer = () => {
     if (!selectedPlayerUsername) return;
 
-    const playerToAdd = players.find(
-      (p) => p.username.toLowerCase() === selectedPlayerUsername.toLowerCase()
+    const playerToAdd = filteredPlayers.find(
+      (p) => p.username === selectedPlayerUsername
     );
 
-    if (!playerToAdd) {
-      alert("Player not found.");
-      return;
-    }
-    const isAlreadyAdded = addedPlayers.some(
-      (ap) => ap.username.toLowerCase() === playerToAdd.username.toLowerCase()
-    );
-    if (isAlreadyAdded) {
-      alert("Player is already added.");
-      return;
-    }
-
+    if (playerToAdd) {
       onAddPlayer(playerToAdd);
       setSelectedPlayerUsername("");
       setQuery("");
+    }
   };
 
   return (
@@ -85,6 +67,7 @@ export const PlayerSearch: React.FC<PlayerSearchProps> = ({
       </select>
       <Button
         onClick={handleAddPlayer}
+        disabled={!selectedPlayerUsername || tournamentFull}
       >
         Add Player
       </Button>
