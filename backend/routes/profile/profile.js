@@ -175,16 +175,6 @@ async function updatePassword(fastify, options) {
 				const res = await DBupdate.updatePassword(new_password, userId.id);
 				console.log('checking res', res);
 			}
-
-			//const profile = await DBget.fetchUser({userId});
-			//if (!profile) {
-			//	console.log('error in fetching user id or profile ');
-			//	reply.code(404).send({
-			//		status: 'ERROR',
-			//		error: 'no such user'
-			//	})
-			//}
-
 			reply.code(200).send({
 				status: 'UPDATED',
 			});

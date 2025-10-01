@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users
 
 -- multidirectional friendship table, allows for sigle directional requests
 -- status can be 'pending', 'accepted', 'blocked'
+-- cap at 20?
 CREATE TABLE IF NOT EXISTS friends (
     user_id INTEGER NOT NULL,
     friend_id INTEGER NOT NULL,
@@ -23,6 +24,7 @@ CREATE TABLE IF NOT EXISTS friends (
     FOREIGN KEY (friend_id) REFERENCES users(id),
     PRIMARY KEY (user_id, friend_id) -- ensures no duplicate friendships
 );
+
 
 -- do we want to add if game was 1v1 or tournament ?
 -- no match key as we want to use this to build leaderboard

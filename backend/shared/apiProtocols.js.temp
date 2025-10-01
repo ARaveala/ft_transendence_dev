@@ -62,7 +62,7 @@ const API_PROTOCOL = {
   CHANGE_AVATAR: {
 	  path: '/api/profile/avatar',
 	  method: 'PATCH',
-  },
+  }
 
 };
 
