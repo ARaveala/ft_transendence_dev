@@ -5,7 +5,7 @@ export interface TournamentPlayer {
   avatar?: string;
   score: number;
   isSelf?: boolean;
-  password?: string; 
+  isVerified?: boolean;
 }
 
 export interface Match {

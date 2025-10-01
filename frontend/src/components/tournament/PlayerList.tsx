@@ -54,7 +54,11 @@ const PlayerList: React.FC<PlayerListProps> = ({
   };
 
   // Password verification
-  const handlePasswordBlur = async (index: number, username: string, password: string) => {
+  const handlePasswordBlur = async (
+    index: number,
+    username: string,
+    password: string,
+  ) => {
   if (!password) return;
 
   const payload: VerifyPlayerPayload = { username, password };
@@ -70,9 +74,11 @@ const PlayerList: React.FC<PlayerListProps> = ({
 
     if (!data.valid) {
       newErrors[index] = data.error || "Invalid password";
+      onUpdatePlayer(index, { isVerified: false })
     } else {
       newErrors[index] = "";
-      onUpdatePlayer(index, { password });
+      onUpdatePlayer(index, { isVerified: true });
+      
     }
     setErrors(newErrors);
   } catch (err) {
@@ -84,7 +90,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
   useEffect(() => {
     const allValid = players.every((p, i) => {
       const aliasValid = p.alias && p.alias.length >= 5 && !errors[i];
-      const passwordValid = p.isSelf ? true : (!!p.password && !errors[i]);
+      const passwordValid = p.isSelf ? true : p.isVerified;
       return aliasValid && passwordValid;
     });
 
@@ -95,7 +101,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
     <div className="space-y-3">
       {players.map((player, index) => {
         const passwordError = errors[index];
-        const canEditAlias = player.isSelf || (!!player.password && !passwordError);
+        const canEditAlias = true;
 
         return (
           <div key={player.username} className="flex flex-col gap-1">
@@ -106,23 +112,28 @@ const PlayerList: React.FC<PlayerListProps> = ({
                 readOnly
                 className="p-2 border rounded flex-1 bg-gray-200 text-black"
               />
+
+               {/* Password */}
               <input
                 type="password"
                 placeholder="Password"
-                disabled={player.isSelf}
-                value={player.isSelf ? "********" : player.password || ""}
+                disabled={player.isSelf || player.isVerified}
+                value={player.isSelf || player.isVerified ? "********" : undefined}
                 className={`p-2 border rounded flex-1 text-black ${
-                  player.isSelf
+                  player.isSelf || player.isVerified
                     ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                     : "text-black"
                 }`}
-                onChange={(e) =>
-                  !player.isSelf && onUpdatePlayer(index, { password: e.target.value })
-                }
-                onBlur={(e) =>
-                  !player.isSelf && handlePasswordBlur(index, player.username, e.target.value)
-                }
+                onBlur={(e) => {
+                  const typedPassword = e.target.value;
+                  if (!player.isSelf && !player.isVerified && typedPassword) {
+                    handlePasswordBlur(index, player.username, typedPassword);
+                    e.target.value = "";
+                  }
+                }}
               />
+
+              {/* Alias */}
               <input
                 type="text"
                 placeholder="Alias"
