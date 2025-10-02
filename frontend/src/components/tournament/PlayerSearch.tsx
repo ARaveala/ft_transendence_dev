@@ -3,9 +3,9 @@ import type { TournamentPlayer } from "../../types/tournament";
 import Button from "../ui/Button";
 
 interface PlayerSearchProps {
-  players: TournamentPlayer[]; // allRegisteredPlayers
-  addedPlayers: TournamentPlayer[];   // players already added to the tournament
-  onAddPlayer: (player: TournamentPlayer) => void;
+  players: TournamentPlayer[];                      // all registered players
+  addedPlayers: TournamentPlayer[];                 // players already added to the tournament
+  onAddPlayer: (player: TournamentPlayer) => void;  // callback when a player is added
 }
 
 export const PlayerSearch: React.FC<PlayerSearchProps> = ({ 
@@ -13,12 +13,19 @@ export const PlayerSearch: React.FC<PlayerSearchProps> = ({
   addedPlayers,
   onAddPlayer, 
 }) => {
+  // User’s current search query
   const [query, setQuery] = useState("");
+  // Username of the currently selected player from the drop-down menu
   const [selectedPlayerUsername, setSelectedPlayerUsername] = useState("");
 
-  const tournamentFull = addedPlayers.length >= 4; // max 3 other players
+  const tournamentFull = addedPlayers.length >= 4; // max 3 players + logged in user
 
-  // Filter players based on query and exclude already added players
+   /*
+    Deduces the list of players to show in the drop-down menu:
+    - Must match the current search query
+    - Must not already be added to the tournament
+    - useMemo ensures recalculation only happens when inputs change
+   */
   const filteredPlayers = useMemo(() => {
     const queryLower = query.toLowerCase();
     const addedUsernames = new Set(addedPlayers.map(p => p.username.toLowerCase()));
@@ -30,6 +37,13 @@ export const PlayerSearch: React.FC<PlayerSearchProps> = ({
     });
   }, [players, addedPlayers, query]);
 
+
+  /*
+    Adda the currently selected player:
+    - Finds the full player object from `filteredPlayers`
+    - Calls `onAddPlayer`
+    - Resets selection + search query
+   */
   const handleAddPlayer = () => {
     if (!selectedPlayerUsername) return;
 

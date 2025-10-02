@@ -1,10 +1,3 @@
-// Child component to TournamentSetUp
-// Renders a row for each player
-// Executes password and alias validation
-// Passes changes to parent (alias and password input)
-// Notifies parent when all players are validated 
-
-
 import React, { useState, useEffect } from "react";
 import type { TournamentPlayer } from "../../types/tournament";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
@@ -15,7 +8,7 @@ interface PlayerListProps {
   players: TournamentPlayer[];
   onUpdatePlayer: (index: number, updates: Partial<TournamentPlayer>) => void;
   onValidationChange: (isValid: boolean) => void; // notify parent if tournament can start
-  onRemovePlayer: (index: number) => void; 
+  onRemovePlayer: (index: number) => void;        // remove a player from the list
 }
 
 const PlayerList: React.FC<PlayerListProps> = ({
@@ -24,8 +17,14 @@ const PlayerList: React.FC<PlayerListProps> = ({
   onValidationChange,
   onRemovePlayer,
  }) => {
+  // Keeps track of validation errors per player
   const [errors, setErrors] = useState<string[]>(Array(players.length).fill(""));
 
+  /*
+    Validate and update alias for a given player:
+    - Must be at least 5 characters
+    - Must be unique among all players
+   */
   const handleAliasChange = (index: number, alias: string) => {
     let error = "";
 
@@ -53,7 +52,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
     }
   };
 
-  // Password verification
+  // Verify player password (not logged in player) against backend API
   const handlePasswordBlur = async (
     index: number,
     username: string,
@@ -86,7 +85,11 @@ const PlayerList: React.FC<PlayerListProps> = ({
   }
 };
 
-  // Validation check for all players
+  /* Validation effect:
+    - Runs whenever players or errors change
+    - Ensures that aliases are valid and unique and all other players have been verified
+    - Reports overall status to parent
+  */
   useEffect(() => {
     const allValid = players.every((p, i) => {
       const aliasValid = p.alias && p.alias.length >= 5 && !errors[i];

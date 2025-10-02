@@ -5,8 +5,8 @@ import Button from "../ui/Button";
 
 interface TournamentBracketProps {
   tournament: TournamentState;
-  loadingMatchId?: string | null;
-  onStartMatch?: (match: Match) => void;
+  loadingMatchId?: string | null;           // ID of match currently being started
+  onStartMatch?: (match: Match) => void;    // callback when a match start is requested
 }
 
 const TournamentBracket: React.FC<TournamentBracketProps> = ({
@@ -14,7 +14,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
   loadingMatchId,
   onStartMatch 
 }) => {
-  const firstRound = tournament.bracket[0]; // 2 matches with 4 players
+  const firstRound = tournament.bracket[0]; // 2 matches with 2 players each
 
   // Final match placeholder (between the 2 winners of round 1)
   const finalMatch: Match = {
@@ -25,6 +25,10 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
     status: "pending",
   };
 
+   /* Determines if a match can be started:
+    - Round 1: match is "pending"
+    - Final: both winners must be known and status "pending"
+   */
   const isMatchPlayable = (match: Match, round: number): boolean => {
     if (round === 1) return match.status === "pending";
     // final match only playable if both winners exist
@@ -35,6 +39,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
     );
   };
 
+// Check if a given match is currently loading
   const isLoading = (match: Match) => loadingMatchId === match.match_id;
 
   return (

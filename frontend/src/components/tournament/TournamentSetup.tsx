@@ -1,9 +1,3 @@
-// Fetches all registered players from backend and stores them in allPlayers state
-// Holds a state of all players
-// Updates player data when child component changes something
-// Tracks validation of alias, password
-// Handles "Start tournament" 
-
 import React, { useEffect, useState } from "react";
 import PlayerList from "./PlayerList";
 import { PlayerSearch } from "./PlayerSearch";
@@ -20,7 +14,7 @@ interface TournamentSetupProps {
 }
 
 const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTournamentUpdated, onCancel }) => {
-   // Players currently in the tournament (starts with logged-in user)
+  // Players currently in the tournament (starts with logged-in user)
   const [tournamentPlayers, setTournamentPlayers] = useState<TournamentPlayer[]>([
     { 
       username: "currentUser",
@@ -43,7 +37,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTourname
 
         const data: PlayerSearchResponse = await res.json();
 
-        setAllRegisteredPlayers(data.players || []);  // Return an empty array if backend returns nothing
+        setAllRegisteredPlayers(data.players || []);  // Returns an empty array if backend returns nothing
       } catch (err) {
         console.error(err);
         setAllRegisteredPlayers([]); // fallback in case of error
