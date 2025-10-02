@@ -23,6 +23,15 @@
   "settings.deleteText": "Deleting your profile removes your account, friends, and match history. This action is irreversible!",
   "settings.delete": "Delete profile",
 
+  "friends.title": "Friends",
+  "friends.addFriendUsername": "Add friend by username",
+  "friends.usernameTitle": "Username",
+  "friends.list": "Your friends",
+  "friends.noFriends": "No friends yet.",
+  "friends.remove": "Remove friend",
+  "friends.removeConfirmTitle": "Remove friend?",
+  "friends.removeConfirmText": "Are you sure you want to remove this friend? This action cannot be undone!",
+
   "lang.english": "English",
   "lang.finnish": "Finnish",
   "lang.swedish": "Swedish",
@@ -30,16 +39,26 @@
   "common.save": "Save",
   "common.cancel": "Cancel",
   "common.deleted": "Deleted",
+  "common.loading": "Loading...",
+  "common.add": "Add",
+  "common.online": "Online",
+  "common.offline": "Offline",
+  "common.remove": "Remove",
   "common.languageUpdated": "Language updated.",
   "common.usernameUpdated": "Username updated.",
   "common.passwordUpdated": "Password updated.",
   "common.avatarUpdated": "Avatar updated.",
   "common.deletedText": "Your profile has been deleted!",
+  "common.friendAdded": "Friend added.",
+  "common.friendRemoved": "Friend removed.",
 
   "error.usernameLength": "Username must be between 3-15 characters.",
   "error.passwordLength": "New password must be at least 8 characters.",
   "error.passwordMatch": "Passwords do not match.",
   "error.passwordRequired": "Current password is required.",
+  "error.friendsMaxNum": "Maximum number of friends (20) reached.",
+  "error.friendsAlreadyFriend": "User is already in your friends list.",
+  "error.userNotFound": "User not found",
 
   "notice.passwordLength": "At least 8 characters"
 

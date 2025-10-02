@@ -25,6 +25,8 @@ export const API_PROTOCOL = {
     path: '/leaderboard',
     method: 'GET',
   },
+
+  // FriendsPage
   ADD_FRIEND: {
     path: '/friends/add',
     method: 'POST',
@@ -32,6 +34,10 @@ export const API_PROTOCOL = {
   GET_FRIENDS: {
     path: '/friends',
     method: 'GET',
+  },
+  REMOVE_FRIEND: {
+	  path: '/friends/remove',
+	  method: 'POST'
   },
 
   GET_PLAYER: {

@@ -23,6 +23,15 @@
   "settings.deleteText": "Att ta bort din profil raderar ditt konto, dina vänner och din matchhistorik. Detta kan inte ångras!",
   "settings.delete": "Ta bort profil",
 
+  "friends.title": "Vänner",
+  "friends.addFriendUsername": "Lägg till vän via användarnamn",
+  "friends.usernameTitle": "Användarnamn",
+  "friends.list": "Dina vänner",
+  "friends.noFriends": "Inga vänner nu.",
+  "friends.remove": "Ta bort vän",
+  "friends.removeConfirmTitle": "Ta bort vän?",
+  "friends.removeConfirmText": "Är du säker på att du vill ta bort den här vännen? Detta kan inte ångras!",
+
   "lang.english": "Engelska",
   "lang.finnish": "Finska",
   "lang.swedish": "Svenska",
@@ -30,15 +39,25 @@
   "common.save": "Spara",
   "common.cancel": "Avbryt",
   "common.deleted": "Raderad",
+  "common.loading": "Laddar...",
+  "common.add": "Lägg till",
+  "common.online": "Online",
+  "common.offline": "Offline",
+  "common.remove": "Ta bort",
   "common.languageUpdated": "Språk uppdaterat.",
   "common.usernameUpdated": "Användarnamn uppdaterat.",
   "common.passwordUpdated": "Lösenord uppdaterat.",
   "common.deletedText": "Din profil har raderats!",
+  "common.friendAdded": "Vän tillagd.",
+  "common.friendRemoved": "Vän borttagen.",
 
   "error.usernameLength": "Användarnamnet måste vara 3–15 tecken.",
   "error.passwordLength": "Det nya lösenordet måste vara minst 8 tecken.",
   "error.passwordMatch": "Lösenorden matchar inte.",
   "error.passwordRequired": "Nuvarande lösenord krävs.",
+  "error.friendsMaxNum": "Maximalt antal vänner (20) uppnått.",
+  "error.friendsAlreadyFriend": "Användaren finns redan i din vänlista.",
+  "error.userNotFound": "Användaren hittades inte.",
 
   "notice.passwordLength": "Minst 8 tecken"
 }

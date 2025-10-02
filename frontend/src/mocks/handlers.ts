@@ -34,6 +34,11 @@ const mockPlayers: PlayerPayload = [
   { user_id: "125", username: "PlayerThree", avatar: avatar3, score: 950, rank: 3 },
 ];
 
+let mockFriends: Friend[] = [
+	{ user_id: "1", username: "Player2", avatar: avatar2, online_status: true },
+	{ user_id: "2", username: "Player3", avatar: avatar3, online_status: false },
+];
+
 export const handlers = [
 	// Mock for delete profile
 	http.delete(API_PROTOCOL.DELETE_PROFILE.path, async () => {
@@ -93,6 +98,76 @@ export const handlers = [
 			{ status: 200 }
 		);
 	}),
+
+	// Mocks for get friends
+	http.get(API_PROTOCOL.GET_FRIENDS.path, () => {
+		return HttpResponse.json(mockFriends, { status: 200 }
+		);
+	}),
+
+	// Mock for add friend
+	http.post(API_PROTOCOL.ADD_FRIEND.path, async ({ request }) => {
+		const body = await request.json();
+		const friendId = body.friend_id ?? body.friendId;
+		const username = body.username;
+
+		let toAdd: Friend | null = null;
+
+		if (friendId) {
+			if (mockFriends.some((f) => f.user_id === friendId)) {
+				return HttpResponse.json(
+				{ status: "ADDED", friend: mockFriends.find(f => f.user_id === friendId) },
+				{ status: 200 }
+			);
+		}
+
+		toAdd = {
+			user_id: friendId,
+			username: `User_${friendId}`,
+			avatar: avatar2,
+			online_status: Math.random() > 0.5,
+		};
+	  } else if (username) {
+		const newId = String(Date.now());
+		toAdd = {
+			user_id: newId,
+			username,
+			avatar: avatar1,
+			online_status: Math.random() > 0.5,
+		};
+	  }
+
+	  if (!toAdd) {
+		return HttpResponse.json(
+			{ status: "ERROR", error: "Missing friend_id or username" },
+			{ status: 400 }
+		);
+	  }
+
+	  mockFriends.push(toAdd);
+	  return HttpResponse.json(
+		{ status: "ADDED", friend: toAdd },
+		{ status: 200 }
+		);
+	}),
+
+	// Mock for remove friend
+	http.post(API_PROTOCOL.REMOVE_FRIEND.path, async ({ request }) => {
+		const body = await request.json();
+		const friendId = body.friend_id ?? body.friendId;
+		if (!friendId) {
+			return HttpResponse.json(
+				{ status: "ERROR", error: "Missing friend_id" },
+				{ status: 400 }
+			);
+		}
+		mockFriends = mockFriends.filter((f) => f.user_id !== friendId);
+		return HttpResponse.json(
+			{ status: "REMOVED" },
+			{ status: 200 }
+		);
+	}),
+
 
 
   // Mock for registration response
