@@ -24,49 +24,81 @@ avatarFile: "avatars/avatar1.png",
 				friends: 0 (format unknown)
 				matchHistory: 0 (format unknown)
  */
-function insertUser({ username, password, score, status }) {
-    console.log('Incoming user data:', { username, password, score, status });
+function insertUser({ username, password}) {
+    console.log('Incoming user data:', { username, password});
 
     return new Promise((resolve, reject) => {
         db.run(
-            `INSERT INTO users (username, password, score, status) VALUES (?, ?, ?, ?)`,
-            [username, password, score, status],
+            `INSERT INTO users (username, password, avatar_file) VALUES (?, ?, ?)`,
+            [username, password, 'frontend/src/assets/avatars/avatar1.png'],
             function (err) {
                 if (err) {
                     reject({ error: 'Failed to add user', details: err });
-                } else {
-                    resolve({ message: 'User added yay!', userId: this.lastID });
+                } else {	
+                    resolve({ id: this.lastID });
                 }
             }
         );
     });
 }
+
+
+//function insertUser({ username, password }) {
+//  console.log('Incoming user data:', { username, password });
+//
+//  return new Promise((resolve, reject) => {
+//    db.serialize(() => {
+//      db.run(
+//        `INSERT INTO users (username, password, avatar_file) VALUES (?, ?, ?)`,
+//        [username, password, 'frontend/src/assets/avatars/avatar1.png'],
+//        function (err) {
+//          if (err) {
+//            reject({ error: 'Failed to add user', details: err });
+//          } else {
+//            const userId = this.lastID;
+//
+//            // Force a read to flush visibility
+//            db.get("SELECT id FROM users WHERE id = ?", [userId], (err, row) => {
+//              if (err || !row) {
+//                reject({ error: 'Post-insert read failed', details: err });
+//              } else {
+//                resolve({ userId }); // Now safe to use in registerUser
+//              }
+//            });
+//          }
+//        }
+//      );
+//    });
+//  });
+//}
+//
+
 
 // this fucntion has to look inside database and confirm if username and password match
 // dev style right now just utalizes simple create a new user logic 
-function loginUser({ username, password}) {
-    console.log('Incoming user data:', { username, password});
-	const score = 0; // this is only dev !!
-	const status = "online"; // status should be changed to online after verificiation
-	// this would be easiest with a change status function that i call from apiroute.
-    return new Promise((resolve, reject) => {
-        db.run(
-            `INSERT INTO users (username, password, score, status) VALUES (?, ?, ?, ?)`,
-            [username, password, score, status],
-            function (err) {
-                if (err) {
-                    reject({ error: 'Failed to add user', details: err });
-                } else {
-                    resolve({userId: this.lastID, user: username });
-                }
-            }
-        );
-    });
-}
-// change status fucntion 
+// function loginUser({ username, password}) {
+//     console.log('Incoming user data:', { username, password});
+// 	const score = 0; // this is only dev !!
+// 	const status = "online"; // status should be changed to online after verificiation
+// 	// this would be easiest with a change status function that i call from apiroute.
+//     return new Promise((resolve, reject) => {
+//         db.run(
+//             `INSERT INTO users (username, password, score, status) VALUES (?, ?, ?, ?)`,
+//             [username, password, score, status],
+//             function (err) {
+//                 if (err) {
+//                     reject({ error: 'Failed to add user', details: err });
+//                 } else {
+//                     resolve({userId: this.lastID, user: username });
+//                 }
+//             }
+//         );
+//     });
+// }
+// // change status fucntion 
 
 module.exports = {
 	insertUser, 
-	loginUser
+	// loginUser
 };
 

@@ -63,13 +63,18 @@ function setUpWebSockets(server) {
 						console.error('Error in handleMessage:', err.message);
 					}	
 			});
-
+			// grace period dosnt need token verification
+			// if we want user to be able to reconnect outside grace period 
+			// we will need to establish a token verification through apis 
 			ws.on("close", () => {
 				console.log("Client disconnected");
 				// some kind of pause logic here 
-				const player = 666;//players.get(playerId);
+				const player = ws.player;//players.get(playerId);
+				console.log('checking if player exists on disconnect', player, 'is there a game id', ws.gameId, 'access anything', ws.player.ready);
 				if (player) {
+					
 					player.disconnectedAt = Date.now();
+					console.log("Player disconnected:", player);
 				//	player.ws = null;
 					handleMessage(undefined, { type: "pause"});
 					

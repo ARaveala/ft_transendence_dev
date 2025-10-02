@@ -61,7 +61,8 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
       if (!res.ok) throw new Error("Update failed");
 
       const updatedProfile: UserProfile = await res.json();
-      setProfile(updatedProfile);
+	  console.log("Updated profile response:", updatedProfile);
+	  setProfile(updatedProfile);
       setSelectedAvatar(updatedProfile.avatarFile || avatar1);
       alert("Profile updated successfully!");
     } catch (err) {

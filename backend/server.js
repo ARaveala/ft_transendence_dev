@@ -99,7 +99,14 @@
 		reply.code(500).send({ error: 'SERVER_ERROR', message: error.message });
 	}
 	});
-
+	// Log all incoming requests for testing and debugging
+	fastify.addHook('onRequest', async (request, reply) => {
+		console.log(`[${request.method}] ${request.url}`);
+		console.log('Headers:', request.headers);
+		if (request.body) {
+		  console.log('Body:', request.body);
+		}
+	});
 	const start = async () => {
 
 		try {
@@ -123,7 +130,12 @@
 		process.exit(1);
 	}
 	};
-
+	fastify.ready(err => {
+	  if (err) throw err;
+	  console.log('\n=== Registered routes ===');
+	  console.log(fastify.printRoutes());
+	  console.log('=========================\n');
+	});
 	start();
 
 

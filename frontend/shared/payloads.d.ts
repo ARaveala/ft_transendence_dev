@@ -200,7 +200,7 @@ export interface CreateTournamentPayload {
   max_players?: number;
 }
 
-export interface CreateTournamentResponse {
+export interface TournamentStateResponse {
   status: 'OK' | 'ERROR';
   error?: string;
   tournament: TournamentState;
@@ -298,6 +298,38 @@ export interface MatchResultResponse {
   updated_tournament?: TournamentState;
 }
 
+// Settings
+
+export interface ChangeLanguagePayload {
+	language: string;
+}
+
+export interface ChangeLanguageResponse {
+	status: 'UPDATED' | 'ERROR';
+	error?: string;
+}
+
+export interface ChangeUsernamePayload {
+	username: string;
+}
+
+export interface ChangeUsernameResponse {
+	status: 'UPDATED' | 'ERROR';
+	profile?: UserProfile; //Returning updated profile
+	error?: string;
+}
+
+export interface ChangePasswordPayload {
+	current_password: string;
+	new_password: string;
+}
+
+export interface ChangePasswordResponse {
+	status: 'UPDATED' | 'ERROR';
+	error?: string;
+}
+
+// over websocket??
 
 export interface TournamentFinished {
   tournament_id: string;

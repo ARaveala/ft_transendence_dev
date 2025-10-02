@@ -1,7 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
+import { useTranslation } from "../../shared/Translation";
 const Navbar: React.FC = () => {
+	  const { t } = useTranslation();
   return (
     <nav className="p-4 bg-gray-800 flex gap-4">
       <Link to="/" className="hover:underline">Home</Link>

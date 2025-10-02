@@ -24,11 +24,21 @@ function generateWsToken(playerId, gameId) {
 // right now we are using http , this MUST be https in production
 function setAuthCookie(reply, token) {
   reply.setCookie('auth_token', token, {
-    httpOnly: true,
+    httpOnly: true, //this must be https eventually
     path: '/',
-    sameSite: 'lax',
+    sameSite: 'lax', // change to strict 
     secure: false // set to true in production
   });
+}
+
+function clearAuthCookie(reply, token) {
+  reply.clearCookie('auth_token', token,{
+	expires: new Date(0),
+	httpOnly: true,
+	path:'/',
+	sameSite: 'lax',
+	secure: false
+,	});
 }
 
 function verifyToken(token) {
@@ -40,10 +50,11 @@ function getUserIdFromToken(token) {
 	try {
 		const decoded = jwt.verify(token, JWT_SECRET);
 		log('GET USER ID FROM TOKEN', `decoded token ${JSON.stringify(decoded)}`);
-		return JSON.stringify(decoded.id); // or whatever claim you expect
+//		return JSON.stringify(decoded.id); // or whatever claim you expect
+		return decoded.id; // or whatever claim you expect
 	} catch (err) {
 		console.error('Invalid or expired token:', err.message);
-		return null; // or throw a custom error if you want to handle it upstream
+		return undefined; // or throw a custom error if you want to handle it upstream
 	}
 }
 
@@ -55,4 +66,10 @@ function getUserIdFromToken(token) {
 //Optionally confirm that the user still exists in the database this is done by returning to me id
 //  potentailly may require more returned as an object , backend sends to database verify user in db. 
 
-module.exports = { generateToken, setAuthCookie, verifyToken, getUserIdFromToken, generateWsToken };
+module.exports = { generateToken,
+	setAuthCookie,
+	verifyToken,
+	getUserIdFromToken,
+	generateWsToken,
+	clearAuthCookie
+	};

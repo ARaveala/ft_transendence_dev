@@ -8,3 +8,14 @@ logs/
 
 README.md
 GeneralDocumentations
+
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+.git
+.gitignore
+.env
+//*.sqlite
+dist
+coverag

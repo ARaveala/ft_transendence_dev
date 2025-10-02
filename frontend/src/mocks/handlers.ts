@@ -35,14 +35,65 @@ const mockProfile: UserProfile = {
 let currentTournament: TournamentState | null = null;
 
 export const handlers = [
-
-  //Mock for delete profile
+	// Mock for delete profile
 	http.delete(API_PROTOCOL.DELETE_PROFILE.path, async () => {
-	  return HttpResponse.json(
-	    { status: 'DELETED' },
-	    { status: 200 }
-	  );
+		return HttpResponse.json(
+			{ status: 'DELETED' }, 
+			{ status: 200 }
+		);
 	}),
+
+	// Mock for language change
+	http.patch(API_PROTOCOL.CHANGE_LANGUAGE.path, async ({ request }) => {
+		const body = await request.json();
+		if (!body?.language) {
+			return HttpResponse.json(
+				{ status: "ERROR", error: "language required" }, 
+				{ status: 400 }
+			);
+		}
+		return HttpResponse.json(
+			{ status: "UPDATED" }, 
+			{ status: 200 }
+		);
+	}),
+
+	// Mock for username change
+	http.patch(API_PROTOCOL.CHANGE_USERNAME.path, async ({ request }) => {
+		const body = await request.json();
+		if (!body?.username || body.username.length < 3 || body.username.length > 15) {
+			return HttpResponse.json(
+				{ status: "ERROR", error: "invalid username" },
+				{ status: 400 }
+			);
+		}
+		return HttpResponse.json(
+			{ status: "UPDATED" },
+			{ status: 200 }
+		);
+	}),
+
+	// Mock for change password
+	http.patch(API_PROTOCOL.CHANGE_PASSWORD.path, async ({ request }) => {
+		const body = await request.json();
+		if (!body?.current_password || !body?.new_password) {
+			return HttpResponse.json(
+				{ status: "ERROR", error: "missing fields" },
+				{ status: 400 }
+			);
+		}
+		if (String(body.new_password).length < 8) {
+			return HttpResponse.json(
+				{ status: "ERROR", error: "password too short" },
+				{ status: 400 }
+			);
+		}
+		return HttpResponse.json(
+			{ status: "UPDATED" },
+			{ status: 200 }
+		);
+	}),
+
 
   // Mock for registration response
   http.post(API_PROTOCOL.REGISTER_USER.path, async ({ request }) => {
