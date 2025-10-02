@@ -5,30 +5,37 @@ export const API_PROTOCOL = {
     path: '/api/register',
     method: 'POST',
   },
+
   LOGIN_USER: {
     path: '/api/login',
     method: 'POST',
   },
+
   GET_USER: {
     path: '/api/user/:id',
     method: 'GET',
   },
+
   UPDATE_PROFILE: {
     path: '/api/profile/update',
     method: 'POST',
   },
+
   GET_PROFILE: {
     path: '/api/profile',
     method: 'GET',
   },
+
   GET_LEADERBOARD: {
     path: '/api/leaderboard',
     method: 'GET',
   },
+
   ADD_FRIEND: {
     path: '/api/friends/add',
     method: 'POST',
   },
+  
   GET_FRIENDS: {
     path: '/api/friends',
     method: 'GET',
@@ -54,7 +61,7 @@ export const API_PROTOCOL = {
     method: 'GET'
   },
 
-   VERIFY_PLAYER: {
+  VERIFY_PLAYER: {
   path: '/api/tournament/verify-player',
   method: 'POST',
   },
@@ -67,11 +74,6 @@ export const API_PROTOCOL = {
   REGISTER_PLAYER_ALIAS: {
     path: "/api/tournament/register-alias",
     method: "POST",
-  },
-
-  JOIN_TOURNAMENT: {
-    path:'/api/tournament/:id/join',
-    method: 'POST',
   },
 
   START_TOURNAMENT: {
@@ -89,10 +91,21 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
 
-  LOGOUT_USER: {
-	path: '/api/logout',
-	method: 'POST',
+  GET_TOURNAMENT_STATE: {
+    path: '/api/tournament/state',
+    method: 'GET',
   },
+
+  START_TOURNAMENT_MATCH: {
+    path: '/api/tournament/:id/start-match',
+    method: 'POST',
+  },
+
+  LOGOUT_USER: {
+	  path: '/api/logout',
+	  method: 'POST',
+  },
+
 // SettingsPage;
 
   DELETE_PROFILE: {

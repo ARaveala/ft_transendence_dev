@@ -197,20 +197,27 @@ export interface GameStateUpdate {
 // Tournament
 
 export interface CreateTournamentPayload {
-  host_id: string;                 // Logged-in player's user_id 
-  player_ids: string[];            // IDs of added players
-  max_players: number;             // minimum 4, max can be set
+  max_players?: number;
 }
 
 export interface TournamentStateResponse {
   status: 'OK' | 'ERROR';
   error?: string;
-  tournament_id?: string;     // unique ID for the tournament
-  tournament_name?: string;
-  max_players?: number;
-  created_at?: string;        // timestamp
-  updated_tournament?: Tournament;    // Current state of the tournament
+  tournament: TournamentState;
 }
+
+// type used in frontend
+
+/*export interface TournamentState {
+  tournament_id: string;
+  status: 'waiting' | 'ongoing' | 'finished';
+  players: TournamentPlayer[];
+  currentMatch?: Match;
+  bracket: Match[][];
+  winner?: TournamentPlayer;
+  createdAt?: Date;
+  lastUpdated?: Date
+} */
 
 export interface PlayerSearchRequest {
   query?: string;           // optional search term (used for search bar)
@@ -233,27 +240,30 @@ export interface VerifyPlayerResponse {
   error?: string;
 }
 
-export interface RegisterAliasRequest {
-  user_id: string;
-  alias: string;
-}
-export interface RegisterAliasResponse {
-  status: 'OK' | 'ERROR';
-  error?: string;
-}
-
 export interface StartTournamentPayload {
-  players: TournamentPlayer[];
+  tournament_id: string;
+  players: {
+    username: string;
+    alias: string;
+    password?: string;
+    isSelf?: boolean;
+  }[];
 }
 
 export interface StartTournamentResponse {
   status: 'OK' | 'ERROR';
   error?: string;
-  tournament_id: string;
-  players: TournamentPlayer[];
-  matches: Match[];               // info on first matches
-  bracket: Match[][];
-  createdAt: Date;
+  tournament: TournamentState;
+}
+
+export interface StartTournamentMatchPayload {
+  match_id: string;
+}
+
+export interface StartTournamentMatchResponse {
+  status: "OK" | "ERROR";
+  error?: string;
+  tournament: TournamentState;
 }
 
 export interface MatchResultPayload {
@@ -265,29 +275,8 @@ export interface MatchResultPayload {
     player2: number;
   };
 }
+
 // Should these go over API endpoint or websocket??
-
-export interface JoinTournamentPayload {
-  tournament_id: string;
-  tournament_name: string;
-  alias: string;                  // player's temporary alias for the tournament
-}
-
-export interface JoinTournamentResponse {
-  status: 'OK' | 'ERROR';
-  error?: string;
-  players?: string[];       // updated list of aliases
-}
-
-export interface StartTournamentPayload {
-  tournament_id: string;
-}
-
-export interface StartTournamentResponse {
-  status: 'OK' | 'ERROR';
-  error?: string;
-  current_match?: MatchInfo;    // first match info
-}
 
 export interface MatchInfo {
   game_id: string;
@@ -342,15 +331,6 @@ export interface ChangePasswordResponse {
 
 // over websocket??
 
-export interface TournamentState {
-  tournament_id: string;
-  status: 'WAITING' | 'RUNNING' | 'FINISHED';
-  players: string[];                            // aliases in this tournament
-  current_match?: MatchInfo;                    // ongoing match
-  upcoming_matches: MatchInfo[];                // matches yet to be played
-  finished_matches: FinishedMatch[];            // completed matches
-}
-
 export interface TournamentFinished {
   tournament_id: string;
   winner: string;
@@ -366,17 +346,10 @@ export interface FinishedMatch {
   scorePlayer2: number;
 }
 
-export interface TournamentFinished {
-  tournament_id: string;
-  winner: string;
-  final_results: Results[];
-}
-
 /*
 export interface Results {
   alias: string;
   position: number;
-}
-
-*/
+} 
+  */
 

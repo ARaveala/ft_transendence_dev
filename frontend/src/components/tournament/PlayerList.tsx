@@ -1,20 +1,14 @@
-// Child component to TournamentSetUp
-// Renders a row for each player
-// Executes password and alias validation
-// Passes changes to parent (alias and password input)
-// Notifies parent when all players are validated 
-
-
 import React, { useState, useEffect } from "react";
 import type { TournamentPlayer } from "../../types/tournament";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
+import { VerifyPlayerPayload, VerifyPlayerResponse } from "../../../shared/payloads";
 import Button from "../ui/Button";
 
 interface PlayerListProps {
   players: TournamentPlayer[];
   onUpdatePlayer: (index: number, updates: Partial<TournamentPlayer>) => void;
   onValidationChange: (isValid: boolean) => void; // notify parent if tournament can start
-  onRemovePlayer: (index: number) => void; 
+  onRemovePlayer: (index: number) => void;        // remove a player from the list
 }
 
 const PlayerList: React.FC<PlayerListProps> = ({
@@ -23,8 +17,14 @@ const PlayerList: React.FC<PlayerListProps> = ({
   onValidationChange,
   onRemovePlayer,
  }) => {
+  // Keeps track of validation errors per player
   const [errors, setErrors] = useState<string[]>(Array(players.length).fill(""));
 
+  /*
+    Validate and update alias for a given player:
+    - Must be at least 5 characters
+    - Must be unique among all players
+   */
   const handleAliasChange = (index: number, alias: string) => {
     let error = "";
 
@@ -52,25 +52,32 @@ const PlayerList: React.FC<PlayerListProps> = ({
     }
   };
 
-  // Password verification
-  const handlePasswordBlur = async (index: number, username: string, password: string) => {
+  // Verify player password (not logged in player) against backend API
+  const handlePasswordBlur = async (
+    index: number,
+    username: string,
+    password: string,
+  ) => {
   if (!password) return;
 
+  const payload: VerifyPlayerPayload = { username, password };
   try {
     const res = await fetch(API_PROTOCOL.VERIFY_PLAYER.path, {
-      method: "POST",
+      method: API_PROTOCOL.VERIFY_PLAYER.method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify(payload),
     });
 
-    const data: { valid: boolean; error?: string } = await res.json();
+    const data: VerifyPlayerResponse = await res.json();
     const newErrors = [...errors];
 
     if (!data.valid) {
       newErrors[index] = data.error || "Invalid password";
+      onUpdatePlayer(index, { isVerified: false })
     } else {
       newErrors[index] = "";
-      onUpdatePlayer(index, { password });
+      onUpdatePlayer(index, { isVerified: true });
+      
     }
     setErrors(newErrors);
   } catch (err) {
@@ -78,11 +85,15 @@ const PlayerList: React.FC<PlayerListProps> = ({
   }
 };
 
-  // Validation check for all players
+  /* Validation effect:
+    - Runs whenever players or errors change
+    - Ensures that aliases are valid and unique and all other players have been verified
+    - Reports overall status to parent
+  */
   useEffect(() => {
     const allValid = players.every((p, i) => {
       const aliasValid = p.alias && p.alias.length >= 5 && !errors[i];
-      const passwordValid = p.isSelf ? true : (!!p.password && !errors[i]);
+      const passwordValid = p.isSelf ? true : p.isVerified;
       return aliasValid && passwordValid;
     });
 
@@ -93,10 +104,10 @@ const PlayerList: React.FC<PlayerListProps> = ({
     <div className="space-y-3">
       {players.map((player, index) => {
         const passwordError = errors[index];
-        const canEditAlias = player.isSelf || (!!player.password && !passwordError);
+        const canEditAlias = true;
 
         return (
-          <div key={player.user_id} className="flex flex-col gap-1">
+          <div key={player.username} className="flex flex-col gap-1">
             <div className="flex gap-2 items-center">
               <input
                 type="text"
@@ -104,23 +115,28 @@ const PlayerList: React.FC<PlayerListProps> = ({
                 readOnly
                 className="p-2 border rounded flex-1 bg-gray-200 text-black"
               />
+
+               {/* Password */}
               <input
                 type="password"
                 placeholder="Password"
-                disabled={player.isSelf}
-                value={player.isSelf ? "********" : player.password || ""}
+                disabled={player.isSelf || player.isVerified}
+                value={player.isSelf || player.isVerified ? "********" : undefined}
                 className={`p-2 border rounded flex-1 text-black ${
-                  player.isSelf
+                  player.isSelf || player.isVerified
                     ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                     : "text-black"
                 }`}
-                onChange={(e) =>
-                  !player.isSelf && onUpdatePlayer(index, { password: e.target.value })
-                }
-                onBlur={(e) =>
-                  !player.isSelf && handlePasswordBlur(index, player.username, e.target.value)
-                }
+                onBlur={(e) => {
+                  const typedPassword = e.target.value;
+                  if (!player.isSelf && !player.isVerified && typedPassword) {
+                    handlePasswordBlur(index, player.username, typedPassword);
+                    e.target.value = "";
+                  }
+                }}
               />
+
+              {/* Alias */}
               <input
                 type="text"
                 placeholder="Alias"

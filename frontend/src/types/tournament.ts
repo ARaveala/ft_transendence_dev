@@ -1,12 +1,11 @@
 export interface TournamentPlayer {
-  user_id: string;
   username: string;
   alias: string;
   status: 'waiting' | 'ready' | 'playing' | 'finished';
   avatar?: string;
   score: number;
   isSelf?: boolean;
-  password?: string; 
+  isVerified?: boolean;
 }
 
 export interface Match {
@@ -23,14 +22,13 @@ export interface Match {
   //gameState?: any;
 }
 
-export interface Tournament {
+export interface TournamentState {
   tournament_id: string;
   status: 'waiting' | 'ongoing' | 'finished';
   players: TournamentPlayer[];
-  matches: Match[];
-  bracket: Match[][];
   currentMatch?: Match;
+  bracket: Match[][];
   winner?: TournamentPlayer;
-  createdAt: Date;
+  createdAt?: Date;
   lastUpdated?: Date
 }

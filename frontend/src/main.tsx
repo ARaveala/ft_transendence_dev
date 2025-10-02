@@ -11,7 +11,7 @@ import "./styles/globals.css";             // Import global CSS (Tailwind resets
 //
 //if (import.meta.env.DEV) {
 //  const { worker } = await import("./mocks/browser");
-//  worker.start({
+//    worker.start({
 //    onUnhandledRequest: 'warn'
 //  }).then(() => {
 //    console.log('MSW worker started');
