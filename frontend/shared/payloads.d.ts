@@ -67,12 +67,20 @@ export interface UpdateProfilePayload {
   twoFactor?: boolean;
 }
 
+export interface UpdateTwoFactorAuthPayload {
+  twoFactor?: boolean;
+}
+
+export interface UpdateTwoFactorAuthResponse {
+  status: 'UPDATED' | 'ERROR';
+  error?: string;
+}
+
 export interface UpdateProfileResponse {
   status: 'UPDATED' | 'ERROR';
   profile?: UserProfile;
   error?: string;
 } 
-
 
 // Friends
 

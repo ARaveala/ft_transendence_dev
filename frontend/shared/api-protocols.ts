@@ -21,6 +21,11 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
 
+  UPDATE_2FA: {
+    path: '/api/profile/update2FA',
+    method: 'POST',
+  },
+
   GET_PROFILE: {
     path: '/api/profile',
     method: 'GET',
