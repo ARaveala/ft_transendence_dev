@@ -45,7 +45,7 @@ const API_PROTOCOL = {
   },
 
   CHANGE_LANGUAGE: {
-	  path: 'api/profile/language',
+	  path: '/api/profile/language',
 	  method: 'PATCH',
   },
 
