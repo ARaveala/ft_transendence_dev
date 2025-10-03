@@ -65,7 +65,7 @@ function createGameMap(owner, mode, type) {
     		paddleSize: 1,
     		paddleOffset: 1,
 			paddleSpeed: 10,
-			ballSpeed: 2,
+			ballSpeed: 4,
 			leftPaddleI: 0,
 			rightPaddleI: 1,
 			ballYI: 2,

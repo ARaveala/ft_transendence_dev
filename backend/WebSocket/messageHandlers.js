@@ -84,6 +84,16 @@ function handleMessage(ws, data) {
 			currentWs.send(JSON.stringify({type: 'playerInit_ack', message: 'player init success' }));
 			break;
 		}
+		case 'resetPositions': {
+			gameState.positions = [
+				gameState.paddleOffset,
+				gameState.width - gameState.paddleOffset,
+				gameState.height / 2,
+				gameState.width / 2
+			]
+			gameState.gameRunning = true;
+			break;
+		}
 		case 'init': {
 			// if remote initgame should only happen for player1
 			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset }

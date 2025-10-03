@@ -10,16 +10,15 @@ function createGameState() {
 	paddleSize: 1,
 	paddleOffset: 1,
 
-	// these can be changed
-	paddleSpeed: 10,
-	ballSpeed: 2,
+	// get overwritten by routes/game.js
+	paddleSpeed: 0,
+	ballSpeed: 0,
 
 	// indices in positions array for easier reading
 	leftPaddleI: 0,
 	rightPaddleI: 1,
 	ballYI: 2,
 	ballXI: 3,
-
 
 	// positions = [paddle1, paddle2, ballY, ballX]
 	// get overwritten depending on browser window size
@@ -52,7 +51,7 @@ function initGame(state, settings) {
 }
 
 function updateKeys(state, keys) {
-  state.keysDown = keys;
+	state.keysDown = keys;
 }
 
 function updateGame(state, player1, player2) {
