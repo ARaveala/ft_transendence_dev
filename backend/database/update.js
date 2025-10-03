@@ -60,7 +60,28 @@ function updatePassword(password, userId) {
 		);
 	});
 }
+
+function changeAvatar(avatar, userId) {
+	console.log('updating avatar for user:', userId);
+
+	return new Promise((resolve, reject) => {
+		db.run(
+			`UPDATE users SET  avatar_file = ? WHERE id = ?`,
+			[avatar, userId],
+			function (err) {
+				if (err) {
+					reject({ error: 'Failed to update the avatar', details: err});
+				} else if (this.changes === 0) {
+					reject({ error: 'User not found , no changes made' });
+				} else {
+					resolve({ message: 'password updated', userId: userId, newAvatar: avatar});
+				}
+			}
+		);
+	});
+}
 module.exports = { updateUserScore,
 	updateUsername,
 	updatePassword,
+	changeAvatar,
 };
