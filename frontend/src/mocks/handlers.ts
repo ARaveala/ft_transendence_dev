@@ -305,6 +305,19 @@ export const handlers = [
   return HttpResponse.json(updatedTournament);
   }),
 
+  // Mock for canceling a tournament
+  http.delete(API_PROTOCOL.CANCEL_TOURNAMENT.path, async ({ params, request }) => {
+    const { tournamentId } = params;
+
+     console.log('Mock: Cancel tournament called');
+
+    // Simulate success
+    currentTournament = null;
+    return HttpResponse.json(
+      { status: 'OK' },
+      { status: 200 }
+    );
+  })
 ];
 
 

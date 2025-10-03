@@ -81,10 +81,10 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
   
-  /*START_TOURNAMENT: {
-    path:'/api/tournament/:id/start',
-    method: 'POST',
-  }, */
+  CANCEL_TOURNAMENT: {
+    path: '/api/tournament/:id/cancel',
+    method: 'DELETE',
+  },
 
   TOURNAMENT_STATE: {
     path: '/api/tournament/:id/state',

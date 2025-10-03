@@ -51,9 +51,22 @@ const TournamentLobby: React.FC = () => {
     setTournament(updated);
   };
 
-  const handleCancel = () => {
-    setShowSetup(false);
-    setTournament(null);
+  const handleCancelTournament = async () => {
+    if (!tournament)
+      return;
+
+    try {
+      const res = await fetch(API_PROTOCOL.CANCEL_TOURNAMENT.path, {
+        method: API_PROTOCOL.CANCEL_TOURNAMENT.method,
+      });
+
+      if (!res.ok) throw new Error("Failed to cancel tournament");
+
+      setTournament(null);
+      setShowSetup(false);
+    } catch (err) {
+      console.error("Error cancelling tournament:", err);
+    }
   };
 
   /*
@@ -121,7 +134,7 @@ const TournamentLobby: React.FC = () => {
             setTournament(updated);
             setShowSetup(false);
           }}
-          onCancel={() => setShowSetup(false)}
+          onCancel={() => handleCancelTournament}
         />
       )}
 
@@ -130,7 +143,8 @@ const TournamentLobby: React.FC = () => {
         <TournamentBracket
           tournament={tournament}
           loadingMatchId={loadingMatchId}
-          onStartMatch={handleStartMatch} 
+          onStartMatch={handleStartMatch}
+          onCancel={handleCancelTournament}
         />
       )}
     </div>

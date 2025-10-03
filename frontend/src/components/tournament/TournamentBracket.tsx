@@ -1,18 +1,21 @@
 import React from "react";
 import type { TournamentState, Match } from "../../types/tournament";
 import { TBD_PLAYER } from "../../../shared/constants";
+import { API_PROTOCOL } from "../../../shared/api-protocols";
 import Button from "../ui/Button";
 
 interface TournamentBracketProps {
   tournament: TournamentState;
   loadingMatchId?: string | null;           // ID of match currently being started
   onStartMatch?: (match: Match) => void;    // callback when a match start is requested
+  onCancel?: () => void                    // callback to cancel tournament
 }
 
 const TournamentBracket: React.FC<TournamentBracketProps> = ({
   tournament,
   loadingMatchId,
-  onStartMatch 
+  onStartMatch,
+  onCancel
 }) => {
   const firstRound = tournament.bracket[0]; // 2 matches with 2 players each
 
@@ -131,9 +134,21 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
             Play match {idx + 1}
           </Button>
         </div>
-      ))}
+       ))}
+      </div>
+
+        {/* Cancel button at the bottom */}
+        {onCancel && (
+          <div className="mt-8">
+            <Button 
+              onClick={onCancel}
+              className="bg-red-600 hover:bg-red-700"
+              >
+                Cancel Tournament
+          </Button>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
 }
 export default TournamentBracket;
