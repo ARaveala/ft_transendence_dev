@@ -214,12 +214,46 @@ async function updateAvatar(fastify, options) {
 	});
 }
 
+async function updateLanguage(fastify, options) {
+	const { DBupdate, secure } = options;
+	fastify.route({
+		method: API_PROTOCOL.CHANGE_LANGUAGE.method,
+		url: API_PROTOCOL.CHANGE_LANGUAGE.path,
+		handler: async (request, reply) => {
+		//schema: { body: schemas.updateLanguage }, dosnt exist yet 
+		const { language } = request.body;
+		try {
 
+			const token = request.cookies.auth_token;
+			const userId = secure.getUserIdFromToken(token);
+			if (userId){
+				const check = await DBupdate.changeLanguage(language, userId.id);
+				console.log('checking check Language', check)
+				//might need more in depth error handling
+				if (check.error) {
+					//update the username
+					reply.code(400).send({
+						status: 'ERROR',
+						error: 'not valid Language?'// other errors?
+					})
+				}
+			}
+			reply.code(200).send({
+				status: 'UPDATED',
+			});
+		} catch (err) {
+			console.log(('Error during Language change:', err));
+			reply.code(500).send(err);
+		}
+	}
+	});
+}
 
 async function profileRoutes(fastify, options) {
 	await getUser(fastify, options);
 	await updateUsername(fastify, options);
 	await updatePassword(fastify, options);
 	await updateAvatar(fastify, options);
+	await updateLanguage(fastify, options);
 }
 module.exports = profileRoutes

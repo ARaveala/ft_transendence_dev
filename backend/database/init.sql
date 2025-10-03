@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     avatar_file TEXT,
+	language TEXT NOT NULL DEFAULT 'en',
     status TEXT NOT NULL DEFAULT 'offline',
     mfa_enabled INTEGER NOT NULL DEFAULT 0,
     rank INTEGER NOT NULL DEFAULT 0,
