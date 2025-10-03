@@ -116,7 +116,56 @@ function handleMessage(ws, data) {
 				console.log("Game resumed");
 			}
 			break;
-		}		
+		}
+		// i dont know how this would work , where is the score update coming from 
+		// does the internally update it? 
+		//case "updateScore": {
+		//	// this should be called by the game loop only , not by the client
+		//	// if remote this should update both players websockets
+		//	if (gameState.gameRunning) {
+		//		updateScores(gameState);
+		//	}
+		//	break;
+		//send current scores , front end checks if scores meet win condition?
+		//	currentWs.send(JSON.stringify({ type: 'score_update', player1: gameState.players.player1.score, player2: gameState.players.player2.score }));
+		//	break;
+		//}
+		case "end": {
+			// do we use game phase === end to detemrine this? or does front end send me it in this case 
+			//update scores in database
+			// stop game loop
+			// send final scores to both players
+			// clean up game state
+			console.log("Game ended");
+			const player1 = Object.values(game.players).find(player => player.role === "player1");
+			const player2 = Object.values(game.players).find(player => player.role === "player2");
+			//isntead of clearing everything here , send me a game end confrimed message so i can clean up and close the webscokets
+			//if (gameState.loop) {
+			//	clearInterval(gameState.loop);
+			//	gameState.loop = undefined; // mark as stopped
+			//	gameState.gameRunning = false; // optional flag
+			//	paused = false;
+			//	reconnect = false;
+			//}
+			currentWs.send(JSON.stringify({ type: 'game_end', payload: gameState.positions, player1: player1.score, player2: player2.score }));
+			}		
+			break;
+		case "close": {
+			// this should be called when a player closes the webscoket or navigates away
+			// stop game loop
+			// notify other player
+			// clean up game state
+			console.log("Game closed by player");
+			//if (gameState.loop) {
+			//	clearInterval(gameState.loop);
+			//	gameState.loop = undefined; // mark as stopped
+			//	gameState.gameRunning = false; // optional flag
+			//	paused = false;
+			//	reconnect = false;
+			//}
+			currentWs.send(JSON.stringify({ type: 'game_closed', message: 'Game closed by player' }));
+		}
+			break;
 		default:
 			console.error('Unknown message type:', data.type);
 			currentWs.send(JSON.stringify({ error: 'Unknown message type' }));

@@ -120,7 +120,7 @@ async function createGame(fastify, options) {
 	    log('CREATE_GAME', `checking id ${user1}`);
 		// local or remote should be type, mode is vs or tournament
 		const gameId = createGameMap(user1, type, mode);
-		addPlayer(gameId, user1.id, {type: "login", ws: undefined, role: "player1", alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined});
+		addPlayer(gameId, user1.id, {type: "login", ws: undefined, role: "player1", alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
 		log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
 		reply.send({ status: 'game created' , gameId});
 	   } catch (err) {
