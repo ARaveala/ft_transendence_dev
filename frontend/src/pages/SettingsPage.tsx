@@ -166,8 +166,8 @@ const SettingsPage: React.FC = () => {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
 			const payload: UpdateProfilePayload = { avatar: selectedAvatar };
-			const res = await fetch(API_PROTOCOL.UPDATE_PROFILE.path, {
-				method: API_PROTOCOL.UPDATE_PROFILE.method,
+			const res = await fetch(API_PROTOCOL.CHANGE_AVATAR.path, {
+				method: API_PROTOCOL.CHANGE_AVATAR.method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
 			});

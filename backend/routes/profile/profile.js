@@ -1,4 +1,5 @@
 const { API_PROTOCOL } = require('@sharedApi');
+//const { use } = require('react');
 /**
  * 
     const player = await db.getPlayerById(playerId);
@@ -138,16 +139,6 @@ async function updateUsername(fastify, options) {
 	});
 }
 
-//export interface ChangePasswordPayload {
-//	current_password: string;
-//	new_password: string;
-//}
-//
-//export interface ChangePasswordResponse {
-//	status: 'UPDATED' | 'ERROR';
-//	error?: string;
-//}
-
 async function updatePassword(fastify, options) {
 	const { DBupdate, DBget, secure } = options;
 	fastify.route({
@@ -187,34 +178,48 @@ async function updatePassword(fastify, options) {
 }
 
 
-//async function updateProfile (fastify, options) {
-//	const { ?, ? } = options;
-//	fastify.get(API_PROTOCOL.UPDATE_PROFILE.path,{
-//		}, async (request, reply) => {
-//		const token = request.cookies.auth_token;
-//		console.log('Fetching user with ID:', userId);
-//		//break down body , grab type 
-//		switch type {
-//			case 'username':
-//				// change username
-//			// so forth 
-//		}
-//		try {
-//			const result = await DBget.fetchUser({userId});
-//			console.log("the user we should be returning is :", result);
-//			reply.send(mockProfile);
-//		} catch (err) {
-//			reply.code(500).send(err);
-//		}
-//	});
-//}
-//
+
+async function updateAvatar(fastify, options) {
+	const { DBupdate, secure } = options;
+	fastify.route({
+		method: API_PROTOCOL.CHANGE_AVATAR.method,
+		url: API_PROTOCOL.CHANGE_AVATAR.path,
+		handler: async (request, reply) => {
+		//schema: { body: schemas.updateAvatar }, dosnt exist yet 
+		const { avatar } = request.body;
+		try {
+
+			const token = request.cookies.auth_token;
+			const userId = secure.getUserIdFromToken(token);
+			if (userId){
+				const check = await DBupdate.changeAvatar(avatar, userId.id);
+				console.log('checking check', check)
+				//might need more in depth error handling
+				if (check.error) {
+					//update the username
+					reply.code(400).send({
+						status: 'ERROR',
+						error: 'not valid avatar?'// other errors?
+					})
+				}
+			}
+			reply.code(200).send({
+				status: 'UPDATED',
+			});
+		} catch (err) {
+			console.log(('Error during avatar change:', err));
+			reply.code(500).send(err);
+		}
+	}
+	});
+}
+
 
 
 async function profileRoutes(fastify, options) {
 	await getUser(fastify, options);
 	await updateUsername(fastify, options);
 	await updatePassword(fastify, options);
-	//await updateProfile(fastify, options);
+	await updateAvatar(fastify, options);
 }
 module.exports = profileRoutes
