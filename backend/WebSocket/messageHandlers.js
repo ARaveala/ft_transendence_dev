@@ -32,10 +32,10 @@ let currentWs;
 let playerinit = false;
 let paused = false;
 let reconnect = false;
-// if remote play , each player should have its own set of keys , that are clearly 
-// attatched to the relative paddles 
+// if remote play , each player should have its own set of keys , that are clearly
+// attatched to the relative paddles
 /**
- * 
+ *
 gameState.keys = {
   player1: { up: false, down: false },
   player2: { up: false, down: false }
@@ -43,7 +43,7 @@ gameState.keys = {
 
  */
 function handleMessage(ws, data) {
-	
+
 	const context = getGameContext(ws, data, playerinit);
 	const {game, gameState} = context || {};
 
@@ -76,7 +76,7 @@ function handleMessage(ws, data) {
 			//	//initPlayer();
 			//}
 
-			// send status data.player ready, gameid?, 
+			// send status data.player ready, gameid?,
 			// update a player init, wait for second before full true
 			log('PLAYER INIT CASE::', "after init ");
 			playerinit = true;
@@ -103,7 +103,16 @@ function handleMessage(ws, data) {
 		case "start_loop":{
 			// if remote this should only start once player 1 and player 2 have initilized and player 1 has initilized the game
 			// then this should be updated to startloop for both player websockets
-			startLoop(currentWs, gameState);
+			const player1 = [...game.players.values()].find(player => player.role === "player1");
+			const player2 = [...game.players.values()].find(player => player.role === "player2");
+			if (!player1 || !player2)
+			{
+				console.log("Error getting players");
+				console.log("Player1: ", player1);
+				console.log("Player2: ", player2);
+				return;
+			}
+			startLoop(currentWs, gameState, player1, player2);
 			break;
 		}
 		case "reconnect": {
@@ -112,13 +121,15 @@ function handleMessage(ws, data) {
 			currentWs.send(JSON.stringify(gameState.positions));
 			if (!gameState.loop) {
 				gameState.gameRunning = true;
-				startLoop(currentWs, gameState);
+				const player1 = [...game.players.values()].find(player => player.role === "player1");
+				const player2 = [...game.players.values()].find(player => player.role === "player2");
+				startLoop(currentWs, gameState, player1, player2);
 				console.log("Game resumed");
 			}
 			break;
 		}
-		// i dont know how this would work , where is the score update coming from 
-		// does the internally update it? 
+		// i dont know how this would work , where is the score update coming from
+		// does the internally update it?
 		//case "updateScore": {
 		//	// this should be called by the game loop only , not by the client
 		//	// if remote this should update both players websockets
@@ -131,7 +142,7 @@ function handleMessage(ws, data) {
 		//	break;
 		//}
 		case "end": {
-			// do we use game phase === end to detemrine this? or does front end send me it in this case 
+			// do we use game phase === end to detemrine this? or does front end send me it in this case
 			//update scores in database
 			// stop game loop
 			// send final scores to both players
@@ -148,7 +159,7 @@ function handleMessage(ws, data) {
 			//	reconnect = false;
 			//}
 			currentWs.send(JSON.stringify({ type: 'game_end', payload: gameState.positions, player1: player1.score, player2: player2.score }));
-			}		
+			}
 			break;
 		case "close": {
 			// this should be called when a player closes the webscoket or navigates away

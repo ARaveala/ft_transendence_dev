@@ -55,21 +55,14 @@ function updateKeys(state, keys) {
   state.keysDown = keys;
 }
 
-function updateGame(state) {
+function updateGame(state, player1, player2) {
 	if (!state.gameRunning) return;
 
-	// calculate delta for smooth rendering
-	const now = Date.now();
-	const delta = (now - state.lastUpdate) / 1000;
-	state.lastUpdate = now;
-	//console.log('keys', state.keysDown, 'p1', state.positions[0], 'p2', state.positions[1]);
-
-	const speedFactor = delta * state.fps; // tried to slow down ball
 	// Move paddles
-	if (state.keysDown[0]) state.positions[state.leftPaddleI] -= state.paddleSpeed;// * speedFactor;
-	if (state.keysDown[1]) state.positions[state.leftPaddleI] += state.paddleSpeed;// * speedFactor;
-	if (state.keysDown[2]) state.positions[state.rightPaddleI] -= state.paddleSpeed;// * speedFactor;
-	if (state.keysDown[3]) state.positions[state.rightPaddleI] += state.paddleSpeed;// * speedFactor;
+	if (state.keysDown[0]) state.positions[state.leftPaddleI] -= state.paddleSpeed;
+	if (state.keysDown[1]) state.positions[state.leftPaddleI] += state.paddleSpeed;
+	if (state.keysDown[2]) state.positions[state.rightPaddleI] -= state.paddleSpeed;
+	if (state.keysDown[3]) state.positions[state.rightPaddleI] += state.paddleSpeed;
 
 	// keep inside bounds
 	// subtract paddleSize to keep the bottom inside window
@@ -77,19 +70,30 @@ function updateGame(state) {
 	state.positions[state.rightPaddleI] = Math.max(0, Math.min(state.height - state.paddleSize, state.positions[state.rightPaddleI]));
 
 	// move ball
-	state.positions[state.ballYI] += state.ball.dy * state.ballSpeed;//  * speedFactor;
-	state.positions[state.ballXI] += state.ball.dx * state.ballSpeed;//  * speedFactor;
+	state.positions[state.ballYI] += state.ball.dy * state.ballSpeed;
+	state.positions[state.ballXI] += state.ball.dx * state.ballSpeed;
 
 	// check bounds and make it bounce
 	// add ballSize to get the balls right side
 	if (state.positions[state.ballYI] <= 0 || state.positions[state.ballYI] + state.ballSize >= state.height)
 		state.ball.dy = -state.ball.dy;
 
-	if (state.positions[state.ballXI] <= 0 || state.positions[state.ballXI] + state.ballSize >= state.width)
-		state.gameRunning = false; // somebody won
+	if (state.positions[state.ballXI] <= 0)
+	{
+		player2.score++;
+		state.gameRunning = false;
+		return 1;
+	}
+	if (state.positions[state.ballXI] + state.ballSize >= state.width)
+	{
+		player1.score++;
+		state.gameRunning = false;
+		return 1;
+	}
 
 	if (ballHitsPaddle(state, state.leftPaddleI) || ballHitsPaddle(state, state.rightPaddleI))
 		state.ball.dx = -state.ball.dx;
+	return 0;
 }
 
 function ballHitsPaddle(state, paddleIndex) {

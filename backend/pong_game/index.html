@@ -1,8 +1,8 @@
 <html>
 	<head>
 		<style>
-			body { 
-				background: white; 
+			body {
+				background: white;
 			}
 			.paddle {
 				width: 25px;
@@ -23,8 +23,10 @@
 		<div id="paddle1" class="paddle" style="left: 75px"></div>
 		<div id="paddle2" class="paddle" style="right: 75px"></div>
 		<div id="ball" class="ball" style="top: 500px; left: 500px"></div>
+		<div id="scoretest"></div>
+		<div id="resulttest"></div>
 		<script>
-			// the other html is sending the gameId and token over 
+			// the other html is sending the gameId and token over
 			const urlParams = new URLSearchParams(window.location.search);
 			const gameId = urlParams.get('gameId');
 
@@ -50,6 +52,8 @@
 			const paddleOffset = 100; // how far are paddles from window edges in pixels
 			const fps = 60; // don't change unless change also in server
 
+			const victory_score = 2;
+
 			// key related
 			const controls = ["w", "s", "ArrowUp", "ArrowDown"];
 			const keysDown = [false, false, false, false];
@@ -68,7 +72,7 @@
 			ball.style.width = ballSize + "px";
 
 			let positions;
-			let gameReady = false
+			let gameReady = false;
 			// web
 			const webSocket = new WebSocket("ws://localhost:3000/ws");
 
@@ -77,6 +81,22 @@
 				console.log('Sending init message game id:', gameId);
 				webSocket.send(JSON.stringify({gameId: gameId, type: 'initPlayer', token: player1Token}));
 			};
+
+			function init_game() {
+				 webSocket.send(JSON.stringify({
+					type: "init",
+					gameId: gameId,
+					token: player1Token,
+					payload: {
+						height: height,
+						width: width,
+						ballSize: ballSize,
+						paddleSize: paddleSize,
+						paddleOffset: paddleOffset
+					}
+				}));
+			}
+
 			webSocket.onmessage = (event) => {
 				if (typeof event.data !== 'string') {
   				  console.warn('Unexpected non-string WebSocket message:', event.data);
@@ -84,13 +104,22 @@
   				}
 				else {
 					try {
-						
+
   					  const data = JSON.parse(event.data);
 					 // console.log("should be doing the thingdata.data", Array.from(data.data.entries()));
 	  					if (data.type == 'update_game') {
 							console.log("update is activated");
 							positions = data.data;//JSON.parse(event.data);
-						} 	
+						}
+						if (data.type == 'update_score') {
+							document.getElementById("scoretest").textContent = "Score: " + data.player1_score + " | " + data.player2_score;
+							if (data.player1_score == victory_score)
+								document.getElementById("resulttest").textContent = "Player 1 won!";
+							else if (data.player2_score == victory_score)
+								document.getElementById("resulttest").textContent = "Player 2 won!";
+							else
+								init_game();
+						}
 						if (data.type == 'welcome'){
 							console.log(data.msg);
 						}
@@ -99,36 +128,24 @@
 							 gameReady = true;
 						}
 						if (data.type == 'playerInit_ack'){
-							 webSocket.send(JSON.stringify({
-								type: "init",
-								gameId: gameId,
-								token: player1Token,
-								payload: {
-    							    height: height,
-    							    width: width,
-    							    ballSize: ballSize,
-    							    paddleSize: paddleSize,
-    							    paddleOffset: paddleOffset
-    							}
-							}));
-							
+							init_game();
 						}
-						// if reconnect we must have stored these tokens 
+						// if reconnect we must have stored these tokens
 						//eg sessionStorage.setItem('playerToken', playerToken);
 						//	sessionStorage.setItem('gameId', gameId);
-						// then resend the tokens for verification. 
+						// then resend the tokens for verification.
 
   					} catch (err) {
   					  console.error('Invalid JSON from server:', event.data);
   					}
-					
+
 				//const data = JSON.parse(event.data);
 				//if (data.type == 'update_game'){
 				//	positions = data.data;//JSON.parse(event.data);
 				//}
 				//if (data.type == 'init_ack') {
 				//	console.log(data.message); // logs "Init succeeded"
-//				//	positions = 
+//				//	positions =
 				//	// Or show it on the page:
   				//	document.body.insertAdjacentHTML('beforeend', `<p>${data.message}</p>`);
 				//	//webSocket.send(JSON.stringify({
