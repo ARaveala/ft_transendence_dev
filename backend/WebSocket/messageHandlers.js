@@ -93,6 +93,13 @@ function handleMessage(ws, data) {
 			gameState.gameRunning = true;
 			break;
 		}
+		case 'resetScore': { // used in a test from pong_game/index.html
+			const player1 = [...game.players.values()].find(player => player.role === "player1");
+			const player2 = [...game.players.values()].find(player => player.role === "player2");
+			player1.score = 0;
+			player2.score = 0;
+			break;
+		}
 		case 'init': {
 			// if remote initgame should only happen for player1
 			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset }

@@ -23,8 +23,12 @@
 		<div id="paddle1" class="paddle" style="left: 75px"></div>
 		<div id="paddle2" class="paddle" style="right: 75px"></div>
 		<div id="ball" class="ball" style="top: 500px; left: 500px"></div>
-		<div id="scoretest" style="color: white;"></div>
+
+		<!-- for testing -->
+		<div id="scoretest" style="color: white;">Score: 0 | 0</div>
 		<div id="resulttest" style="color: white;"></div>
+		<div id="resettestbutton" onClick="resettest()" style="display: none; color: white;">Click to play again</button>
+
 		<script>
 			// the other html is sending the gameId and token over
 			const urlParams = new URLSearchParams(window.location.search);
@@ -64,8 +68,8 @@
 			const ball = document.getElementById("ball");
 
 			// init paddle size and offset, and ball size in css
-			document.getElementById("paddle1").style.left = paddleOffset + "px";
-			document.getElementById("paddle2").style.right = paddleOffset + "px";
+			paddle1.style.left = paddleOffset + "px";
+			paddle2.style.right = paddleOffset + "px";
 
 			const paddleHeight = height / 5;
 			const paddleWidth = paddleHeight / 10;
@@ -87,6 +91,15 @@
 				webSocket.send(JSON.stringify({gameId: gameId, type: 'initPlayer', token: player1Token}));
 			};
 
+			/* This is a test function */
+			function resettest() {
+				webSocket.send(JSON.stringify({type: "resetPositions"}));
+				webSocket.send(JSON.stringify({type: "resetScore"}));
+				document.getElementById("scoretest").textContent = "Score: 0 | 0";
+				document.getElementById("resulttest").textContent = "";
+				document.getElementById("resettestbutton").style.display = "none";
+			}
+
 			webSocket.onmessage = (event) => {
 				if (typeof event.data !== 'string') {
 					console.warn('Unexpected non-string WebSocket message:', event.data);
@@ -101,9 +114,15 @@
 						} else if (data.type == 'update_score') {
 							document.getElementById("scoretest").textContent = "Score: " + data.player1_score + " | " + data.player2_score;
 							if (data.player1_score == victory_score)
+							{
 								document.getElementById("resulttest").textContent = "Player 1 won!";
+								document.getElementById("resettestbutton").style.display = "inline-block";
+							}
 							else if (data.player2_score == victory_score)
+							{
 								document.getElementById("resulttest").textContent = "Player 2 won!";
+								document.getElementById("resettestbutton").style.display = "inline-block";
+							}
 							else
 								webSocket.send(JSON.stringify({type: "resetPositions"}));
 						} else if (data.type == 'welcome'){
