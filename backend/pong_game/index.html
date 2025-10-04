@@ -63,13 +63,18 @@
 			const paddle2 = document.getElementById("paddle2");
 			const ball = document.getElementById("ball");
 
-			// init element sizes
-			const paddleSize = height / 5;
+			// init paddle size and offset, and ball size in css
+			document.getElementById("paddle1").style.left = paddleOffset + "px";
+			document.getElementById("paddle2").style.right = paddleOffset + "px";
+
+			const paddleHeight = height / 5;
+			const paddleWidth = paddleHeight / 10;
+			document.querySelector('.paddle').style.height = paddleHeight + "px";
+			document.querySelector('.paddle').style.width = paddleWidth + "px";
+
 			const ballSize = Math.min(height, width) / 20;
-			paddle1.style.height = paddleSize + "px";
-			paddle2.style.height = paddleSize + "px";
-			ball.style.height = ballSize + "px";
-			ball.style.width = ballSize + "px";
+			document.querySelector('.ball').style.height = ballSize + "px";
+			document.querySelector('.ball').style.width = ballSize + "px";
 
 			let positions;
 			let gameReady = false;
@@ -100,10 +105,7 @@
 							else if (data.player2_score == victory_score)
 								document.getElementById("resulttest").textContent = "Player 2 won!";
 							else
-							{
-								// countdown goes here
 								webSocket.send(JSON.stringify({type: "resetPositions"}));
-							}
 						} else if (data.type == 'welcome'){
 							console.log(data.msg);
 						} else if (data.type == 'init_ack'){
@@ -118,7 +120,8 @@
 									height: height,
 									width: width,
 									ballSize: ballSize,
-									paddleSize: paddleSize,
+									paddleHeight: paddleHeight,
+									paddleWidth: paddleWidth,
 									paddleOffset: paddleOffset
 								}
 							}));

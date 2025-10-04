@@ -59,7 +59,6 @@ function handleMessage(ws, data) {
 				console.log("Game paused");
 
 			if (gameState.loop) {
-
 				clearInterval(gameState.loop);
 				gameState.loop = undefined; // mark as stopped
 				gameState.gameRunning = false; // optional flag
