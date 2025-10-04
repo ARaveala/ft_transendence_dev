@@ -124,26 +124,23 @@ function ballHitsPaddle(state, paddleIndex) {
 }
 
 function bounceBallOffPaddle(state, paddleIndex) {
-	// Find ball center
 	const ballCenterY = state.positions[state.ballYI] + state.ballSize / 2;
 
-	// Find relative hit position (-1 top, 0 center, 1 bottom)
 	const relativeY = (ballCenterY - (state.positions[paddleIndex] + state.paddleHeight / 2)) / (state.paddleHeight / 2);
-
-	// Max angle in radians, e.g. 45 degrees
 	const maxBounceAngle = Math.PI / 4;
 
-	// Current speed
+	// Current speed of the ball
 	const speed = Math.sqrt(state.ball.dx * state.ball.dx + state.ball.dy * state.ball.dy);
 
 	// Flip horizontal velocity
+	// isnt good if ball hits top or bottom of paddle
 	state.ball.dx = -state.ball.dx;
 
 	// Adjust vertical velocity based on hit position
-	state.ball.dy = state.ballSpeed * Math.sin(relativeY * maxBounceAngle);
+	state.ball.dy = speed * Math.sin(relativeY * maxBounceAngle);
 
-	// Normalize vx to maintain speed
-	state.ball.dx = Math.sign(state.ball.dx) * Math.sqrt(state.ballSpeed * state.ballSpeed - state.ball.dy * state.ball.dy);
+	// Adjust horizontal velocity to maintain total speed
+	state.ball.dx = Math.sign(state.ball.dx) * Math.sqrt(speed * speed - state.ball.dy * state.ball.dy);
 }
 
 module.exports = {
