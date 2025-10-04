@@ -77,7 +77,14 @@ function updateGame(state, player1, player2) {
 	// check bounds and make it bounce
 	// add ballSize to get the balls right side
 	if (state.positions[state.ballYI] <= 0 || state.positions[state.ballYI] + state.ballSize >= state.height)
+	{
+		// bounce
 		state.ball.dy = -state.ball.dy;
+
+		// if goes through top or bot wall, move it to prevent it getting stuck
+		state.positions[state.ballYI] = state.positions[state.ballYI] <= 0 ? 0 : state.height - state.ballSize;
+	}
+
 
 	if (state.positions[state.ballXI] <= 0)
 	{
@@ -93,10 +100,26 @@ function updateGame(state, player1, player2) {
 	}
 
 	if (ballHitsPaddle(state, state.leftPaddleI))
+	{
 		bounceBallOffPaddle(state, state.leftPaddleI);
+
+		// prevent ball getting stuck
+		// ball cannot change direction towards left
+		// the ball could enter the paddle from top or bottom, bouncing there like crazy
+		// this fix is not perfect, it can look weird when it hits the top or bottom in a certain angle
+		if (state.ball.dx < 0)
+			state.ball.dx = -state.ball.dx;
+	}
+
 	if (ballHitsPaddle(state, state.rightPaddleI))
+	{
 		bounceBallOffPaddle(state, state.rightPaddleI);
 
+		// keep ball outside of paddle, preventing it getting stuck
+		// ball cannot change direction towards right
+		if (state.ball.dx > 0)
+			state.ball.dx = -state.ball.dx;
+	}
 	return 0;
 }
 
@@ -120,7 +143,11 @@ function ballHitsPaddle(state, paddleIndex) {
 	const dy = ballCenterY - closestY;
 	const dx = ballCenterX - closestX;
 	const r = ballSize / 2;
-	return (dx * dx + dy * dy) < (r * r); // no sqrt needed if using squared on both sides
+	const distance_squared = dx * dx + dy * dy;
+	if (distance_squared > r * r) // distance is squared so square radius, no sqrt needed
+		return false;
+
+	return true;
 }
 
 function bounceBallOffPaddle(state, paddleIndex) {
@@ -132,8 +159,7 @@ function bounceBallOffPaddle(state, paddleIndex) {
 	// Current speed of the ball
 	const speed = Math.sqrt(state.ball.dx * state.ball.dx + state.ball.dy * state.ball.dy);
 
-	// Flip horizontal velocity
-	// isnt good if ball hits top or bottom of paddle
+	// Flip direction
 	state.ball.dx = -state.ball.dx;
 
 	// Adjust vertical velocity based on hit position
