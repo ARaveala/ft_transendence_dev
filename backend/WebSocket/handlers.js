@@ -79,8 +79,8 @@ function attachPlayerToGame(ws, session) {
 function getGameContext(ws, data, playerinit) {
     if (!playerinit) return undefined;
 
-    const gameId = ws.gameId;// || Number(data.gameId); // i would like to remove the need for this at all for saftey
-    const game = getGame(gameId);
+	const gameId = ws ? ws.gameId || Number(data.gameId) : Number(data.gameId);
+	const game = getGame(gameId);
     if (!game) return undefined;
 
     return {
