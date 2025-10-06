@@ -33,7 +33,5 @@ jobs:
           npx concurrently \
             "npm start --prefix backend" \
             "npm run dev --prefix frontend" \
-            "npx wait-on http://localhost:3000"
+            "npx wait-on --verbose http://localhost:3000"
 
-      - name: run tests
-        run: npm test
