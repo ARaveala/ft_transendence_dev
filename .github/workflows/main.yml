@@ -19,19 +19,20 @@ jobs:
         with:
           node-version: 18
 
-      - name: install backend dependencies
+      - name: Install backend dependencies
         run: npm install --prefix backend
 
-      - name: install frontend dependencies
+      - name: Install frontend dependencies
         run: npm install --prefix frontend
 
-      - name: Install concurrently
-        run: npm install --save-dev concurrently wait-on
+      - name: Build frontend
+        run: npm run build --prefix frontend
 
-      - name: Run fullstack
+      - name: Start backend server and test
         run: |
-          npx concurrently \
-            "npm start --prefix backend" \
-            "npm run dev --prefix frontend" \
-            "npx wait-on --verbose http://localhost:3000"
+          npm start --prefix backend &
+          BACKEND_PID=$!
+          npx wait-on http://localhost:3000
+          curl -f http://localhost:3000 || (kill $BACKEND_PID && exit 1)
+          kill $BACKEND_PID
 
