@@ -279,30 +279,29 @@ export const handlers = [
   const updatedBracket = currentTournament.bracket.map(round =>
       round.map(match => {
         if (match.match_id !== match_id) return match;
+        return {
+          ...match,
+          status: "ongoing" as const,
+          score: { player1: 0, player2: 0 },
+        };
+      })
+    );
 
-         const winner = Math.random() > 0.5 ? match.player1 : match.player2;
-      return {
-        ...match,
-        winner,
-        status: "finished" as const,
-      };
-    })
-  );
+  const currentMatch: Match | undefined = updatedBracket
+    .flat()
+    .find((m) => m.match_id === match_id);
 
-  let updatedTournament: TournamentState = {
+  currentTournament = {
     ...currentTournament,
     bracket: updatedBracket,
-    };
+    currentMatch,
+  };
     
-    if (match_id === "final") {
-    const finalMatch = updatedBracket.flat().find(m => m.match_id === "final");
-    if (finalMatch?.winner) {
-      updatedTournament = { ...updatedTournament, winner: finalMatch.winner };
-    }
-  }
-   currentTournament = updatedTournament;
-
-  return HttpResponse.json(updatedTournament);
+  return HttpResponse.json({
+    status: "OK",
+    tournament: currentTournament,
+    playerTokens: { player1: "p1", player2: "p2"},
+    });
   }),
 
   // Mock for canceling a tournament

@@ -5,7 +5,7 @@ import TournamentSetup from "../components/tournament/TournamentSetup";
 import type { TournamentState, Match } from "../types/tournament";
 import Button from "../components/ui/Button";
 import { API_PROTOCOL } from "../../shared/api-protocols";
-import { CreateTournamentPayload, CreateTournamentResponse, StartTournamentMatchPayload, StartTournamentMatchResponse } from "../../shared/payloads";
+import { CreateTournamentPayload, TournamentStateResponse, StartTournamentMatchPayload, StartTournamentMatchResponse } from "../../shared/payloads";
 
 const TournamentLobby: React.FC = () => {
   const [tournament, setTournament] = useState<TournamentState | null>(null);      // Main tournament state (null means there is no tournament yet)
@@ -30,7 +30,7 @@ const TournamentLobby: React.FC = () => {
         body: JSON.stringify(payload),
     });
 
-    const data: CreateTournamentResponse = await res.json();
+    const data: TournamentStateResponse = await res.json();
 
     if (data.status === "OK") {
         setTournament(data.tournament);
@@ -162,7 +162,7 @@ const TournamentLobby: React.FC = () => {
           flexDirection: "column",
         }}
         >
-        {!loadingMatchId && (
+        {/*{!loadingMatchId && (
           <button
             onClick={() => {}}
             style={{
@@ -182,15 +182,14 @@ const TournamentLobby: React.FC = () => {
           >
             Start Match
           </button>
-        )}
+        )} 
 
-        {loadingMatchId && (
+        {loadingMatchId && (*/}
           <iframe
-            src={`/pong_game/index.html?gameId=${activeGameId}`}
+            src={`../../../backend/pong_game/index.html?gameId=${activeGameId}&player1Token=localP1&player2Token=localP2`}
             style={{ width: "100%", height: "100%", border: "none" }}
             title="Pong Game"
           />
-        )}
 
         <button
           onClick={handleMatchEnd}
@@ -205,8 +204,8 @@ const TournamentLobby: React.FC = () => {
             cursor: "pointer",
             boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#b91c1c")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#dc2626")}
+          /*onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#b91c1c")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#dc2626")} */
         >
           End Match
         </button>
