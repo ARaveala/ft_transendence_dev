@@ -29,7 +29,8 @@ jobs:
         run: npm install --save-dev concurrently
 
       - name: Run fullstack
-        run: | npx concurrently \
-          "npm start --prefix backend" \
-          "npm run dev --prefix frontend"
+        run: |
+          npx concurrently \
+            "npm start --prefix backend" \
+            "npm run dev --prefix frontend"
 
