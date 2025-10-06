@@ -20,17 +20,16 @@ jobs:
           node-version: 18
 
       - name: install backend dependencies
-        run: npm install
-        working-directory: backend
+        run: npm install --prefix backend
 
       - name: install frontend dependencies
-        run: npm install
-        working-directory: frontend
+        run: npm install --prefix frontend
 
       - name: Install concurrently
-        run: npm install -g concurrently
-        working-directory: .
+        run: npm install --save-dev concurrently
 
       - name: Run fullstack
-        run: concurrently "npm start --prefix backend" "npm run dev --prefix frontend"
+        run: | npx concurrently \
+          "npm start --prefix backend" \
+          "npm run dev --prefix frontend"
 
