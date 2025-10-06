@@ -29,7 +29,7 @@
 			// the other html is sending the gameId and token over
 			const urlParams = new URLSearchParams(window.location.search);
 			const gameId = urlParams.get('gameId');
-
+			console.log('showing the script is activating');
 			const startData = JSON.parse(decodeURIComponent(urlParams.get('startData')));
 			const player1Token = urlParams.get('player1Token');
 			const player2Token = urlParams.get('player2Token'); // might be null if not provided
@@ -79,7 +79,12 @@
 			webSocket.onopen = (event) => {
 				console.log("WebSocket connection opened.");
 				console.log('Sending init message game id:', gameId);
-				webSocket.send(JSON.stringify({gameId: gameId, type: 'initPlayer', token: player1Token}));
+				if (player1Token === 'testtoken1') {
+					console.log('Player 1 token is valid.');
+					webSocket.send(JSON.stringify({gameId: gameId, type: 'reconnect'}));
+				}
+				else 
+					webSocket.send(JSON.stringify({gameId: gameId, type: 'initPlayer', token: player1Token}));
 			};
 
 			function init_game() {
@@ -158,7 +163,7 @@
 			};
 
 			webSocket.onclose = (event) => {
-				console.log("WebSocket connection closed.");
+				console.log("----===========================WebSocket connection closed.");
 			};
 
 

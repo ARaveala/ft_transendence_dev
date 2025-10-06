@@ -23,10 +23,20 @@ const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
 
 useEffect(() => {
 	const checkAuth = async () => {
+	console.log('is game started true or false', gameStarted);
 	if (!isLoggedIn) {
 		try {
+
+	// TEMPORARY FOR TESTING
+		//setSelectedMode("guest");
+		//setGameStarted(true);
+		//setGameId('1');
+		//setPlayer1Token('testtoken1');
+		//setPlayer2Token('testtoken2');
+
 		console.log("refreshing session to check login");
 		await refreshSession(); // fetch user profile
+		// NEW TEST ONLY TO REFRESH GAME
 		} catch (err) {
 		console.error("Failed to refresh session", err);
 		}

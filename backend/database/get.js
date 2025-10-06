@@ -29,7 +29,7 @@ this could be managed by routes calling 3 fucntions     const player = await db.
  */
 
 async function fetchUser({ userId }) {
-	console.log('Finside db::fetching user with ID:', userId);
+	//console.log('Finside db::fetching user with ID:', userId);
 	const test = userId.id;
 		return new Promise((resolve, reject) => {
 			db.get('SELECT * FROM users WHERE id = ?', [test], (err, row) =>{
@@ -40,7 +40,7 @@ async function fetchUser({ userId }) {
 					console.warn('User not found for ID:', userId);
 					reject({ error: 'User not found fecth' });
 				} else {
-					console.log('User found:', row);
+					//console.log('User found:', row);
 					resolve(row);
 				}
 
@@ -52,7 +52,7 @@ async function fetchUser({ userId }) {
 // rename provided results to make data access clearer
 // status is pending, accepted, blocked etc. attatched which can be used in front end if wished
 async function getFriendsForPlayer({ userId }) {
-	console.log('DB::Fetching friends for user ID:', userId);
+	//console.log('DB::Fetching friends for user ID:', userId);
 	const test = userId.id;
 	return new Promise((resolve, reject) => {
 		db.all(

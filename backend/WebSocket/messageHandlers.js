@@ -8,6 +8,7 @@ const {
   startLoop,
   initPlayer,
   getGameContext,
+  reconnectPlayer,
   //handleMove,
   //handleConnection,
   //handlePing
@@ -42,12 +43,22 @@ gameState.keys = {
 };
 
  */
+
+/**
+ * This handles the different phases of game flow , playerinit does initial token check
+ * @param {*} ws websocket
+ * @param {*} data game data, this may also just be player data and a gameid sent for example 
+ * from startUp.js when event(close) is triggered
+ * @returns 
+ */
 function handleMessage(ws, data) {
-
-	const context = getGameContext(ws, data, playerinit);
+	//try switch this
+	
+	const context = getGameContext(currentWs, data, playerinit);
 	const {game, gameState} = context || {};
-
 	currentWs = ws; // this will have to be changed for remote play
+	//console.log("GAME CONTEXT WS -----------", ws, 'checking we have a gameid', data.gameId);
+	
 	switch (data.type) {
 		case 'greet':
 			handleGreet(currentWs, data);
@@ -88,6 +99,7 @@ function handleMessage(ws, data) {
 			// if remote initgame should only happen for player1
 			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset }
 			currentWs.send(JSON.stringify({type: 'init_ack', message: 'game init success' }));
+			
 		}
 			break;
 		case 'keys':{
@@ -118,7 +130,14 @@ function handleMessage(ws, data) {
 		case "reconnect": {
 			paused = false; // may have future use, should be stored in game object
 			reconnect = true; // may have future use, not sure
+			console.log('checking player for reconnect', ws.player);
+			reconnectPlayer(currentWs, ws.playerId, ws.gameId);
+			console.log('GAME RECONNECT CASE::', "reconnect case hit----------------------------");
+			console.log('looking indie game', game.owner, 'game type', game.type);
 			currentWs.send(JSON.stringify(gameState.positions));
+			if (gameState.loop) {
+				console.log("Game already running, no need to restart loop");
+			}
 			if (!gameState.loop) {
 				gameState.gameRunning = true;
 				const player1 = [...game.players.values()].find(player => player.role === "player1");

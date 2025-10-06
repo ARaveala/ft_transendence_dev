@@ -70,13 +70,18 @@ function setUpWebSockets(server) {
 				console.log("Client disconnected");
 				// some kind of pause logic here 
 				const player = ws.player;//players.get(playerId);
-				console.log('checking if player exists on disconnect', player, 'is there a game id', ws.gameId, 'access anything', ws.player.ready);
+				//console.log('--------------------------------checking if player exists on disconnect', player, 'is there a game id',  ws.gameId, 'access anything', ws.player);
+				//console.log('--------------- try get the player id from ws', player.playerId);
+				//for (let key in ws.player) {
+				//	  console.log("ppppppppppppppppppppppKey:", key, "Value:", ws.player[key]);
+				//	}
+
 				if (player) {
 					
 					player.disconnectedAt = Date.now();
-					console.log("Player disconnected:", player);
+					//console.log("Player disconnected:", player);
 				//	player.ws = null;
-					handleMessage(undefined, { type: "pause"});
+					handleMessage(undefined, { type: "pause", playerId: ws.playerId, gameId: ws.gameId }); // we may need to send player id also
 					
 				//	// Pause game logic if needed
 				player.pauseTimeout = setTimeout(() => {

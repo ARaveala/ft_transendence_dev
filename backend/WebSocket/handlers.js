@@ -19,7 +19,7 @@ function handleGreet(ws, data){
 function startLoop(ws, gameState, player1, player2) {
 	ws.send(JSON.stringify({type: "update_game", data: gameState.positions}));
 	gameState.loop = setInterval(() => {
-		if (updateGame(gameState, player1, player2) == 1)
+		if (updateGame(gameState, player1, player2) === 1)
 			ws.send(JSON.stringify({type: "update_score", player1_score: player1.score, player2_score: player2.score}));
 		ws.send(JSON.stringify({type: "update_game", data: gameState.positions}));
 	}, 1000 / gameState.fps);
@@ -35,7 +35,17 @@ const player1Token = jwt.sign(
 );
  */
 
-// each player must send their own init
+// this fucntion reattathces player and game id to websocket for close events
+// this does not veryfy toke, assumption is that we give a grace period to reconnect
+// if we want to allow reconnect outside grace period we will need to verify token here
+function reconnectPlayer(ws, playerId, gameId) {
+	//if no ws we should completelye delete game
+	// if not player or gameid but ws we have a problem whats the correct management of that? 
+	ws.playerId = playerId;
+	ws.gameId = gameId;
+}
+
+// each player must send their own init if remote
 function initPlayer(ws, token) {
   //console.log("CHEKCING:: initplayer is getting players", Array.from(players.entries()));
   const session = verifyToken(token)//n(token, gameId); own fucntion here
@@ -78,8 +88,13 @@ function attachPlayerToGame(ws, session) {
 
 function getGameContext(ws, data, playerinit) {
     if (!playerinit) return undefined;
-
-    const gameId = ws.gameId;// || Number(data.gameId); // i would like to remove the need for this at all for saftey
+	const gameId = ws ? ws.gameId || Number(data.gameId) : Number(data.gameId); // i would like to remove the need for this at all for saftey
+	
+//	if (ws === undefined){
+//		
+//	}
+//	else
+//	    const gameId = ws.gameId || Number(data.gameId); // i would like to remove the need for this at all for saftey
     const game = getGame(gameId);
     if (!game) return undefined;
 
@@ -88,7 +103,7 @@ function getGameContext(ws, data, playerinit) {
         gameState: game.payload
     };
 }
-module.exports = {handleGreet, startLoop, initPlayer, getGameContext}
+module.exports = {handleGreet, startLoop, initPlayer, getGameContext, reconnectPlayer}
 
 /** example of an active game body
  * activeGames.get('abc123') === {
