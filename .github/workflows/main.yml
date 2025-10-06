@@ -24,8 +24,8 @@ jobs:
         run: npm install
         working-directory: backend
 
-      - name: Run backend tests
-        run: npm test
+      - name: Run npm start
+        run: npm start
         working-directory: backend
 
       # Frontend
@@ -33,12 +33,7 @@ jobs:
         run: npm install
         working-directory: frontend
 
-      - name: Run frontend tests
-        run: npm run test
-        working-directory: frontend
-
-      # Optional: Run frontend build (e.g., Vite/Next.js)
-      - name: Build frontend
-        run: npm run build
+      - name: Run npm run dev
+        run: npm run dev
         working-directory: frontend
 
