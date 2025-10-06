@@ -10,7 +10,7 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Tracks if modal is ope
 const [modalMode, setModalMode] = useState<"login" | "register">("register"); // Mode of modal
 const navigate = useNavigate();
 
-const { isLoggedIn, user, loginUser, logoutUser } = useAuth(); // Access authentication state and functions
+const { isLoggedIn, user, logoutUser, refreshSession } = useAuth(); // Access authentication state and functions
 
 // Generic form submit handler for registration or login
 const handleSubmit = async (data: RegisterUserPayload) => {
@@ -30,21 +30,23 @@ const handleSubmit = async (data: RegisterUserPayload) => {
 		throw new Error(error?.error || "Request failed");
 	}
 
+	await refreshSession(); // New approach: refresh session to get user profile
+
 	// //fetch user profile after successful login or registration - currently not working because backend does not return user data
 	//await new Promise((resolve) => setTimeout(resolve, 1000)); // short delay
 
-	const profileRes = await fetch(API_PROTOCOL.GET_PROFILE.path, {
-		method: API_PROTOCOL.GET_PROFILE.method,
-		credentials: "include"
-	 });
+	// const profileRes = await fetch(API_PROTOCOL.GET_PROFILE.path, {
+	// 	method: API_PROTOCOL.GET_PROFILE.method,
+	// 	credentials: "include"
+	//  });
+
 	 //console.log("Profile fetch response status:", profileRes.status);
 	//if (!profileRes.ok) throw new Error("Failed to fetch user profile");
 
-	const userProfile = await profileRes.json();
-	console.log("Fetched user profile:", userProfile);
+	// const userProfile = await profileRes.json();
+	// console.log("Fetched user profile:", userProfile);
 	
-	
-	 // === Mock profile for development ===
+		 // === Mock profile for development ===
 	//const userProfile: UserProfile = {
 	//user_id: "mock-1",
 	//username: data.username || "PlayerOne",
@@ -64,7 +66,8 @@ const handleSubmit = async (data: RegisterUserPayload) => {
 	//	{ id: "m2", opponent: "Player3", result: "loss", score: 18, timestamp: "2025-08-24T15:30:00" },
 	//],
 	//};
-	loginUser(userProfile); // Update AuthContext with logged-in user
+
+//	loginUser(userProfile); // Update AuthContext with logged-in user. Removed as we are using refreshSession()	
 
 	// Success: notify user, close modal, and update login state
 
