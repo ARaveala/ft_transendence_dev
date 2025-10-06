@@ -21,19 +21,9 @@ jobs:
 
       # Backend
       - name: Install backend dependencies
-        run: npm install
+        run: npm install -g concurrently
         working-directory: backend
 
-      - name: Run npm start
-        run: npm start
-        working-directory: backend
-
-      # Frontend
-      - name: Install frontend dependencies
-        run: npm install
-        working-directory: frontend
-
-      - name: Run npm run dev
-        run: npm run dev
-        working-directory: frontend
+      - name: Run fullstack
+        run: concurrently "npm start --prefix backend" "npm run dev --prefix frontend"
 
