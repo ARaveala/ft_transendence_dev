@@ -1,0 +1,45 @@
+name: Fullstack CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  fullstack-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install backend dependencies
+        run: npm install --prefix backend
+
+      - name: Install frontend dependencies
+        run: npm install --prefix frontend
+
+      - name: Build frontend
+        run: npm run build --prefix frontend
+
+      # Optional: If backend serves built frontend, copy it over
+      - name: Copy frontend build to backend (if needed)
+        run: cp -r frontend/dist backend/public || true
+
+      - name: Start backend and test
+        run: |
+          npm start --prefix backend &
+          BACKEND_PID=$!
+          echo "Waiting for backend to be ready..."
+          npx wait-on http://localhost:3000
+          echo "Running API health check..."
+          curl -f http://localhost:3000/status || (kill $BACKEND_PID && exit 1)
+          echo "Shutting down backend..."
+          kill $BACKEND_PID
+
