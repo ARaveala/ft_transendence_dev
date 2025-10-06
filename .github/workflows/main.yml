@@ -26,7 +26,7 @@ jobs:
         run: npm install --prefix frontend
 
       - name: Install concurrently
-        run: npm install --save-dev concurrently
+        run: npm install --save-dev concurrently wait-on
 
       - name: Run fullstack
         run: |
@@ -34,3 +34,8 @@ jobs:
             "npm start --prefix backend" \
             "npm run dev --prefix frontend"
 
+      - name: Wait for frontend
+        run: npx wait-on http://localhost:3000
+
+      - name: run tests
+        run: npm test
