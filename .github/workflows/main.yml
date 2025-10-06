@@ -28,11 +28,18 @@ jobs:
       - name: Build frontend
         run: npm run build --prefix frontend
 
-      - name: Start backend server and test
+      # Optional: If backend serves built frontend, copy it over
+      - name: Copy frontend build to backend (if needed)
+        run: cp -r frontend/dist backend/public || true
+
+      - name: Start backend and test
         run: |
           npm start --prefix backend &
           BACKEND_PID=$!
+          echo "Waiting for backend to be ready..."
           npx wait-on http://localhost:3000
-          curl -f http://localhost:3000 || (kill $BACKEND_PID && exit 1)
+          echo "Running API health check..."
+          curl -f http://localhost:3000/status || (kill $BACKEND_PID && exit 1)
+          echo "Shutting down backend..."
           kill $BACKEND_PID
 
