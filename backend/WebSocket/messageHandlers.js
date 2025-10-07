@@ -84,13 +84,16 @@ function handleMessage(ws, data) {
 			break;
 		}
 		case 'resetPositions': {
-			gameState.positions = [
-				gameState.paddleOffset,
-				gameState.width - gameState.paddleOffset,
-				gameState.height / 2,
-				gameState.width / 2
-			]
-			gameState.gameRunning = true;
+			const resetAll = !data.resetTargets || data.resetTargets.length === 0;
+			if (resetAll || data.resetTargets.includes("paddles")) {
+				gameState.positions[gameState.leftPaddleI] = gameState.paddleOffset;
+				gameState.positions[gameState.rightPaddleI] = gameState.width - gameState.paddleOffset;
+			} if (resetAll || data.resetTargets.includes("ball")) {
+				gameState.positions[gameState.ballYI] = gameState.height / 2;
+				gameState.positions[gameState.ballXI] = gameState.width / 2;
+			} if (resetAll || data.resetTargets.includes("gameRunning")) {
+				gameState.gameRunning = true;
+			}
 			break;
 		}
 		case 'resetScore': { // used in a test from pong_game/index.html

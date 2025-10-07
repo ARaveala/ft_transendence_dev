@@ -93,7 +93,7 @@
 
 			/* This is a test function */
 			function resettest() {
-				webSocket.send(JSON.stringify({type: "resetPositions"}));
+				webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["ball", "gameRunning"]}));
 				webSocket.send(JSON.stringify({type: "resetScore"}));
 				document.getElementById("scoretest").textContent = "Score: 0 | 0";
 				document.getElementById("resulttest").textContent = "";
@@ -124,7 +124,7 @@
 								document.getElementById("resettestbutton").style.display = "inline-block";
 							}
 							else
-								webSocket.send(JSON.stringify({type: "resetPositions"}));
+								webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["ball", "gameRunning"]}));
 						} else if (data.type == 'welcome'){
 							console.log(data.msg);
 						} else if (data.type == 'init_ack'){
