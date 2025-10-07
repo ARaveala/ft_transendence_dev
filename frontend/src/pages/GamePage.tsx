@@ -9,45 +9,56 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import ChooseGameMode from "../components/game/ChooseGameMode";
+import GameSettings from "../components/game/GameSettings";
 
 type GameMode = "guest" | "login" | "ai";
 
 const Game: React.FC = () => {
-const { isLoggedIn, refreshSession } = useAuth();
+const { isLoggedIn, loading} = useAuth();
 const [gameStarted, setGameStarted] = useState(false);
 const [player1Token, setPlayer1Token] = useState<string | null>(null);
 const [player2Token, setPlayer2Token] = useState<string | null>(null);
 const [gameId, setGameId] = useState<string | null>(null);
-const [loading, setLoading] = useState(true);
+//const [loading, setLoading] = useState(true);
 const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
+const [gameSettings, setGameSettings] = useState<{
+	ballSpeed: number;
+	paddleSize: number;
+	paddleSpeed: number;
+	maxScore: number;
+} | null>(null); // New state for game settings
 
-useEffect(() => {
-	const checkAuth = async () => {
-	if (!isLoggedIn) {
-		try {
-		console.log("refreshing session to check login");
-		await refreshSession(); // fetch user profile
-		} catch (err) {
-		console.error("Failed to refresh session", err);
-		}
-	}
-	setLoading(false); // done checking
-	};
+// useEffect(() => { //may be redundant now as AuthContext handles this
+// 	const checkAuth = async () => {
+// 	if (!isLoggedIn) {
+// 		try {
+// 		console.log("refreshing session to check login");
+// 		await refreshSession(); // fetch user profile
+// 		} catch (err) {
+// 		console.error("Failed to refresh session", err);
+// 		}
+// 	}
+// 	setLoading(false); // done checking
+// 	};
 
-	checkAuth();
-}, [isLoggedIn, refreshSession]); //run once on mount
+// 	checkAuth();
+// }, [isLoggedIn, refreshSession]); //run once on mount
 
 	// Start game depending on selected mode
-const startGame = async () => {
+const startGame = async (settings?: typeof gameSettings) => {
 	if (!selectedMode) return;
 
 	try {
 	// 1. Create game
-	const createRes = await fetch("/api/create-game", {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ type: "local", mode: "vs" }),
-		credentials: "include",
+		const createRes = await fetch("/api/create-game", {
+	method: "POST",
+	headers: { "Content-Type": "application/json" },
+	body: JSON.stringify({ 
+		type: "local", 
+		mode: "vs",
+		settings: settings, // <-- pass settings here. backend needs to be updated to handle this
+	}),
+	credentials: "include",
 	});
 	const { gameId } = await createRes.json();
 	setGameId(gameId);
@@ -96,10 +107,17 @@ return (
 		/>
 	)}
 
-	{selectedMode && !gameStarted && (
+	{selectedMode && !gameSettings && !gameStarted && (
+		<GameSettings
+		onConfirm={(settings) => setGameSettings(settings)}
+		onBack={() => setSelectedMode(null)}
+		/>
+	)}
+
+	{selectedMode && gameSettings && !gameStarted && (
 	<div className="flex flex-col items-center space-y-4">
 				<button
-		onClick={startGame}
+		onClick={() => startGame(gameSettings)} // pass settings to startGame
 		className="px-10 py-4 text-xl font-bold text-white bg-indigo-600 rounded-lg shadow-lg hover:bg-indigo-700 transition-colors"
 		>
 		Start Game

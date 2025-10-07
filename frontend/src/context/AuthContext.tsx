@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import  { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile } from "../../shared/payloads";
 
@@ -8,6 +8,7 @@ interface AuthContextType {
 	loginUser: (user: UserProfile) => void; // Function to log in user
 	logoutUser: () => Promise<void>; // Promise is a JavaScript object representing the eventual completion (or failure) of an asynchronous operation and its resulting value. Without Promise you could not reliably wait for the logout to complete before proceeding with other actions.
 	refreshSession: () => Promise<void>; // Function to fetch user profile
+	loading: boolean; // Optional loading state
 	
 }
 
@@ -16,13 +17,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined); // Cr
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [isLoggedIn, setIsLoggedIn] = useState(false); // State to track if user is logged in.
 	const [user, setUser] = useState<UserProfile | null>(null); // State to hold user profile or null if not logged in
+	const [loading, setLoading] = useState(true); // State to track loading status
+	const [refreshing, setRefreshing] = useState(false); // State to track if session is being refreshed
 
-	// Log the current state whenever it changes
-	useEffect(() => {
-		console.log("AuthContext state:", { isLoggedIn, user });
-	}, [isLoggedIn, user]);  // dependency array ensures it logs every time the state changes
+	// // Log the current state whenever it changes
+	// useEffect(() => {
+	// 	console.log("AuthContext state:", { isLoggedIn, user });
+	// }, [isLoggedIn, user]);  // dependency array ensures it logs every time the state changes
 	
-	const refreshSession = async () => {
+	const refreshSession = useCallback(async () => {
+		setRefreshing(true); 
 		try {
 			const res = await fetch(API_PROTOCOL.GET_PROFILE.path, {
 				method: API_PROTOCOL.GET_PROFILE.method,
@@ -41,20 +45,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 			setUser(null);
 			setIsLoggedIn(false);
 		}
-	};
+		finally {
+			setLoading(false);
+			setRefreshing(false);
+		}
+	}, []); 
 
-	useEffect(() => {
+	useEffect(() => { // On component mount, check if user is logged in by fetching profile	
 		refreshSession();
 
-	const interval = setInterval(refreshSession, 5 * 60 * 1000); // Refresh session every 5 minutes
-	return () => clearInterval(interval); // Cleanup interval on component unmount;
-	}, []);
+		const interval = setInterval(() => {
+			if (isLoggedIn)
+				refreshSession(); // periodically refresh session if logged in
+			}, 5 * 60 * 1000); // every 5 minutes
+			
+		return () => clearInterval(interval); // cleanup on unmount
+	}, []); // Empty dependency array means this runs once on mount
 
 	const loginUser = (userData: UserProfile) => {
 		setUser(userData);
 		setIsLoggedIn(true);
+		setLoading(false);
 	}
 
+	// Logout function to clear user state and call backend logout endpoint
 	const logoutUser = async () => {
 		try {
 			// Call backend logout endpoint
@@ -62,19 +76,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 				method: API_PROTOCOL.LOGOUT_USER.method,
 				credentials: "include", // include cookies in request
 			});
-			if (!res.ok) throw new Error("Logout failed");
-
-			// Clear user state on successful logout
-			setUser(null);
-			setIsLoggedIn(false);
 		} catch (err) {
 			console.error("Logout error:", err);
 			throw err; // re-throw error for caller to handle
 		}
+		finally {
+			setUser(null);
+			setIsLoggedIn(false);
+		}
 	};
 
 	return (
-		<AuthContext.Provider value={{ isLoggedIn, user, loginUser, logoutUser, refreshSession }}>
+		<AuthContext.Provider value={{ isLoggedIn, user, loading, loginUser, logoutUser, refreshSession }}>
 			{children}	
 		</AuthContext.Provider>
 	);
