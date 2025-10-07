@@ -6,14 +6,12 @@ import Button from "../ui/Button";
 
 interface TournamentBracketProps {
   tournament: TournamentState;
-  loadingMatchId?: string | null;           // ID of match currently being started
   onStartMatch?: (match: Match) => void;    // callback when a match start is requested
   onCancel?: () => void                    // callback to cancel tournament
 }
 
 const TournamentBracket: React.FC<TournamentBracketProps> = ({
   tournament,
-  loadingMatchId,
   onStartMatch,
   onCancel
 }) => {
@@ -41,9 +39,6 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
       match.status === "pending"
     );
   };
-
-// Check if a given match is currently loading
-  const isLoading = (match: Match) => loadingMatchId === match.match_id;
 
   return (
   <div className="flex flex-col items-center mt-10 gap-8 relative">
@@ -93,7 +88,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
       <Button
         onClick={() => onStartMatch?.(finalMatch)}
-        disabled={!isMatchPlayable(finalMatch, 2) || isLoading(finalMatch)}
+        disabled={!isMatchPlayable(finalMatch, 2)}
         className="-mt-6"
       >
         Play final
@@ -129,7 +124,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
           <Button
             onClick={() => onStartMatch?.(match)}
-            disabled={!isMatchPlayable(match, 1) || isLoading(match)}
+            disabled={!isMatchPlayable(match, 1)}
           >
             Play match {idx + 1}
           </Button>

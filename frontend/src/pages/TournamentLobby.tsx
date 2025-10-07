@@ -9,8 +9,7 @@ import { CreateTournamentPayload, TournamentStateResponse, StartTournamentMatchP
 
 const TournamentLobby: React.FC = () => {
   const [tournament, setTournament] = useState<TournamentState | null>(null);      // Main tournament state (null means there is no tournament yet)
-  const [showSetup, setShowSetup] = useState(false);                               // Indicates whether we are in tournament setup mode (adding players etc.)     
-  const [loadingMatchId, setLoadingMatchId] = useState<string | null>(null);       // Used to track which match is currently being started/loading
+  const [showSetup, setShowSetup] = useState(false);                               // Indicates whether we are in tournament setup mode (adding players etc.)
   const [activeGameId, setActiveGameId] = useState<string | null>(null);           // Game state: which match is currently active
   const [currentGameMatch, setCurrentGameMatch] = useState<Match | null>(null);
 
@@ -72,12 +71,10 @@ const TournamentLobby: React.FC = () => {
   /*
    * Starts a specific match
    * - Sends a start request to backend
-   * - Marks the match as loading (disables UI during request)
    * - If successful, activates the Pong game iframe
    */
   const handleStartMatch = async (match: Match) => {
     if (!tournament) return;
-    setLoadingMatchId(match.match_id);
 
     const payload: StartTournamentMatchPayload = { match_id: match.match_id };
 
@@ -99,8 +96,6 @@ const TournamentLobby: React.FC = () => {
       }
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoadingMatchId(null);
     }
   };
 
@@ -142,7 +137,6 @@ const TournamentLobby: React.FC = () => {
       {tournament && !showSetup && (
         <TournamentBracket
           tournament={tournament}
-          loadingMatchId={loadingMatchId}
           onStartMatch={handleStartMatch}
           onCancel={handleCancelTournament}
         />
@@ -153,62 +147,23 @@ const TournamentLobby: React.FC = () => {
       {currentGameMatch && activeGameId && (
         <div
           style={{
-          width: "100%",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
           height: "100vh",
           display: "flex",
+          zIndex: 9999,
+          backgroundColor: "#000",
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#1f2937",
-          flexDirection: "column",
         }}
         >
-        {/*{!loadingMatchId && (
-          <button
-            onClick={() => {}}
-            style={{
-              padding: "20px 40px",
-              fontSize: "24px",
-              fontWeight: "bold",
-              borderRadius: "12px",
-              border: "none",
-              backgroundColor: "#4f46e5",
-              color: "#fff",
-              boxShadow: "0 8px 15px rgba(0, 0, 0, 0.2)",
-              cursor: "pointer",
-              transition: "all 0.3s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#4338ca")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#4f46e5")}
-          >
-            Start Match
-          </button>
-        )} 
-
-        {loadingMatchId && (*/}
           <iframe
-            src={`../../../backend/pong_game/index.html?gameId=${activeGameId}&player1Token=localP1&player2Token=localP2`}
+            src={`../../shared/index.html?gameId=${activeGameId}&player1Token=localP1&player2Token=localP2`}
             style={{ width: "100%", height: "100%", border: "none" }}
             title="Pong Game"
           />
-
-        <button
-          onClick={handleMatchEnd}
-          style={{
-            marginTop: "16px",
-            padding: "12px 24px",
-            fontSize: "18px",
-            borderRadius: "8px",
-            backgroundColor: "#dc2626",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-          }}
-          /*onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#b91c1c")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#dc2626")} */
-        >
-          End Match
-        </button>
       </div>
     )}
   </>
@@ -216,3 +171,14 @@ const TournamentLobby: React.FC = () => {
 };
 
 export default TournamentLobby;
+
+
+
+{/*
+window.addEventListener("message", (event) => {    // to automatically close iframe when the match ends and pong game sends a message that match ended
+  if (event.data?.type === "MATCH_END") {
+    handleMatchEnd();
+  }
+});
+
+*/}

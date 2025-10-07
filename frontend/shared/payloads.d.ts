@@ -253,8 +253,8 @@ export interface StartTournamentPayload {
   players: {
     username: string;
     alias: string;
-    password?: string;
     isSelf?: boolean;
+    isVerified?: boolean;
   }[];
 }
 
