@@ -6,12 +6,12 @@
 	// Create a Fastify instance
 	// logger is enabled for debugging purposes
 
-	//const WebSocket = require('ws');
-
-	const fastify = require('fastify')({ logger: true });
-	const {log} = require('@logger'); //dev
-	// use stict mode for better error handling
 	'use strict';
+	const { logger, log } = require('@logger');
+	const fastify = require('fastify')({ logger });
+
+	const app = fastify;
+
 	// set up fucntion userRoutes , require from user.js
 	//this will be split later into multiple files we can use this now as the tetsing ground
 	const userRoutes = require('@routes/user.js');
@@ -101,11 +101,12 @@
 	});
 	// Log all incoming requests for testing and debugging
 	fastify.addHook('onRequest', async (request, reply) => {
-		console.log(`[${request.method}] ${request.url}`);
-		console.log('Headers:', request.headers);
-		if (request.body) {
-		  console.log('Body:', request.body);
-		}
+		logger.trace({ function: 'onRequest', method: request.method, url: request.url, headers: request.headers, body: request.body }, 'Incoming request');
+		//console.log(`[${request.method}] ${request.url}`);
+		//console.log('Headers:', request.headers);
+		//if (request.body) {
+		//  console.log('Body:', request.body);
+		//}
 	});
 	const start = async () => {
 
