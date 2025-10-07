@@ -1,3 +1,5 @@
+//custom logger
+
 const fs = require('fs');
 const path = require('path');
 
@@ -11,6 +13,26 @@ function log(label, message) {
   fs.appendFileSync(logFile, entry);
 }
 
+/**
+ * usage of fastify logger 
+ * in any file that utalizes fastify :
+ * 
+ * top of file require using module alias path in package.json
+	const {logger} = require('@logger');
+
+ * 	next line
+	const flog = logger.child({ fileContext: 'filename.js' }); // this will scope logger to file
+
+ * inside function 
+	flog.info( {function: 'provide fucntion name'}, `see trace.log/server.log for body/verbose`);
+	flog.trace({ function: 'provide fucntion name', payload: request.body }, 'Incoming body');
+
+ * ALL but trace logs to server.log aswell as their own log files and terminal, this can be changed as seen fit, can also 
+ * make a new loggerA with different rules and can be required instead
+
+ * to clear logs run from backend/ ./clearLogs.sh
+ */
+//fastif logger settings
 const pino = require('pino');
 const transport = pino.transport;
 
@@ -31,7 +53,7 @@ const logger = pino(
   },
   transport({
     targets: [
-      // Terminal output (pretty, all levels)
+      // Terminal output (pretty, all levels above debug)
       {
         level: 'debug',
         target: 'pino-pretty',
@@ -41,6 +63,7 @@ const logger = pino(
           ignore: 'pid,hostname'
         }
       },
+	// Server.log output (pretty..ish, all levels abobe debug) 
 	{
 		level: 'debug',
 		target: 'pino-pretty',
@@ -113,7 +136,7 @@ const logger = pino(
 //const pino = require('pino');
 //const transport = pino.transport;
 //
-//const logger = pino(
+//const loggerA = pino(
 //  {
 //    level: 'info',
 //    base: undefined // removes pid and hostname globally

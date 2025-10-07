@@ -123,6 +123,15 @@ const API_PROTOCOL = {
 
 }
 
+// for node.js (CommonJS)
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { API_PROTOCOL };
+}
+
+// ESM export for frontend (TypeScript) will be ignored by node.js
+export const API_PROTOCOL_ESM = API_PROTOCOL;
+export default API_PROTOCOL_ESM;
+
 
 /* handled through websockets??
   GAME_STATE: {
@@ -131,6 +140,3 @@ const API_PROTOCOL = {
   }
 
 */ 
-
-
-module.exports = { API_PROTOCOL };

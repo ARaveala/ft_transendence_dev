@@ -23,9 +23,11 @@ const TournamentLobby: React.FC = () => {
    */
   const handleCreateTournament = async () => {
     const payload: CreateTournamentPayload = { max_players: 4 };
-    try {
+    console.log('CREATE TOURNAMENT????');
+	try {
       const res = await fetch(API_PROTOCOL.CREATE_TOURNAMENT.path, {
         method: API_PROTOCOL.CREATE_TOURNAMENT.method,
+		credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
     });

@@ -15,11 +15,14 @@
 	// set up fucntion userRoutes , require from user.js
 	//this will be split later into multiple files we can use this now as the tetsing ground
 	const userRoutes = require('@routes/user.js');
+	const tournamentRoutes = require('@routes/tournament/tournament.js');
+	const tournamentContext = require('@routes/tournament/context.js');
 	// set up context, require from context.js 
 	// there will be multiple index or context.txt for each file ....
 	const context = require('@context');
 	// attatch context to fucntion options 
 	fastify.register(userRoutes, context);
+	fastify.register(tournamentRoutes, tournamentContext)
 
 	// set up auth routes with context
 	const authRoutes = require('@Rauth/auth.js');
