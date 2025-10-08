@@ -6,7 +6,7 @@ import en from  "../../shared/locales/en.json";
 import fi from "../../shared/locales/fi.json";
 import sv from "../../shared/locales/sv.json";
 
-const DICTS: Record<Land, Record<string, string>> = { en, fi, sv };
+const DICTS: Record<Lang, Record<string, string>> = { en, fi, sv };
 
 type TranslationContext = {
 	lang: Lang;
