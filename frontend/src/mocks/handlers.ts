@@ -9,7 +9,7 @@ import type { UserProfile, PlayerPayload } from "../../shared/payloads";
 import type { AddAliasPayload, AddAliasResponse, StartTournamentPayload, StartTournamentResponse, VerifyPlayerPayload, VerifyPlayerResponse } from "../../shared/payloads";
 import type { TournamentPlayer, Match, TournamentState } from "../types/tournament";
 import { TBD_PLAYER } from "../../shared/constants";
-import { mockUsers } from "./players";
+import { mockUsers, MockUser } from "./players";
 import { tournamentApi } from "../services/api";
 
 const mockProfile: UserProfile = {
@@ -109,23 +109,24 @@ export const handlers = [
   http.post(API_PROTOCOL.VERIFY_PLAYER.path, async ({ request }) => {
     const body = (await request.json()) as VerifyPlayerPayload;
     const { role, username, password } = body;
-    const player = mockUsers.find((p) => p.username === username);
+    const storedUser = (mockUsers as MockUser[]).find((p) => p.username === username);
 
-    if (!player) {
+    if (!storedUser) {
       const res: VerifyPlayerResponse = { status: "ERROR", error: "Player not found", tournament: currentTournament! };
-        return HttpResponse.json(res, { status: 200 });
+      return HttpResponse.json(res, { status: 200 });
     }
 
-    if (password !== password) {
+    if (password !== storedUser.password) {
       const res: VerifyPlayerResponse = { status: "ERROR", error: "Invalid password", tournament: currentTournament! };
-        return HttpResponse.json(res, { status: 200 });
+      return HttpResponse.json(res, { status: 200 }); // Return 200 for internal validation error
     }
-  if (!currentTournament) {
-     return HttpResponse.json(
-      { status: "ERROR", error: "No active tournament found" },
-      { status: 400 }
-    );
-  }
+
+    if (!currentTournament) {
+      return HttpResponse.json(
+        { status: "ERROR", error: "No active tournament found" },
+        { status: 400 }
+      );
+    }
   const updatedPlayers = [...currentTournament.players];
   const existingIndex = updatedPlayers.findIndex((p) => p.role === role);
 
@@ -138,6 +139,7 @@ export const handlers = [
       role,
     };
   } else {
+
     // Add new player if not found
     updatedPlayers.push({
       username,
@@ -229,9 +231,9 @@ export const handlers = [
         isSelf: true,
         isVerified: true,
       },
-      { username: "", alias: "", role: "player2", status: "waiting", score: 0 },
-      { username: "", alias: "", role: "player3", status: "waiting", score: 0 },
-      { username: "", alias: "", role: "player4", status: "waiting", score: 0 },
+      { username: "", alias: "", role: "player2", status: "waiting", score: 0, isVerified: false },
+      { username: "", alias: "", role: "player3", status: "waiting", score: 0, isVerified: false },
+      { username: "", alias: "", role: "player4", status: "waiting", score: 0, isVerified: false },
     ],
     bracket: [],            // no matches yet
     currentMatch: undefined,
@@ -340,7 +342,7 @@ export const handlers = [
 
   //Mock for leaderboard request
   http.get(API_PROTOCOL.GET_LEADERBOARD.path, () => {
-    return HttpResponse.json(mockRegisteredPlayers, { status: 200 });
+    return HttpResponse.json(mockUsers, { status: 200 });
 }),
 
 

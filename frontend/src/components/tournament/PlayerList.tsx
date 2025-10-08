@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import type { TournamentPlayer, TournamentState } from "../../types/tournament";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
-import { VerifyPlayerPayload, VerifyPlayerResponse, AddAliasPayload, AddAliasResponse } from "../../../shared/payloads";
+import { VerifyPlayerPayload, VerifyPlayerResponse } from "../../../shared/payloads";
 import Button from "../ui/Button";
 
 interface PlayerListProps {
@@ -11,6 +11,8 @@ interface PlayerListProps {
 }
 
 type LocalAliases = Record<string, string>;
+type LocalPasswords = Record<string, string>;
+type LocalUsernames = Record<string, string>;
 type LocalErrors = Record<string, string>;
 
 const PlayerList: React.FC<PlayerListProps> = ({
@@ -19,7 +21,8 @@ const PlayerList: React.FC<PlayerListProps> = ({
   onRemovePlayer,
  }) => {
   // Keeps track of validation errors per player
-  const [localUsernames, setLocalUsernames] = useState<Record<string, string>>({});
+  const [localUsernames, setLocalUsernames] = useState<LocalUsernames>({});
+  const [localPasswords, setLocalPasswords] = useState<LocalPasswords>({});
   const [localAliases, setLocalAliases] = useState<LocalAliases>({});
   const [errors, setErrors] = useState<LocalErrors>({});
 
@@ -40,28 +43,44 @@ const PlayerList: React.FC<PlayerListProps> = ({
     setLocalUsernames(initialUsernames);
   }, [tournament.players.map(p => p.username).join("|")]);
 
+  useEffect(() => {
+    const initialPasswords: Record<string, string> = {};
+    tournament.players.forEach(p => {
+      initialPasswords[p.role] = "";
+    });
+    setLocalPasswords(initialPasswords);
+  }, [tournament.players.map(p => p.username).join("|")]);
+
 
   const handleUsernameChange = (role: string, username: string) => {
     setLocalUsernames(prev => ({ ...prev, [role]: username }));
-    const updatedPlayers = tournament.players.map(p =>
-      p.role === role ? { ...p, username } : p
-    );
-    onTournamentUpdated({ ...tournament, players: updatedPlayers });
   };
 
   const handleAliasChange = (role: string, alias: string) => {
-
     setLocalAliases(prev => ({ ...prev, [role]: alias }));
     // Clear previous error while typing
     setErrors(prev => ({ ...prev, [role]: "" }));
   };
 
+  const handlePasswordChange = (role: string, password: string) => {
+    setLocalPasswords(prev => ({ ...prev, [role]: password }));
+    // Clear previous error while typing
+    setErrors(prev => ({ ...prev, [role]: "" }));
+  };
 
-  const handleAliasBlur = async (role: string) => {
-
-    const alias = localAliases[role] || "";
+  const handleVerifyPlayer = async (
+    role: string,
+    username: string,
+    password: string,
+    alias: string
+  ) => {
  
-    if (!alias || alias.length < 5) {
+    if (!username || !password || !alias) {
+        setErrors(prev => ({ ...prev, [role]: "All three fields are required." }));
+        return;
+    }
+
+    if (alias.length < 5) {
       setErrors(prev => ({ ...prev, [role]: "Alias must be at least 5 characters" }));
       return;
     }
@@ -76,32 +95,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
     }
 
     try {
-      const payload: AddAliasPayload = { role, alias };
-      const res = await fetch(API_PROTOCOL.ADD_ALIAS.path, {
-        method: API_PROTOCOL.ADD_ALIAS.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "include",
-      });
-      const data: AddAliasResponse = await res.json();
-
-      if (data.status === "OK") {
-        onTournamentUpdated(data.tournament);
-        setErrors(prev => ({ ...prev, [role]: "" }));
-      } else {
-        setErrors(prev => ({ ...prev, [role]: data.error || "Alias invalid" }));
-      }
-    } catch (err) {
-      console.error("Error adding alias:", err);
-    }
-  };
-
-  // Verify player password (not logged in player) against backend API
-  const handleVerifyPlayer = async (role: string, username: string, password: string) => {
-    if (!password) return;
-
-    try {
-      const payload: VerifyPlayerPayload = { role, username, password };
+      const payload: VerifyPlayerPayload = { role, username, password, alias };
       const res = await fetch(API_PROTOCOL.VERIFY_PLAYER.path, {
         method: API_PROTOCOL.VERIFY_PLAYER.method,
         headers: { "Content-Type": "application/json" },
@@ -112,7 +106,12 @@ const PlayerList: React.FC<PlayerListProps> = ({
       const data: VerifyPlayerResponse = await res.json();
       if (data.status === "OK") {
         onTournamentUpdated(data.tournament);
-        setErrors((prev) => ({ ...prev, [role]: "" }));
+        setLocalPasswords(prev => {
+            const newState = { ...prev };
+            delete newState[role]; 
+            return newState;
+        });
+        
       } else {
         setErrors((prev) => ({ ...prev, [role]: data.error || "Invalid credentials" }));
       }
@@ -123,49 +122,61 @@ const PlayerList: React.FC<PlayerListProps> = ({
 
   return (
     <div className="space-y-3">
-      {tournament.players.map((player) => (
-       <div key={player.role} className="flex flex-col gap-1">
-          <div className="flex gap-2 items-center">
-            {/* Username */}
-            <input
-              type="text"
-              placeholder="Username"
-              value={localUsernames[player.role] || ""}
-              disabled={player.isSelf || player.isVerified}
-              onChange={(e) => handleUsernameChange(player.role, e.target.value)}
-              className="p-2 border rounded flex-1 bg-gray-200 text-black"
-            />
+      {tournament.players.map((player) => {
+        const role = player.role;
+        const username = localUsernames[role] || player.username || "";
+        const password = localPasswords[role] || "";
+        const alias = localAliases[role] || "";
+
+        const isEditable = !player.isSelf && !player.isVerified;
+
+        return (
+          <div key={player.role} className="flex flex-col gap-1">
+            <div className="flex gap-2 items-center">
+
+              {/* Username */}
+              <input
+                type="text"
+                placeholder="Username"
+                disabled={player.isSelf || player.isVerified}
+                value={username}
+                onChange={(e) => handleUsernameChange(role, e.target.value)}
+                className={`p-2 border rounded flex-1 ${
+                player.isSelf || player.isVerified
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-white text-black"
+                }`}
+              />
 
                {/* Password */}
               <input
                 type="password"
                 placeholder="Password"
-                disabled={player.isSelf || player.isVerified}
-                className={`p-2 border rounded flex-1 text-black ${
-                  player.isSelf || player.isVerified
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "text-black"
-                }`}
-                onBlur={(e) => {
-                  const typedPassword = e.target.value;
-                  if (!player.isSelf && !player.isVerified && typedPassword) {
-                    handleVerifyPlayer(player.role, player.username, typedPassword);
-                    e.target.value = "";
+                disabled={!isEditable} 
+                value={password}
+                onChange={(e) => handlePasswordChange(role, e.target.value)} 
+                onBlur={() => {
+                if (!isEditable && password) {
+                  handleVerifyPlayer(role, username, password, alias);
                   }
                 }}
+                className={`p-2 border rounded flex-1 ${
+                  !isEditable
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-black"
+                }`}
               />
 
               {/* Alias */}
               <input
                 type="text"
                 placeholder="Alias"
-                disabled={!player.isVerified}
+                disabled={player.isVerified}
+                value={alias}
+                onChange={(e) => { handleAliasChange(role, e.target.value)}}
                 className={`p-2 border rounded flex-1 ${
                   errors[player.role] ? "border-red-500" : "border-gray-300"
                 } text-black`}
-                value={localAliases[player.role] || ""}
-                onChange={(e) => { handleAliasChange(player.role, e.target.value)}}
-                onBlur={(e) => handleAliasBlur(player.role)}
               />
               <Button
                 onClick={() => onRemovePlayer(player.role)}
@@ -177,7 +188,8 @@ const PlayerList: React.FC<PlayerListProps> = ({
               <span className="text-red-500 text-sm">{errors[player.role]}</span>
             }
         </div>
-      ))}
+      );
+    })}
       <div className="mt-4 text-gray-300 text-sm">
         {tournament.can_start
           ? "✅ All players verified — ready to start!"

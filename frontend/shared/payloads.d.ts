@@ -242,6 +242,7 @@ export interface VerifyPlayerPayload {
   role: string;
   username: string;
   password: string;
+  alias: string;
 }
 
 export interface VerifyPlayerResponse {

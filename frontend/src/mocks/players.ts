@@ -1,5 +1,5 @@
 
-interface MockUser {
+export interface MockUser {
   username: string;
   password: string;
   score: number;
