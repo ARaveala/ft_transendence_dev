@@ -1,127 +1,146 @@
 import React, { useState, useEffect } from "react";
-import type { TournamentPlayer } from "../../types/tournament";
+import type { TournamentPlayer, TournamentState } from "../../types/tournament";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
-import { VerifyPlayerPayload, VerifyPlayerResponse } from "../../../shared/payloads";
+import { VerifyPlayerPayload, VerifyPlayerResponse, AddAliasPayload, AddAliasResponse } from "../../../shared/payloads";
 import Button from "../ui/Button";
 
 interface PlayerListProps {
-  players: TournamentPlayer[];
-  onUpdatePlayer: (index: number, updates: Partial<TournamentPlayer>) => void;
-  onValidationChange: (isValid: boolean) => void; // notify parent if tournament can start
-  onRemovePlayer: (index: number) => void;        // remove a player from the list
+  tournament: TournamentState;
+  onTournamentUpdated: (updated: TournamentState) => void; 
+  onRemovePlayer: (role: string) => void;                // remove a player from the list
 }
 
+type LocalAliases = Record<string, string>;
+type LocalErrors = Record<string, string>;
+
 const PlayerList: React.FC<PlayerListProps> = ({
-  players,
-  onUpdatePlayer,
-  onValidationChange,
+  tournament,
+  onTournamentUpdated,
   onRemovePlayer,
  }) => {
   // Keeps track of validation errors per player
-  const [errors, setErrors] = useState<string[]>(Array(players.length).fill(""));
+  const [localUsernames, setLocalUsernames] = useState<Record<string, string>>({});
+  const [localAliases, setLocalAliases] = useState<LocalAliases>({});
+  const [errors, setErrors] = useState<LocalErrors>({});
 
-  /*
-    Validate and update alias for a given player:
-    - Must be at least 5 characters
-    - Must be unique among all players
-   */
-  const handleAliasChange = (index: number, alias: string) => {
-    let error = "";
+  useEffect(() => {
+    const initialAliases: LocalAliases = {};
+    tournament.players.forEach(p => {
+      initialAliases[p.role] = p.alias || "";
+    });
+    setLocalAliases(initialAliases);
+  }, [tournament.players.map(p => p.alias).join("|")]);
 
-    // Check minimum length
-    if (alias.length < 5) {
-      error = "Alias must be at least 5 characters";
+
+  useEffect(() => {
+    const initialUsernames: Record<string, string> = {};
+    tournament.players.forEach(p => {
+      initialUsernames[p.role] = p.username || "";
+    });
+    setLocalUsernames(initialUsernames);
+  }, [tournament.players.map(p => p.username).join("|")]);
+
+
+  const handleUsernameChange = (role: string, username: string) => {
+    setLocalUsernames(prev => ({ ...prev, [role]: username }));
+    const updatedPlayers = tournament.players.map(p =>
+      p.role === role ? { ...p, username } : p
+    );
+    onTournamentUpdated({ ...tournament, players: updatedPlayers });
+  };
+
+  const handleAliasChange = (role: string, alias: string) => {
+
+    setLocalAliases(prev => ({ ...prev, [role]: alias }));
+    // Clear previous error while typing
+    setErrors(prev => ({ ...prev, [role]: "" }));
+  };
+
+
+  const handleAliasBlur = async (role: string) => {
+
+    const alias = localAliases[role] || "";
+ 
+    if (!alias || alias.length < 5) {
+      setErrors(prev => ({ ...prev, [role]: "Alias must be at least 5 characters" }));
+      return;
     }
 
-    // Check uniqueness
-    const duplicate = players.some(
-      (p, i) => i !== index && p.alias.toLowerCase() === alias.toLowerCase()
+    // Ensure uniqueness among all players
+    const duplicate = tournament.players.some(
+      p => p.role !== role && p.alias?.toLowerCase() === alias.toLowerCase()
     );
     if (duplicate) {
-      error = "Alias must be unique";
+      setErrors(prev => ({ ...prev, [role]: "Alias must be unique" }));
+      return;
     }
 
-    // Update error state
-    const newErrors = [...errors];
-    newErrors[index] = error;
-    setErrors(newErrors);
+    try {
+      const payload: AddAliasPayload = { role, alias };
+      const res = await fetch(API_PROTOCOL.ADD_ALIAS.path, {
+        method: API_PROTOCOL.ADD_ALIAS.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
+      const data: AddAliasResponse = await res.json();
 
-    // Only update alias if no error
-    if (!error) {
-      onUpdatePlayer(index, { alias });
+      if (data.status === "OK") {
+        onTournamentUpdated(data.tournament);
+        setErrors(prev => ({ ...prev, [role]: "" }));
+      } else {
+        setErrors(prev => ({ ...prev, [role]: data.error || "Alias invalid" }));
+      }
+    } catch (err) {
+      console.error("Error adding alias:", err);
     }
   };
 
   // Verify player password (not logged in player) against backend API
-  const handlePasswordBlur = async (
-    index: number,
-    username: string,
-    password: string,
-  ) => {
-  if (!password) return;
+  const handleVerifyPlayer = async (role: string, username: string, password: string) => {
+    if (!password) return;
 
-  const payload: VerifyPlayerPayload = { username, password };
-  try {
-    const res = await fetch(API_PROTOCOL.VERIFY_PLAYER.path, {
-      method: API_PROTOCOL.VERIFY_PLAYER.method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const payload: VerifyPlayerPayload = { role, username, password };
+      const res = await fetch(API_PROTOCOL.VERIFY_PLAYER.path, {
+        method: API_PROTOCOL.VERIFY_PLAYER.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
 
-    const data: VerifyPlayerResponse = await res.json();
-    const newErrors = [...errors];
-
-    if (!data.valid) {
-      newErrors[index] = data.error || "Invalid password";
-      onUpdatePlayer(index, { isVerified: false })
-    } else {
-      newErrors[index] = "";
-      onUpdatePlayer(index, { isVerified: true });
-      
+      const data: VerifyPlayerResponse = await res.json();
+      if (data.status === "OK") {
+        onTournamentUpdated(data.tournament);
+        setErrors((prev) => ({ ...prev, [role]: "" }));
+      } else {
+        setErrors((prev) => ({ ...prev, [role]: data.error || "Invalid credentials" }));
+      }
+    } catch (err) {
+      console.error("Error verifying player:", err);
     }
-    setErrors(newErrors);
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-  /* Validation effect:
-    - Runs whenever players or errors change
-    - Ensures that aliases are valid and unique and all other players have been verified
-    - Reports overall status to parent
-  */
-  useEffect(() => {
-    const allValid = players.every((p, i) => {
-      const aliasValid = p.alias && p.alias.length >= 5 && !errors[i];
-      const passwordValid = p.isSelf ? true : p.isVerified;
-      return aliasValid && passwordValid;
-    });
-
-    onValidationChange(allValid);
-  }, [players, errors, onValidationChange]);
+  };
 
   return (
     <div className="space-y-3">
-      {players.map((player, index) => {
-        const passwordError = errors[index];
-        const canEditAlias = true;
-
-        return (
-          <div key={player.username} className="flex flex-col gap-1">
-            <div className="flex gap-2 items-center">
-              <input
-                type="text"
-                value={player.username}
-                readOnly
-                className="p-2 border rounded flex-1 bg-gray-200 text-black"
-              />
+      {tournament.players.map((player) => (
+       <div key={player.role} className="flex flex-col gap-1">
+          <div className="flex gap-2 items-center">
+            {/* Username */}
+            <input
+              type="text"
+              placeholder="Username"
+              value={localUsernames[player.role] || ""}
+              disabled={player.isSelf || player.isVerified}
+              onChange={(e) => handleUsernameChange(player.role, e.target.value)}
+              className="p-2 border rounded flex-1 bg-gray-200 text-black"
+            />
 
                {/* Password */}
               <input
                 type="password"
                 placeholder="Password"
                 disabled={player.isSelf || player.isVerified}
-                value={player.isSelf || player.isVerified ? "********" : undefined}
                 className={`p-2 border rounded flex-1 text-black ${
                   player.isSelf || player.isVerified
                     ? "bg-gray-200 text-gray-400 cursor-not-allowed"
@@ -130,7 +149,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
                 onBlur={(e) => {
                   const typedPassword = e.target.value;
                   if (!player.isSelf && !player.isVerified && typedPassword) {
-                    handlePasswordBlur(index, player.username, typedPassword);
+                    handleVerifyPlayer(player.role, player.username, typedPassword);
                     e.target.value = "";
                   }
                 }}
@@ -140,26 +159,30 @@ const PlayerList: React.FC<PlayerListProps> = ({
               <input
                 type="text"
                 placeholder="Alias"
-                disabled={!canEditAlias}
+                disabled={!player.isVerified}
                 className={`p-2 border rounded flex-1 ${
-                  errors[index] ? "border-red-500" : "border-gray-300"
-                } text-black ${!canEditAlias ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                value={player.alias}
-                onChange={(e) => onUpdatePlayer(index, { alias: e.target.value })}
-                onBlur={(e) => handleAliasChange(index, e.target.value)}
+                  errors[player.role] ? "border-red-500" : "border-gray-300"
+                } text-black`}
+                value={localAliases[player.role] || ""}
+                onChange={(e) => { handleAliasChange(player.role, e.target.value)}}
+                onBlur={(e) => handleAliasBlur(player.role)}
               />
               <Button
-                onClick={() => onRemovePlayer(index)}
+                onClick={() => onRemovePlayer(player.role)}
                 disabled={player.isSelf}>
                   Remove
               </Button>
             </div>
-            {errors[index] &&
-              <span className="text-red-500 text-sm">{errors[index]}</span>
+            {errors[player.role] &&
+              <span className="text-red-500 text-sm">{errors[player.role]}</span>
             }
         </div>
-        );
-      })}
+      ))}
+      <div className="mt-4 text-gray-300 text-sm">
+        {tournament.can_start
+          ? "✅ All players verified — ready to start!"
+          : `Waiting for ${tournament.pending_players ?? 0} players to verify.`}
+      </div>
     </div>
   );
 };

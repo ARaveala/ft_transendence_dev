@@ -1,9 +1,15 @@
-import type { TournamentPlayer } from "../types/tournament";
 
-export const mockRegisteredPlayers: TournamentPlayer[] = [
-  { username: "Delilah", alias: "", status: "waiting", score: 1200, password: "del123" },
-  { username: "Roddy", alias: "", status: "waiting", score: 900, password: "rod123" },
-  { username: "Cheetoh", alias: "", status: "waiting", score: 1050, password: "chee123" },
-  { username: "Barney", alias: "", status: "waiting", score: 1100, password: "bar123" },
-  { username: "Elkie", alias: "", status: "waiting", score: 950, password: "elk123" },
+interface MockUser {
+  username: string;
+  password: string;
+  score: number;
+}
+
+export const mockUsers: MockUser[] = [
+  { username: "Delilah", password: "del123", score: 1200 },
+  { username: "Roddy", password: "rod123", score: 900 },
+  { username: "Cheetoh", password: "chee123", score: 1050 },
+  { username: "Barney", password: "bar123", score: 1100 },
+  { username: "Elkie", password: "elk123", score: 950 },
 ];
+

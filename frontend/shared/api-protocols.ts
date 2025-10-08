@@ -60,6 +60,11 @@ export const API_PROTOCOL = {
     path:'/api/tournament',
     method: 'POST',
   },
+
+  GET_ACTIVE_TOURNAMENT: {
+    path: 'api/tournament/get-active',
+    method: 'GET',
+  },
   
   GET_ALL_REGISTERED_PLAYERS: {
     path: '/api/tournament/search',
@@ -71,14 +76,14 @@ export const API_PROTOCOL = {
   method: 'POST',
   },
 
-  ADD_PLAYER_TO_TOURNAMENT: {
-    path: '/api/tournament/add-player',
+  ADD_ALIAS: {
+    path: '/api/tournament/add-alias',
     method: 'POST',
   },
 
-  REGISTER_PLAYER_ALIAS: {
-    path: "/api/tournament/register-alias",
-    method: "POST",
+  REMOVE_PLAYER_FROM_TOURNAMENT: {
+    path: '/api/tournament/remove-player',
+    method: 'POST',
   },
 
   START_TOURNAMENT: {

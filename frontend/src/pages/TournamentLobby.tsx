@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TournamentHeader from "../components/tournament/TournamentHeader";
 import TournamentBracket from "../components/tournament/TournamentBracket";
 import TournamentSetup from "../components/tournament/TournamentSetup";
 import type { TournamentState, Match } from "../types/tournament";
 import Button from "../components/ui/Button";
 import { API_PROTOCOL } from "../../shared/api-protocols";
-import { CreateTournamentPayload, TournamentStateResponse, StartTournamentMatchPayload, StartTournamentMatchResponse } from "../../shared/payloads";
+import { CreateTournamentPayload, CreateTournamentResponse, StartTournamentMatchPayload, StartTournamentMatchResponse } from "../../shared/payloads";
 
 const TournamentLobby: React.FC = () => {
   const [tournament, setTournament] = useState<TournamentState | null>(null);      // Main tournament state (null means there is no tournament yet)
@@ -18,8 +18,31 @@ const TournamentLobby: React.FC = () => {
    *  Triggered when user clicks "Start a new tournament"
    * - Sends a request to backend
    * - Stores tournament state in React
-   * - Switches UI into setup mode
    */
+
+  useEffect(() => { 
+    const loadTournament = async () => { 
+      try {
+        const res = await fetch(API_PROTOCOL.GET_ACTIVE_TOURNAMENT.path, {
+          method: API_PROTOCOL.GET_ACTIVE_TOURNAMENT.method,
+          credentials: "include",
+        }); 
+        
+        if (res.ok) { 
+          const data: CreateTournamentResponse = await res.json();
+          if (data.status === "OK" && data.tournament) {
+            setTournament(data.tournament);
+            setShowSetup(data.tournament.status === "waiting");
+          }
+        }
+      } catch (err) { 
+        console.error("Error loading existing tournament:", err);
+      }
+    };
+    
+    loadTournament();
+  }, []);
+
   const handleCreateTournament = async () => {
     const payload: CreateTournamentPayload = { max_players: 4 };
     try {
@@ -27,9 +50,10 @@ const TournamentLobby: React.FC = () => {
         method: API_PROTOCOL.CREATE_TOURNAMENT.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        credentials: "include", 
     });
 
-    const data: TournamentStateResponse = await res.json();
+    const data: CreateTournamentResponse = await res.json();
 
     if (data.status === "OK") {
         setTournament(data.tournament);
@@ -125,11 +149,9 @@ const TournamentLobby: React.FC = () => {
       {showSetup && tournament && (
         <TournamentSetup
           tournament={tournament}
-          onTournamentUpdated={(updated) => {
-            setTournament(updated);
-            setShowSetup(false);
+          onTournamentUpdated={(handleTournamentUpdated) => {
           }}
-          onCancel={() => handleCancelTournament}
+          onCancel={handleCancelTournament}
         />
       )}
 

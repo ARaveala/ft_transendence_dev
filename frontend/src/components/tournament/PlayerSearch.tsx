@@ -39,7 +39,7 @@ export const PlayerSearch: React.FC<PlayerSearchProps> = ({
 
 
   /*
-    Adda the currently selected player:
+    Adds the currently selected player:
     - Finds the full player object from `filteredPlayers`
     - Calls `onAddPlayer`
     - Resets selection + search query

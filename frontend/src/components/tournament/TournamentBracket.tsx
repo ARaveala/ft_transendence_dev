@@ -15,6 +15,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
   onStartMatch,
   onCancel
 }) => {
+
   const firstRound = tournament.bracket[0]; // 2 matches with 2 players each
 
   // Final match placeholder (between the 2 winners of round 1)

@@ -208,7 +208,7 @@ export interface CreateTournamentPayload {
   max_players?: number;
 }
 
-export interface TournamentStateResponse {
+export interface CreateTournamentResponse {
   status: 'OK' | 'ERROR';
   error?: string;
   tournament: TournamentState;
@@ -239,12 +239,36 @@ export interface PlayerSearchResponse {
 }
 
 export interface VerifyPlayerPayload {
+  role: string;
   username: string;
   password: string;
 }
 
 export interface VerifyPlayerResponse {
-  valid: boolean;
+  tournament: TournamentState;
+  status: 'OK' | 'ERROR';
+  error?: string;
+}
+
+export interface AddAliasPayload {
+  role: string;
+  alias: string;
+}
+
+export interface AddAliasResponse {
+  tournament: TournamentState;
+  status: 'OK' | 'ERROR';
+  error?: string;
+}
+
+export interface RemovePlayerPayload {
+  tournament_id: string;
+  role: string;
+}
+
+export interface RemovePlayerResponse {
+  tournament: TournamentState;
+  status: 'OK' | 'ERROR';
   error?: string;
 }
 
