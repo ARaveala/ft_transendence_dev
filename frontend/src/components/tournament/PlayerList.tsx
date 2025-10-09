@@ -3,6 +3,7 @@ import type { TournamentPlayer, TournamentState } from "../../types/tournament";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
 import { VerifyPlayerPayload, VerifyPlayerResponse } from "../../../shared/payloads";
 import Button from "../ui/Button";
+import CheckCircle from "../ui/CheckCircle";
 
 interface PlayerListProps {
   tournament: TournamentState;
@@ -10,84 +11,73 @@ interface PlayerListProps {
   onRemovePlayer: (role: string) => void;                // remove a player from the list
 }
 
-type LocalAliases = Record<string, string>;
-type LocalPasswords = Record<string, string>;
-type LocalUsernames = Record<string, string>;
-type LocalErrors = Record<string, string>;
+type PlayerFormData = {
+  username: string;
+  password: string;
+  alias: string;
+};
+
+type FormErrors = Record<string, string>;
+type FormData = Record<string, PlayerFormData>;
 
 const PlayerList: React.FC<PlayerListProps> = ({
   tournament,
   onTournamentUpdated,
   onRemovePlayer,
  }) => {
-  // Keeps track of validation errors per player
-  const [localUsernames, setLocalUsernames] = useState<LocalUsernames>({});
-  const [localPasswords, setLocalPasswords] = useState<LocalPasswords>({});
-  const [localAliases, setLocalAliases] = useState<LocalAliases>({});
-  const [errors, setErrors] = useState<LocalErrors>({});
+  const [formData, setFormData] = useState<FormData>({});
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [loading, setLoading] = useState<string | null>(null);
+  const [isEditingAlias, setIsEditingAlias] = useState<boolean>(false);
 
   useEffect(() => {
-    const initialAliases: LocalAliases = {};
+    const initialFormData: FormData = {};
     tournament.players.forEach(p => {
-      initialAliases[p.role] = p.alias || "";
+      initialFormData[p.role] = {
+        username: p.username || "",
+        password: "",
+        alias: p.alias || "",
+      };
     });
-    setLocalAliases(initialAliases);
-  }, [tournament.players.map(p => p.alias).join("|")]);
+    setFormData(initialFormData);
+  }, [tournament.players.map(p => p.role).join("|")]);
 
-
-  useEffect(() => {
-    const initialUsernames: Record<string, string> = {};
-    tournament.players.forEach(p => {
-      initialUsernames[p.role] = p.username || "";
-    });
-    setLocalUsernames(initialUsernames);
-  }, [tournament.players.map(p => p.username).join("|")]);
-
-  useEffect(() => {
-    const initialPasswords: Record<string, string> = {};
-    tournament.players.forEach(p => {
-      initialPasswords[p.role] = "";
-    });
-    setLocalPasswords(initialPasswords);
-  }, [tournament.players.map(p => p.username).join("|")]);
-
-
-  const handleUsernameChange = (role: string, username: string) => {
-    setLocalUsernames(prev => ({ ...prev, [role]: username }));
-  };
-
-  const handleAliasChange = (role: string, alias: string) => {
-    setLocalAliases(prev => ({ ...prev, [role]: alias }));
-    // Clear previous error while typing
+  const updateField = (role: string, field: keyof PlayerFormData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [role]: {
+        ...prev[role],
+        [field]: value
+      }
+    }));
+    // Clear error when user types
     setErrors(prev => ({ ...prev, [role]: "" }));
   };
 
-  const handlePasswordChange = (role: string, password: string) => {
-    setLocalPasswords(prev => ({ ...prev, [role]: password }));
-    // Clear previous error while typing
-    setErrors(prev => ({ ...prev, [role]: "" }));
-  };
+  const isFormComplete = (role: string, player: any): boolean => {
+    const data = formData[role];
+    if (!data) return false;
 
-  const handleVerifyPlayer = async (
-    role: string,
-    username: string,
-    password: string,
-    alias: string
-  ) => {
- 
-    if (!username || !password || !alias) {
-        setErrors(prev => ({ ...prev, [role]: "All three fields are required." }));
-        return;
+    if (player.isSelf) {
+      return !!(data.alias);
     }
 
-    if (alias.length < 5) {
+    return !!(data.username && data.password && data.alias);
+  };
+
+  const handleAddPlayer = async (role: string, player: TournamentPlayer) => {
+    const data = formData[role];
+    if (!data) return;
+
+    // Frontend validation
+    if (data.alias.length < 5) {
       setErrors(prev => ({ ...prev, [role]: "Alias must be at least 5 characters" }));
       return;
     }
 
-    // Ensure uniqueness among all players
+    // Check alias uniqueness among verified players
     const duplicate = tournament.players.some(
-      p => p.role !== role && p.alias?.toLowerCase() === alias.toLowerCase()
+      p => p.role !== role && p.isVerified && p.alias?.toLowerCase() === data.alias.toLowerCase()
     );
     if (duplicate) {
       setErrors(prev => ({ ...prev, [role]: "Alias must be unique" }));
@@ -95,7 +85,15 @@ const PlayerList: React.FC<PlayerListProps> = ({
     }
 
     try {
-      const payload: VerifyPlayerPayload = { role, username, password, alias };
+      setLoading(role);
+
+      const payload: VerifyPlayerPayload = {
+        role,
+        username: player.isSelf ? player.username : data.username,
+        password: player.isSelf ? "" : data.password,
+        alias: data.alias
+      };
+
       const res = await fetch(API_PROTOCOL.VERIFY_PLAYER.path, {
         method: API_PROTOCOL.VERIFY_PLAYER.method,
         headers: { "Content-Type": "application/json" },
@@ -103,66 +101,103 @@ const PlayerList: React.FC<PlayerListProps> = ({
         credentials: "include",
       });
 
-      const data: VerifyPlayerResponse = await res.json();
-      if (data.status === "OK") {
-        onTournamentUpdated(data.tournament);
-        setLocalPasswords(prev => {
-            const newState = { ...prev };
-            delete newState[role]; 
-            return newState;
+      const response: VerifyPlayerResponse = await res.json();
+
+      if (response.status === "OK" && response.tournament) {
+        if (player.isSelf) {
+            // Exit editing mode for the self-player on success
+            setIsEditingAlias(false);
+        }
+
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[role];
+          return newErrors;
         });
-        
+        onTournamentUpdated(response.tournament);
       } else {
-        setErrors((prev) => ({ ...prev, [role]: data.error || "Invalid credentials" }));
+        setErrors(prev => ({
+          ...prev,
+          [role]: response.error || "Invalid credentials or alias."
+        }));
       }
     } catch (err) {
       console.error("Error verifying player:", err);
+      setErrors(prev => ({
+        ...prev,
+        [role]: "Network error. Please try again."
+      }));
+    } finally {
+      setLoading(null);
     }
+  };
+
+  const handleRemovePlayer = async (role: string) => {
+      // Clear all local state for the removed player's slot
+      setFormData(prev => {
+        const newState = { ...prev };
+        // Clears username, password, and alias fields
+        newState[role] = { username: "", password: "", alias: "" }; 
+        return newState;
+      });
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[role];
+        return newErrors;
+      });
+
+      onRemovePlayer(role);
   };
 
   return (
     <div className="space-y-3">
       {tournament.players.map((player) => {
         const role = player.role;
-        const username = localUsernames[role] || player.username || "";
-        const password = localPasswords[role] || "";
-        const alias = localAliases[role] || "";
+        const isVerified = player.isVerified;
+        const isCurrentlyLoading = loading === role;
+        const isSelfVerifiedButLocked = player.isSelf && isVerified && !isEditingAlias;
+        const isOtherPlayerLocked = !player.isSelf && isVerified;
+        const isAliasLocked = isOtherPlayerLocked || isSelfVerifiedButLocked; 
 
-        const isEditable = !player.isSelf && !player.isVerified;
+        const data = formData[role] || { username: "", password: "", alias: "" };
 
         return (
-          <div key={player.role} className="flex flex-col gap-1">
+          <div
+            key={role}
+            className="flex items-center gap-2">
+              <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center">
+                {isVerified && (
+                  <span className="w-4 h-4 rounded-full bg-green-500 text-white text-[0.4rem] font-bold flex items-center justify-center">
+                    ✔
+                  </span>
+                )}
+            </span>
+            
             <div className="flex gap-2 items-center">
-
               {/* Username */}
               <input
                 type="text"
                 placeholder="Username"
-                disabled={player.isSelf || player.isVerified}
-                value={username}
-                onChange={(e) => handleUsernameChange(role, e.target.value)}
+                disabled={player.isSelf || isVerified}
+                value={player.isSelf || isVerified ? player.username : data.username}
+                onChange={(e) => updateField(role, "username", e.target.value)}
                 className={`p-2 border rounded flex-1 ${
-                player.isSelf || player.isVerified
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-white text-black"
+                  player.isSelf || isVerified
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-black"
                 }`}
               />
 
-               {/* Password */}
+              {/* Password */}
               <input
                 type="password"
                 placeholder="Password"
-                disabled={!isEditable} 
-                value={password}
-                onChange={(e) => handlePasswordChange(role, e.target.value)} 
-                onBlur={() => {
-                if (!isEditable && password) {
-                  handleVerifyPlayer(role, username, password, alias);
-                  }
-                }}
+                disabled={player.isSelf || isVerified}
+                value={player.isSelf || isVerified ? "********" : data.password}
+                onChange={(e) => updateField(role, "password", e.target.value)}
                 className={`p-2 border rounded flex-1 ${
-                  !isEditable
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  player.isSelf || isVerified
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                     : "bg-white text-black"
                 }`}
               />
@@ -171,32 +206,73 @@ const PlayerList: React.FC<PlayerListProps> = ({
               <input
                 type="text"
                 placeholder="Alias"
-                disabled={player.isVerified}
-                value={alias}
-                onChange={(e) => { handleAliasChange(role, e.target.value)}}
+                disabled={isAliasLocked}
+                value={data.alias || player.alias || ""}
+                onChange={(e) => updateField(role, "alias", e.target.value)}
                 className={`p-2 border rounded flex-1 ${
-                  errors[player.role] ? "border-red-500" : "border-gray-300"
-                } text-black`}
+                  errors[role] ? "border-red-500" : "border-gray-300"
+                } ${
+                  isAliasLocked
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-black"
+                }`}
               />
-              <Button
-                onClick={() => onRemovePlayer(player.role)}
-                disabled={player.isSelf}>
-                  Remove
-              </Button>
-            </div>
-            {errors[player.role] &&
-              <span className="text-red-500 text-sm">{errors[player.role]}</span>
-            }
-        </div>
-      );
-    })}
-      <div className="mt-4 text-gray-300 text-sm">
-        {tournament.can_start
-          ? "✅ All players verified — ready to start!"
-          : `Waiting for ${tournament.pending_players ?? 0} players to verify.`}
-      </div>
-    </div>
-  );
-};
 
-export default PlayerList;
+              {/* Action Buttons */}
+              {!player.isSelf && !isVerified && (
+                <Button
+                  onClick={() => handleAddPlayer(role, player)}
+                  disabled={!isFormComplete(role, player) || isCurrentlyLoading}
+                >
+                  {isCurrentlyLoading ? "Adding..." : "Add Player"}
+                </Button>
+              )}
+
+              {isVerified && !player.isSelf && (
+                <Button
+                  onClick={() => handleRemovePlayer(role)} disabled={isCurrentlyLoading}>
+                  Remove
+                </Button>
+              )}
+
+              {player.isSelf && (
+                <div className="flex items-center gap-2">
+
+                  {/* Set/Edit Alias button */}
+                  <Button
+                    onClick={() => {
+                     if (isVerified && !isEditingAlias) {
+                      setIsEditingAlias(true);
+                    }
+                    // If UNVERIFIED or ALREADY EDITING, click to SAVE
+                    else {
+                      handleAddPlayer(role, player);
+                    }
+                    }}
+                    disabled={isCurrentlyLoading || (isEditingAlias && !isFormComplete(role, player))}
+                    className="min-w-[6.3rem]"
+                  >
+                    {isCurrentlyLoading
+                      ? "Saving..."
+                      : !isVerified
+                      ? "Set Alias"
+                      : isEditingAlias // If verified, check if editing
+                      ? "Save Alias" 
+                      : "Edit Alias"}
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Error Message */}
+            {errors[role] && (
+              <span className="text-red-500 text-sm ml-2">
+                {errors[role]}
+              </span>
+            )}
+
+          </div>
+        );
+      })}
+    </div>
+  )};  export default PlayerList;

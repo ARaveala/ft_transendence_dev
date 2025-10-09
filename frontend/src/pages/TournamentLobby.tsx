@@ -149,8 +149,7 @@ const TournamentLobby: React.FC = () => {
       {showSetup && tournament && (
         <TournamentSetup
           tournament={tournament}
-          onTournamentUpdated={(handleTournamentUpdated) => {
-          }}
+          onTournamentUpdated={handleTournamentUpdated}
           onCancel={handleCancelTournament}
         />
       )}

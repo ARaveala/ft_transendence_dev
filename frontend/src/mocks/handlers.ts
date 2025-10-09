@@ -6,7 +6,7 @@ import avatar3 from "../assets/avatars/avatar3.png";
 import { http, HttpResponse } from "msw";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile, PlayerPayload } from "../../shared/payloads";
-import type { AddAliasPayload, AddAliasResponse, StartTournamentPayload, StartTournamentResponse, VerifyPlayerPayload, VerifyPlayerResponse } from "../../shared/payloads";
+import type { RemovePlayerPayload, RemovePlayerResponse, StartTournamentPayload, StartTournamentResponse, VerifyPlayerPayload, VerifyPlayerResponse } from "../../shared/payloads";
 import type { TournamentPlayer, Match, TournamentState } from "../types/tournament";
 import { TBD_PLAYER } from "../../shared/constants";
 import { mockUsers, MockUser } from "./players";
@@ -108,18 +108,8 @@ export const handlers = [
   // Mock for password verification
   http.post(API_PROTOCOL.VERIFY_PLAYER.path, async ({ request }) => {
     const body = (await request.json()) as VerifyPlayerPayload;
-    const { role, username, password } = body;
+    const { role, username, password, alias } = body;
     const storedUser = (mockUsers as MockUser[]).find((p) => p.username === username);
-
-    if (!storedUser) {
-      const res: VerifyPlayerResponse = { status: "ERROR", error: "Player not found", tournament: currentTournament! };
-      return HttpResponse.json(res, { status: 200 });
-    }
-
-    if (password !== storedUser.password) {
-      const res: VerifyPlayerResponse = { status: "ERROR", error: "Invalid password", tournament: currentTournament! };
-      return HttpResponse.json(res, { status: 200 }); // Return 200 for internal validation error
-    }
 
     if (!currentTournament) {
       return HttpResponse.json(
@@ -127,6 +117,57 @@ export const handlers = [
         { status: 400 }
       );
     }
+    
+     const selfPlayer = currentTournament.players.find(p => p.isSelf);
+     const isSelf = selfPlayer && username === selfPlayer.username;
+
+    if (!alias || alias.trim().length < 5) {
+    const res: VerifyPlayerResponse = { 
+      status: "ERROR",
+      error: "Alias must be at least 5 characters",
+      tournament: currentTournament
+    };
+    return HttpResponse.json(res, { status: 200 });
+  }
+
+    // Alias uniqueness check
+    const duplicate = currentTournament.players.some(
+      p => p.alias?.toLowerCase() === alias.toLowerCase() && p.role !== role
+    );
+    if (duplicate) {
+      const res: VerifyPlayerResponse = { 
+        status: "ERROR",
+        error: "Alias already taken",
+        tournament: currentTournament
+      };
+      return HttpResponse.json(res, { status: 200 });
+    }
+
+    if (!isSelf) {
+    // Normal player verification
+      const storedUser = (mockUsers as MockUser[]).find((p) => p.username === username);
+      if (!storedUser) {
+        const res: VerifyPlayerResponse = { 
+          status: "ERROR",
+          error: "Player not found",
+          tournament: currentTournament
+        };
+        return HttpResponse.json(res, { status: 200 });
+      }
+
+      if (password !== storedUser.password) {
+        const res: VerifyPlayerResponse = {
+          status: "ERROR",
+          error: "Invalid password",
+          tournament: currentTournament
+        };
+        return HttpResponse.json(res, { status: 200 });
+      }
+    } else {
+    // Logged-in player (skip password check)
+    console.log("Mock: self alias verification for", username);
+  }
+
   const updatedPlayers = [...currentTournament.players];
   const existingIndex = updatedPlayers.findIndex((p) => p.role === role);
 
@@ -134,6 +175,7 @@ export const handlers = [
     updatedPlayers[existingIndex] = {
       ...updatedPlayers[existingIndex],
       username,
+      alias,
       status: "ready",
       isVerified: true,
       role,
@@ -143,23 +185,32 @@ export const handlers = [
     // Add new player if not found
     updatedPlayers.push({
       username,
-      alias: "",
+      alias,
       status: "ready",
       isVerified: true,
-      isSelf: false,
+      isSelf: isSelf || false,
       role,
       score: 0,
     });
   }
 
-  // 4️⃣ Update tournament
+  const verifiedCount = updatedPlayers.filter(p => p.isVerified).length;
+  const totalPlayers = updatedPlayers.length;
+  const pendingPlayers = totalPlayers - verifiedCount;
+  const canStart = pendingPlayers === 0 && totalPlayers === 4;
+
+  // Update tournament
   currentTournament = {
     ...currentTournament,
     players: updatedPlayers,
+    pending_players: pendingPlayers,
+    can_start: canStart,
     lastUpdated: new Date(),
   };
 
-  // 5️⃣ Return updated tournament state
+  console.log('Mock: Player verified', { role, username, alias, canStart, pendingPlayers });
+
+  // Return updated tournament state
   const res: VerifyPlayerResponse = {
     status: "OK",
     tournament: currentTournament,
@@ -167,6 +218,48 @@ export const handlers = [
 
   return HttpResponse.json(res, { status: 200 });
 }),
+
+  // Mock for removing a player from the tournament
+  http.post(API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.path, async ({ request }) => {
+    const body = await request.json() as RemovePlayerPayload;
+    const { tournament_id, role } = body;
+
+    if (!currentTournament || currentTournament.tournament_id !== tournament_id) {
+      return HttpResponse.json({
+        status: "ERROR",
+        error: "Tournament not found",
+      }, { status: 400 });
+    }
+
+    // Remove the player
+    const updatedPlayers = currentTournament.players.filter(p => p.role !== role);
+
+    // Recalculate pending players and can_start
+    const verifiedCount = updatedPlayers.filter(p => p.isVerified).length;
+    const totalPlayers = updatedPlayers.length;
+    const pendingPlayers = totalPlayers - verifiedCount;
+    const canStart = pendingPlayers === 0 && totalPlayers === 4;
+
+    // Update the tournament state
+    currentTournament = {
+      ...currentTournament,
+      players: updatedPlayers,
+      pending_players: pendingPlayers,
+      can_start: canStart,
+      lastUpdated: new Date(),
+    };
+
+  console.log('Mock: Player removed', { role, canStart, pendingPlayers });
+
+  // Return updated tournament
+  const res: RemovePlayerResponse = {
+    status: "OK",
+    tournament: currentTournament,
+  };
+
+  return HttpResponse.json(res, { status: 200 });
+}),
+
 
   // Mock for adding/updating a player's alias
   http.post(API_PROTOCOL.ADD_ALIAS.path, async ({ request }) => {
@@ -229,7 +322,7 @@ export const handlers = [
         status: "ready",
         score: 0,
         isSelf: true,
-        isVerified: true,
+        isVerified: false,
       },
       { username: "", alias: "", role: "player2", status: "waiting", score: 0, isVerified: false },
       { username: "", alias: "", role: "player3", status: "waiting", score: 0, isVerified: false },
