@@ -356,6 +356,22 @@ export interface ChangePasswordResponse {
 	error?: string;
 }
 
+export interface ChangeTwoFactorPayload {
+	twoFactor: boolean;
+}
+
+export interface ChangeTwoFactorResponse {
+	status: 'UPDATED' | 'ERROR';
+	twoFactor?: boolean;
+	error?: string;
+}
+
+export interface UploadAvatarResponse {
+	status: 'UPLOADED' | 'ERROR';
+	url?: string;
+	error?: string;
+}
+
 // over websocket??
 
 export interface TournamentFinished {

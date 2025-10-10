@@ -16,13 +16,14 @@ function handleGreet(ws, data){
 		ws.send('Hello back!');
 }
 
-function startLoop(ws, gameState) {
+function startLoop(ws, gameState, player1, player2) {
 	ws.send(JSON.stringify({type: "update_game", data: gameState.positions}));
 	gameState.loop = setInterval(() => {
-		updateGame(gameState);
+		if (updateGame(gameState, player1, player2) == 1)
+			ws.send(JSON.stringify({type: "update_score", player1_score: player1.score, player2_score: player2.score}));
 		ws.send(JSON.stringify({type: "update_game", data: gameState.positions}));
 	}, 1000 / gameState.fps);
-			
+
 }
 
 /**
@@ -34,10 +35,10 @@ const player1Token = jwt.sign(
 );
  */
 
-// each player must send their own init 
+// each player must send their own init
 function initPlayer(ws, token) {
   //console.log("CHEKCING:: initplayer is getting players", Array.from(players.entries()));
-  const session = verifyToken(token)//n(token, gameId); own fucntion here 
+  const session = verifyToken(token)//n(token, gameId); own fucntion here
 	console.log("whats in session", session);
   if (!session) {
     ws.send(JSON.stringify({ error: 'Invalid session' }));
@@ -49,7 +50,7 @@ function initPlayer(ws, token) {
   console.log("player inited");
 //  ws.send(JSON.stringify({ status: 'connected ', playerId: session.playerId }));
 }
-//once both players have connected front end sends yes and we start the game 
+//once both players have connected front end sends yes and we start the game
 
 function attachPlayerToGame(ws, session) {
 	//const game = getGame(session.gameId);
@@ -78,8 +79,8 @@ function attachPlayerToGame(ws, session) {
 function getGameContext(ws, data, playerinit) {
     if (!playerinit) return undefined;
 
-    const gameId = ws.gameId;// || Number(data.gameId); // i would like to remove the need for this at all for saftey 
-    const game = getGame(gameId);
+	const gameId = ws ? ws.gameId || Number(data.gameId) : Number(data.gameId);
+	const game = getGame(gameId);
     if (!game) return undefined;
 
     return {

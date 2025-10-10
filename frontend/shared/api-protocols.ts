@@ -46,6 +46,11 @@ export const API_PROTOCOL = {
     method: 'GET',
   },
 
+  REMOVE_FRIEND: {
+	  path: '/api//friends/remove',
+	  method: 'POST'
+  },
+
   GET_PLAYER: {
     path: '/api/player',
     method: 'GET',
@@ -141,8 +146,17 @@ export const API_PROTOCOL = {
   CHANGE_AVATAR: {
 	  path: '/api/profile/avatar',
 	  method: 'PATCH',
-  }
+  },
 
+  UPLOAD_AVATAR: {
+	  path: '/api/profile/avatar',
+	  method: 'POST',
+  },
+
+  CHANGE_2FA: {
+	  path: '/api/profile/2fa',
+	  method: 'POST',
+  }
 
 } as const;
 

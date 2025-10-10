@@ -7,19 +7,19 @@ function createGameState() {
 	height: 1,
 	width: 1,
 	ballSize: 1,
-	paddleSize: 1,
+	paddleHeight: 1,
+	paddleWidth: 1,
 	paddleOffset: 1,
 
-	// these can be changed
-	paddleSpeed: 10,
-	ballSpeed: 2,
+	// get overwritten by routes/game.js
+	paddleSpeed: 0,
+	ballSpeed: 0,
 
 	// indices in positions array for easier reading
 	leftPaddleI: 0,
 	rightPaddleI: 1,
 	ballYI: 2,
 	ballXI: 3,
-
 
 	// positions = [paddle1, paddle2, ballY, ballX]
 	// get overwritten depending on browser window size
@@ -38,7 +38,8 @@ function initGame(state, settings) {
 	state.height = settings.height;
 	state.width = settings.width;
 	state.ballSize = settings.ballSize;
-	state.paddleSize = settings.paddleSize;
+	state.paddleHeight = settings.paddleHeight;
+	state.paddleWidth = settings.paddleWidth;
 	state.paddleOffset = settings.paddleOffset;
 	state.positions = [
 		state.paddleOffset,
@@ -52,62 +53,123 @@ function initGame(state, settings) {
 }
 
 function updateKeys(state, keys) {
-  state.keysDown = keys;
+	state.keysDown = keys;
 }
 
-function updateGame(state) {
+function updateGame(state, player1, player2) {
+
+	// Move paddles
+	if (state.keysDown[0]) state.positions[state.leftPaddleI] -= state.paddleSpeed;
+	if (state.keysDown[1]) state.positions[state.leftPaddleI] += state.paddleSpeed;
+	if (state.keysDown[2]) state.positions[state.rightPaddleI] -= state.paddleSpeed;
+	if (state.keysDown[3]) state.positions[state.rightPaddleI] += state.paddleSpeed;
+
+	// moving paddles would be always possible
 	if (!state.gameRunning) return;
 
-	// calculate delta for smooth rendering
-	const now = Date.now();
-	const delta = (now - state.lastUpdate) / 1000;
-	state.lastUpdate = now;
-	//console.log('keys', state.keysDown, 'p1', state.positions[0], 'p2', state.positions[1]);
-
-	const speedFactor = delta * state.fps; // tried to slow down ball
-	// Move paddles
-	if (state.keysDown[0]) state.positions[state.leftPaddleI] -= state.paddleSpeed;// * speedFactor;
-	if (state.keysDown[1]) state.positions[state.leftPaddleI] += state.paddleSpeed;// * speedFactor;
-	if (state.keysDown[2]) state.positions[state.rightPaddleI] -= state.paddleSpeed;// * speedFactor;
-	if (state.keysDown[3]) state.positions[state.rightPaddleI] += state.paddleSpeed;// * speedFactor;
-
-	// keep inside bounds
-	// subtract paddleSize to keep the bottom inside window
-	state.positions[state.leftPaddleI] = Math.max(0, Math.min(state.height - state.paddleSize, state.positions[state.leftPaddleI]));
-	state.positions[state.rightPaddleI] = Math.max(0, Math.min(state.height - state.paddleSize, state.positions[state.rightPaddleI]));
+	// keep inside bounds by clamping
+	// subtract paddleHeight to keep the bottom inside window
+	state.positions[state.leftPaddleI] = Math.max(0, Math.min(state.height - state.paddleHeight, state.positions[state.leftPaddleI]));
+	state.positions[state.rightPaddleI] = Math.max(0, Math.min(state.height - state.paddleHeight, state.positions[state.rightPaddleI]));
 
 	// move ball
-	state.positions[state.ballYI] += state.ball.dy * state.ballSpeed;//  * speedFactor;
-	state.positions[state.ballXI] += state.ball.dx * state.ballSpeed;//  * speedFactor;
+	state.positions[state.ballYI] += state.ball.dy * state.ballSpeed;
+	state.positions[state.ballXI] += state.ball.dx * state.ballSpeed;
 
 	// check bounds and make it bounce
 	// add ballSize to get the balls right side
 	if (state.positions[state.ballYI] <= 0 || state.positions[state.ballYI] + state.ballSize >= state.height)
+	{
+		// bounce
 		state.ball.dy = -state.ball.dy;
 
-	if (state.positions[state.ballXI] <= 0 || state.positions[state.ballXI] + state.ballSize >= state.width)
-		state.gameRunning = false; // somebody won
+		// if goes through top or bot wall, move it to prevent it getting stuck
+		state.positions[state.ballYI] = state.positions[state.ballYI] <= 0 ? 0 : state.height - state.ballSize;
+	}
 
-	if (ballHitsPaddle(state, state.leftPaddleI) || ballHitsPaddle(state, state.rightPaddleI))
-		state.ball.dx = -state.ball.dx;
+
+	if (state.positions[state.ballXI] <= 0)
+	{
+		player2.score++;
+		state.gameRunning = false;
+		return 1;
+	}
+	if (state.positions[state.ballXI] + state.ballSize >= state.width)
+	{
+		player1.score++;
+		state.gameRunning = false;
+		return 1;
+	}
+
+	if (ballHitsPaddle(state, state.leftPaddleI))
+	{
+		bounceBallOffPaddle(state, state.leftPaddleI);
+
+		// prevent ball getting stuck
+		// ball cannot change direction towards left
+		// the ball could enter the paddle from top or bottom, bouncing there like crazy
+		// this fix is not perfect, it can look weird when it hits the top or bottom in a certain angle
+		if (state.ball.dx < 0)
+			state.ball.dx = -state.ball.dx;
+	}
+
+	if (ballHitsPaddle(state, state.rightPaddleI))
+	{
+		bounceBallOffPaddle(state, state.rightPaddleI);
+
+		// keep ball outside of paddle, preventing it getting stuck
+		// ball cannot change direction towards right
+		if (state.ball.dx > 0)
+			state.ball.dx = -state.ball.dx;
+	}
+	return 0;
 }
 
 function ballHitsPaddle(state, paddleIndex) {
-	const { positions, paddleOffset, width, paddleSize, ballSize } = state;
+	const { positions, paddleOffset, width, paddleHeight, paddleWidth, ballSize } = state;
 
-	// Horizontal check
-	if (positions[state.ballXI] > paddleOffset && // left side of ball is not left enough to hit
-		positions[state.ballXI] + ballSize < width - paddleOffset)  // right side of ball is not right enough to hit
+	const ballCenterY = positions[state.ballYI] + ballSize / 2;
+	const ballCenterX = positions[state.ballXI] + ballSize / 2;
+
+	const paddleY = positions[paddleIndex];
+	const paddleX = paddleIndex === state.leftPaddleI
+					? paddleOffset
+					: width - paddleOffset - paddleWidth;
+
+	// clamp ball coordinates with paddle coordinates to find closest point
+	const closestY = Math.max(paddleY, Math.min(ballCenterY, paddleY + paddleHeight));
+	const closestX = Math.max(paddleX, Math.min(ballCenterX, paddleX + paddleWidth));
+
+	// calculate distance from ball center to closest point
+	// if it is shorter than ball radius, it is a collision
+	const dy = ballCenterY - closestY;
+	const dx = ballCenterX - closestX;
+	const r = ballSize / 2;
+	const distance_squared = dx * dx + dy * dy;
+	if (distance_squared > r * r) // distance is squared so square radius, no sqrt needed
 		return false;
-
-	// Vertical check
-	if (positions[state.ballYI] > positions[paddleIndex] + paddleSize || // top of ball goes under paddles bottom
-		positions[state.ballYI] + ballSize < positions[paddleIndex]) // bottom of ball goes over top of paddle
-			return false;
 
 	return true;
 }
 
+function bounceBallOffPaddle(state, paddleIndex) {
+	const ballCenterY = state.positions[state.ballYI] + state.ballSize / 2;
+
+	const relativeY = (ballCenterY - (state.positions[paddleIndex] + state.paddleHeight / 2)) / (state.paddleHeight / 2);
+	const maxBounceAngle = Math.PI / 4;
+
+	// Current speed of the ball
+	const speed = Math.sqrt(state.ball.dx * state.ball.dx + state.ball.dy * state.ball.dy);
+
+	// Flip direction
+	state.ball.dx = -state.ball.dx;
+
+	// Adjust vertical velocity based on hit position
+	state.ball.dy = speed * Math.sin(relativeY * maxBounceAngle);
+
+	// Adjust horizontal velocity to maintain total speed
+	state.ball.dx = Math.sign(state.ball.dx) * Math.sqrt(speed * speed - state.ball.dy * state.ball.dy);
+}
 
 module.exports = {
 	createGameState,

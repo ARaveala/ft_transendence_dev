@@ -76,7 +76,7 @@ function setUpWebSockets(server) {
 					player.disconnectedAt = Date.now();
 					console.log("Player disconnected:", player);
 				//	player.ws = null;
-					handleMessage(undefined, { type: "pause"});
+					handleMessage(undefined, { type: "pause", playerId: ws.playerId, gameId: ws.gameId });
 					
 				//	// Pause game logic if needed
 				player.pauseTimeout = setTimeout(() => {
@@ -93,7 +93,6 @@ function setUpWebSockets(server) {
 			});
 			ws.send(JSON.stringify({type: 'welcome', msg: 'Welcome to the WebSocket server!'}));
 		});
-
 
 }
 

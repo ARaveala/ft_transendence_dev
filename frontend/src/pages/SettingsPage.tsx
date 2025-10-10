@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useTranslation } from "../shared/Translation";
 import type {
@@ -9,6 +9,9 @@ import type {
 	ChangePasswordPayload,
 	ChangePasswordResponse,
 	UpdateProfilePayload,
+	ChangeTwoFactorPayload,
+	ChangeTwoFactorResponse,
+	UploadAvatarResponse,
 } from "../../shared/payloads";
 import avatar1 from "../assets/avatars/avatar1.png";
 import avatar2 from "../assets/avatars/avatar2.png";
@@ -17,7 +20,7 @@ import avatar4 from "../assets/avatars/avatar4.png";
 
 const availableAvatars = [avatar1, avatar2, avatar3, avatar4];
 
-type Row = "language" | "username" | "password" | "avatar" | null;
+type Row = "language" | "username" | "password" | "avatar" | "twofa" | null;
 
 const SettingsPage: React.FC = () => {
 	const { t, setLang } = useTranslation();
@@ -37,11 +40,55 @@ const SettingsPage: React.FC = () => {
 	const [newPassword, setNewPassword] = useState("");
 	const [confirmNewPassword, setConfirmNewPassword] = useState("");
 	const [selectedAvatar, setSelectedAvatar] = useState<string>(availableAvatars[0]);
+	const [currentAvatar, setCurrentAvatar] = useState<string | null>(null);
+	const [avatarDirty, setAvatarDirty] = useState(false);
+
+	//Upload avatar
+	const [uploadFile, setUploadFile] = useState<File | null>(null);
+	const [uploadPreview, setUploadPreview] = useState<string | null>(null);
+	const [uploadBusy, setUploadBusy] = useState(false);
+	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	// 2FA state
+	const [twoFactor, setTwoFactor] = useState<boolean>(false);
+	const [loadingTwoFA, setLoadingTwoFA] = useState<boolean>(false);
 
 	// Delete Profile state
 	const [deleting, setDeleting] = useState(false);
 	const [deleted, setDeleted] = useState(false);
 	const [deleteError, setDeleteError] = useState<string | null>(null);
+
+	//Preload current 2FA status
+	useEffect(() => {
+		let cancelled = false;
+		async function preloadTwoFA() {
+			try {
+				setLoadingTwoFA(true);
+				const res = await fetch(API_PROTOCOL.GET_PROFILE.path, {
+					method: API_PROTOCOL.GET_PROFILE.method,
+					headers: { "Content-Type": "application/json" },
+				});
+				if (!res.ok) return;
+
+				const data = await res.json();
+				if (!cancelled && typeof data?.twoFactor === "boolean") {
+					setTwoFactor(data.twoFactor);
+				}
+
+				if (!cancelled) {
+					const serverAvatar = (data?.avatarFile || data?.avatar) as string | undefined;
+					if (serverAvatar) {
+						setCurrentAvatar(serverAvatar);
+						setSelectedAvatar(serverAvatar);
+					}
+				}
+			} finally {
+				if (!cancelled) setLoadingTwoFA(false);
+			}
+		}
+		preloadTwoFA();
+		return () => { cancelled = true; };
+	}, []);
 
 	// Clear forms
 	function resetUsernameForm() {
@@ -55,7 +102,18 @@ const SettingsPage: React.FC = () => {
 	}
 
 	function resetAvatarForm() {
-		setSelectedAvatar(availableAvatars[0]);
+		try {
+			if (uploadPreview && uploadPreview.startsWith("blob:")) {
+				URL.revokeObjectURL(uploadPreview);
+			}
+		} catch (_) { }
+
+		setUploadPreview(null);
+		setUploadFile(null);
+		if (fileInputRef.current) fileInputRef.current.value = "";
+		if (selectedAvatar !== currentAvatar) {
+			setSelectedAvatar(currentAvatar ?? availableAvatars[0]);
+		}
 	}
 
 	function closeAndReset(row: Exclude<Row, null>) {
@@ -65,12 +123,25 @@ const SettingsPage: React.FC = () => {
 		setOpenRow(null);
 	}
 
+	function onCancelAvatar() {
+		if (avatarDirty) {
+			resetAvatarForm();
+		}
+		setOpenRow(null);
+	}
+
 	// Set row state (if same row clicked again, it closes it)
 	function toggle(row: Exclude<Row, null>) {
 		setMsg(null);
 		setErr(null);
+
+		if (openRow === "avatar" && row !== "avatar") {
+			if (avatarDirty) resetAvatarForm();
+		}
+
 		if (openRow === row) {
-			closeAndReset(row);
+			if (row === "avatar" && avatarDirty) resetAvatarForm();
+			setOpenRow(null);
 			return;
 		}
 
@@ -78,7 +149,83 @@ const SettingsPage: React.FC = () => {
 		if (openRow === "password") resetPasswordForm();
 		if (openRow === "avatar") resetAvatarForm();
 
+		if (row === "avatar") {
+			if (currentAvatar) setSelectedAvatar(currentAvatar);
+			setAvatarDirty(false);
+		}
+
 		setOpenRow(row);
+	}
+
+	// Upload avatar
+	function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
+		const f = e.target.files?.[0] || null;
+		setMsg(null);
+		setErr(null);
+		if (uploadPreview && uploadPreview.startsWith("blob:")) URL.revokeObjectURL(uploadPreview);
+
+		if (!f) {
+			setUploadFile(null);
+			setUploadPreview(null);
+			markAvatarDirty(selectedAvatar, null, null);
+			return;
+		}
+
+		const okType = ["image/png", "image/jpeg", "image/webp"].includes(f.type);
+		if (!okType) { 
+			setErr(t("error.avatarType"));
+			setUploadFile(null);
+			setUploadPreview(null);
+			if (fileInputRef.current) fileInputRef.current.value = "";
+			markAvatarDirty(selectedAvatar, null, null);
+			return; 
+		}
+
+		const maxBytes = 2 * 1024 * 1024;
+		if (f.size > maxBytes) {
+			setErr(t("error.avatarTooLarge"));
+			setUploadFile(null);
+			setUploadPreview(null);
+			if (fileInputRef.current) fileInputRef.current.value = "";
+			markAvatarDirty(selectedAvatar, null, null);
+			resetFileInput();
+			return;
+		}
+
+		const url = URL.createObjectURL(f);
+		setUploadFile(f);
+		setUploadPreview(url);
+		markAvatarDirty(selectedAvatar, f, url);
+	}
+
+	function clearPickedFile() {
+		if (uploadPreview && uploadPreview.startsWith("blob:")) {
+			URL.revokeObjectURL(uploadPreview);
+		}
+		setUploadPreview(null);
+		setUploadFile(null);
+		if (fileInputRef.current) fileInputRef.current.value = "";
+		markAvatarDirty(selectedAvatar, null, null);
+	}
+
+	function resetFileInput() {
+		if (fileInputRef.current) {
+			fileInputRef.current.value = "";
+		}
+	}
+
+	function onCancelAvatarClick() {
+		resetAvatarForm();
+		setOpenRow(null);
+	}
+
+	function markAvatarDirty(
+		nextSelected= selectedAvatar,
+		nextUploadFile: File | null = uploadFile,
+		nextUploadPreview = uploadPreview
+	) {
+		const hasBlobPreview = !!nextUploadPreview && nextUploadPreview.startsWith("blob:");
+		setAvatarDirty(nextSelected !== currentAvatar || !!nextUploadFile || hasBlobPreview);
 	}
 
 	async function saveLanguage() {
@@ -166,17 +313,83 @@ const SettingsPage: React.FC = () => {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
 			const payload: UpdateProfilePayload = { avatar: selectedAvatar };
-			const res = await fetch(API_PROTOCOL.UPDATE_PROFILE.path, {
-				method: API_PROTOCOL.UPDATE_PROFILE.method,
+			const res = await fetch(API_PROTOCOL.CHANGE_AVATAR.path, {
+				method: API_PROTOCOL.CHANGE_AVATAR.method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update avatar.");
 
+			setCurrentAvatar(selectedAvatar);
+			if (uploadPreview) {
+				if (uploadPreview.startsWith("blob:")) URL.revokeObjectURL(uploadPreview);
+				setUploadPreview(null);
+			}
+			setUploadFile(null);
+			if (fileInputRef.current) fileInputRef.current.value = "";
 			setMsg(t("common.avatarUpdated"));
-			closeAndReset("avatar");
+			setOpenRow(null);
 		} catch (e: any) {
 			setErr(e?.message || "Could not update avatar.");
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	async function uploadAvatarFile() {
+		if (!uploadFile) return;
+		setUploadBusy(true);
+		setErr(null);
+		setMsg(null);
+		try {
+			const fd = new FormData();
+			fd.append("file", uploadFile); //backend read file
+
+			const res = await fetch(API_PROTOCOL.UPLOAD_AVATAR.path, {
+				method: API_PROTOCOL.UPLOAD_AVATAR.method,
+				body: fd,
+			});
+			if (!res.ok) throw new Error("Failed to upload avatar.");
+
+			const data = (await res.json()) as UploadAvatarResponse;
+			if (data.status !== "UPLOADED" || !data.url) throw new Error(data.error || "Upload failed.");
+
+			setSelectedAvatar(data.url);
+			setCurrentAvatar(data.url);
+			setUploadPreview(data.url);
+			setUploadFile(null);
+			if (fileInputRef.current) fileInputRef.current.value= "";
+
+			setAvatarDirty(false);
+			setMsg(t("common.avatarUpdated"));
+			setOpenRow(null);
+		} catch (e: any) {
+			setErr(e?.message || "Could not upload avatar.");
+		} finally {
+			setUploadBusy(false);
+		}
+	}
+
+	async function saveTwoFactor() {
+		setBusy(true);
+		setMsg(null);
+		setErr(null);
+		try {
+			const payload: ChangeTwoFactorPayload = { twoFactor };
+			const res = await fetch(API_PROTOCOL.CHANGE_2FA.path, {
+				method: API_PROTOCOL.CHANGE_2FA.method,
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+			});
+			if (!res.ok) throw new Error("Failed to update 2FA.");
+			
+			const data = (await res.json()) as ChangeTwoFactorResponse;
+			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update 2FA.");
+
+			setMsg(twoFactor ? t("common.twofaEnabled") : t("common.twofaDisabled"));
+			setOpenRow(null);
+		} catch (e: any) {
+			setErr(e?.message || "Could not change 2FA.");
 		} finally {
 			setBusy(false);
 		}
@@ -185,12 +398,10 @@ const SettingsPage: React.FC = () => {
 	async function handleDeleteProfile() {
 		setDeleting(true);
 		setDeleteError(null);
-		console.log('in delete profile front end ');
 		try {
 			const res = await fetch(API_PROTOCOL.DELETE_PROFILE.path, {
 				method: API_PROTOCOL.DELETE_PROFILE.method,
-				//headers: { "Content-Type": "application/json" },
-				credentials: "include", // include cookies in request
+				headers: { "Content-Type": "application/json" },
 			});
 			if (!res.ok) throw new Error("Failed to delete profile.");
 
@@ -201,6 +412,8 @@ const SettingsPage: React.FC = () => {
 			setDeleting(false);
 		}
 	}
+
+	const previewSrc = uploadPreview || selectedAvatar || currentAvatar || null;
 				
 	return (
 		<div className="p-6 max-w-4xl mx-auto">
@@ -217,12 +430,12 @@ const SettingsPage: React.FC = () => {
 					label={t("settings.changeLanguage")}
 					onClick={() => toggle("language")}
 				/>
-				{openRow == "language" && (
+				{openRow === "language" && (
 					<div className="px-4 pt-3 pb-4">
 						<label className="block mb-2 text-sm">{t("settings.languageSelect")}</label>
 						<select
 							value={language}
-							onChange={(e) => setLanguage(e.target.value)}
+							onChange={(e) => setLanguage(e.target.value as "en" | "fi" | "sv")}
 							className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm"
 						>
 							<option value="en">{t("lang.english")}</option>
@@ -241,7 +454,7 @@ const SettingsPage: React.FC = () => {
 					label={t("settings.changeUsername")}
 					onClick={() => toggle("username")}
 				/>
-				{openRow == "username" && (
+				{openRow === "username" && (
 					<div className="px-4 pt-3 pb-4">
 						<label className="block mb-2 text-sm">{t("settings.usernameEnter")}</label>
 						<input
@@ -302,12 +515,59 @@ const SettingsPage: React.FC = () => {
 				{openRow === "avatar" && (
 					<div className="px-4 pt-3 pb-4">
 						<label className="block mb-2 text-sm">{t("settings.avatarSelect")}</label>
+
+						<div className="mb-3">
+							<label className="block mb-1 text-sm">{t("settings.avatarCustomAvatar")}</label>
+							<input
+								ref={fileInputRef}
+								type="file"
+								accept="image/png,image/jpeg,image/webp"
+								onChange={onPickFile}
+								className="text-sm"
+							/>
+
+							<div className="mt-2 flex items-center gap-3">
+								{previewSrc ? (
+									<img
+										src={previewSrc}
+										alt="Preview"
+										className="w-16 h-16 rounded-full border border-gray-700"
+										onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+									/>
+								) : (
+									<div className="w-16 h-16 rounded-full border border-gray-700" />
+								)}
+								<button
+									type="button"
+									onClick={clearPickedFile}
+									className="px-3 py-1.5 text-sm rounded-md text-white bg-gray-700 hover:bg-gray-600"
+								>
+									{t("common.clear")}
+								</button>
+								<button
+									type="button"
+									onClick={uploadAvatarFile}
+									disabled={!uploadFile || uploadBusy}
+									className={
+										"px-3 py-1.5 text-sm rounded-md text-white " +
+										(uploadBusy ? "bg-blue-400 cursor-wait" : "bg-blue-600 hover:bg-blue-700")
+									}
+								>
+									{t("common.upload")}
+								</button>
+							</div>
+
+							<p className="mt-1 text-xs text-gray-400">{t("settings.avatarUploadHint")}</p>
+						</div>
+
+						{/* Built-in avatar */}
+						<p className="text-sm mb-2">{t("settings.avatarBuiltIn")}</p>
 						<div className="grid grid-cols-4 gap-3">
 							{availableAvatars.map((av) => (
 								<button
 									key={av}
 									type="button"
-									onClick={() => setSelectedAvatar(av)}
+									onClick={() => { setSelectedAvatar(av); setAvatarDirty(av !== currentAvatar); }}
 									className={
 										"rounded-lg p-1 border " +
 										(selectedAvatar === av ? "border-blue-500" : "border-gray-700")
@@ -323,12 +583,44 @@ const SettingsPage: React.FC = () => {
 							))}
 						</div>
 						<div className="mt-3 flex gap-2">
-							<PrimaryTiny onClick={saveAvatar} disabled={busy}>{t("common.save")}</PrimaryTiny>
-							<SecondaryTiny onClick={() => closeAndReset("avatar")} disabled={busy}>{t("common.cancel")}</SecondaryTiny>
+							<PrimaryTiny onClick={saveAvatar} disabled={busy || uploadBusy}>{t("common.save")}</PrimaryTiny>
+							<SecondaryTiny
+								onClick={onCancelAvatarClick} disabled={busy || uploadBusy}>{t("common.cancel")}</SecondaryTiny>
 						</div>
 					</div>
 				)}
+
+				{/* 2FA row */}
+				<SettingButton
+					label={t("settings.change2fa")}
+					onClick={() => toggle("twofa")}
+				/>
+				{openRow === "twofa" && (
+					<div className="px-4 pt-3 pb-4">
+						<label className="block mb-2 text-sm">{t("settings.twofaDescription")}</label>
+
+						<label className="inline-flex items-center gap-2">
+							<input
+								type="checkbox"
+								checked={twoFactor}
+								onChange={() => setTwoFactor((v) => !v)}
+								disabled={busy || loadingTwoFA}
+							/>
+							<span className="text-sm">{t("settings.twofaLabel")}</span>
+						</label>
+
+						<div className="mt-3 flex gap-2">
+							<PrimaryTiny onClick={saveTwoFactor} disabled={busy || loadingTwoFA}>
+								{t("common.save")}
+							</PrimaryTiny>
+							<SecondaryTiny onClick={() => setOpenRow(null)} disabled={busy}>
+								{t("common.cancel")}
+							</SecondaryTiny>
+						</div>
+					</div>
+				)}	
 			</section>
+
 			{/* Danger Zone */}
 			<section className="mt-6 border border-red-500/30 bg-red-900/10 rounded-lg p-4">
 				<h2 className="text-red-400 font-semibold mb-2">{t("settings.danger")}</h2>
