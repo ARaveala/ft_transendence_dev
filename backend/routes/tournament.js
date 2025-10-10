@@ -1,22 +1,4 @@
-//  CREATE_TOURNAMENT: {
-//    path:'/tournament',
-//    method: 'POST',
-//  },
-//
-//  JOIN_TOURNAMENT: {
-//    path:'/tournament/:id/join',
-//    method: 'POST',
-//  },
-//
-//  START_TOURNAMENT: {
-//    path:'/tournament/:id/start',
-//    method: 'POST',
-//  },
-//
-//  TOURNAMENT_STATE: {
-//    path: '/tournament/:id/state',
-//    method: 'POST',
-//  }
+
 
 
 async function createTournament(fastify, options) {

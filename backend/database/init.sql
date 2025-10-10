@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS users
 CREATE TABLE IF NOT EXISTS friends (
     user_id INTEGER NOT NULL,
     friend_id INTEGER NOT NULL,
-	status, TEXT NOT NULL DEFAULT 'pending',
+	status TEXT NOT NULL DEFAULT 'pending',
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (friend_id) REFERENCES users(id),
     PRIMARY KEY (user_id, friend_id) -- ensures no duplicate friendships
@@ -30,18 +30,31 @@ CREATE TABLE IF NOT EXISTS friends (
 -- do we want to add if game was 1v1 or tournament ?
 -- no match key as we want to use this to build leaderboard
 -- leaderboard should not have same player twice , if user has top score , next score is another user
-CREATE TABLE matches (
-	user_id INTEGER NOT NULL,
-	match_index INTEGER NOT NULL, -- 0 to 9
-	result TEXT NOT NULL,
-	opponent_type TEXT NOT NULL DEFAULT 'user',
-	opponent_id INTEGER, -- null if ai or guest
-	score INTEGER NOT NULL DEFAULT 0,
-	timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	PRIMARY KEY (user_id, match_index),
-	FOREIGN KEY (user_id) REFERENCES users(id),
-	FOREIGN KEY (opponent_id) REFERENCES users(id)
+CREATE TABLE IF NOT EXISTS games
+(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tournament_id INTEGER,--deleted on game over?
+    p1_id INTEGER,
+    p2_id INTEGER,
+    p1_score INTEGER NOT NULL DEFAULT 0,
+    p2_score INTEGER NOT NULL DEFAULT 0,
+    CHECK (p1_id <> p2_id),
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+    FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE SET NULL
 );
+-- CREATE TABLE matches (
+-- 	user_id INTEGER NOT NULL,
+-- 	match_index INTEGER NOT NULL, -- 0 to 9
+-- 	result TEXT NOT NULL,
+-- 	opponent_type TEXT NOT NULL DEFAULT 'user',
+-- 	opponent_id INTEGER, -- null if ai or guest
+-- 	score INTEGER NOT NULL DEFAULT 0,
+-- 	timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-- 	PRIMARY KEY (user_id, match_index),
+-- 	FOREIGN KEY (user_id) REFERENCES users(id),
+-- 	FOREIGN KEY (opponent_id) REFERENCES users(id)
+-- );
 
 --///just eg 
 --CREATE TABLE IF NOT EXISTS matches (
@@ -58,20 +71,30 @@ CREATE TABLE matches (
 --    FOREIGN KEY (tournament_id) REFERENCES tournaments(id)
 --);
 
--- tournament table?
-CREATE TABLE IF NOT EXISTS games
-(
+-- tournament table
+CREATE TABLE IF NOT EXISTS tournaments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tournament_id INTEGER,--deleted on game over?
-    p1_id INTEGER,
-    p2_id INTEGER,
-    p1_score INTEGER NOT NULL DEFAULT 0,
-    p2_score INTEGER NOT NULL DEFAULT 0,
-    CHECK (p1_id <> p2_id),
-    FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
-    FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE SET NULL
+    status TEXT NOT NULL DEFAULT 'pending',
+        CHECK (status IN ('pending', 'active', 'completed')),
+    winner_id INTEGER,
+    FOREING KEY (winner_id) REFERENCES tournament_players(id) ON DELETE SET NULL
 );
+
+CREATE TABLE IF NOT  EXISTS tournament_players (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tournament_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    alias TEXT NOT NULL,
+    seed INTEGER NOT NULL CHECK (seed BETWEEN 1 AND 4),
+    UNIQUE (tournament_id, user_id, alias),
+    FOREING KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+    FOREING KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    
+);
+
+ALTER TABLE games ADD COLUMN round INTEGER;
+ALTER TABLE games ADD COLUMN bracket_pos INTEGER;
+-- ALTER TABLE games ADD COLUMN status TEXT NOT NULL DEFAULT ''
 
 -- leaderboard table to track user rankings
 -- this avoids scanning the entire users/matchHistory table for rankings
