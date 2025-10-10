@@ -214,6 +214,17 @@ export interface CreateTournamentResponse {
   tournament: TournamentState;
 }
 
+export interface GetActiveTournamentPayload {
+}
+
+export interface GetActiveTournamentResponse {
+  status: 'OK' | 'ERROR';
+  error?: string;
+  tournament: TournamentState;
+}
+
+GET_ACTIVE_TOURNAMENT
+
 // type used in frontend
 
 /*export interface TournamentState {
@@ -227,17 +238,6 @@ export interface CreateTournamentResponse {
   lastUpdated?: Date
 } */
 
-export interface PlayerSearchRequest {
-  query?: string;           // optional search term (used for search bar)
-  excludeIds?: string[];    // optional: players already added to the tournament
-}
-
-export interface PlayerSearchResponse {
-  status: 'OK' | 'ERROR';
-  error?: string;
-  players: TournamentPlayer[]; // filtered list of players
-}
-
 export interface VerifyPlayerPayload {
   role: string;
   username: string;
@@ -246,17 +246,6 @@ export interface VerifyPlayerPayload {
 }
 
 export interface VerifyPlayerResponse {
-  tournament: TournamentState;
-  status: 'OK' | 'ERROR';
-  error?: string;
-}
-
-export interface AddAliasPayload {
-  role: string;
-  alias: string;
-}
-
-export interface AddAliasResponse {
   tournament: TournamentState;
   status: 'OK' | 'ERROR';
   error?: string;

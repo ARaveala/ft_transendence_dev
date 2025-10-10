@@ -5,7 +5,7 @@ import TournamentSetup from "../components/tournament/TournamentSetup";
 import type { TournamentState, Match } from "../types/tournament";
 import Button from "../components/ui/Button";
 import { API_PROTOCOL } from "../../shared/api-protocols";
-import { CreateTournamentPayload, CreateTournamentResponse, StartTournamentMatchPayload, StartTournamentMatchResponse } from "../../shared/payloads";
+import { CreateTournamentPayload, CreateTournamentResponse, GetActiveTournamentResponse, StartTournamentMatchPayload, StartTournamentMatchResponse } from "../../shared/payloads";
 
 const TournamentLobby: React.FC = () => {
   const [tournament, setTournament] = useState<TournamentState | null>(null);      // Main tournament state (null means there is no tournament yet)
@@ -20,7 +20,6 @@ const TournamentLobby: React.FC = () => {
    * - Stores tournament state in React
    */
 
-  useEffect(() => { 
     const loadTournament = async () => { 
       try {
         const res = await fetch(API_PROTOCOL.GET_ACTIVE_TOURNAMENT.path, {
@@ -29,19 +28,26 @@ const TournamentLobby: React.FC = () => {
         }); 
         
         if (res.ok) { 
-          const data: CreateTournamentResponse = await res.json();
+          const data: GetActiveTournamentResponse = await res.json();
           if (data.status === "OK" && data.tournament) {
             setTournament(data.tournament);
             setShowSetup(data.tournament.status === "waiting");
-          }
+          } else {
+              setTournament(null);
+              setShowSetup(false);
+        }
         }
       } catch (err) { 
         console.error("Error loading existing tournament:", err);
+        setTournament(null);
+        setShowSetup(false);
       }
     };
     
-    loadTournament();
-  }, []);
+    useEffect(() => {
+      loadTournament();
+    }, []);
+
 
   const handleCreateTournament = async () => {
     const payload: CreateTournamentPayload = { max_players: 4 };

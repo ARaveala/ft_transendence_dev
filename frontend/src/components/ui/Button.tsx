@@ -12,8 +12,8 @@ const Button: React.FC<ButtonProps> = ({ children, onClick, disabled, className 
     <button
       className={`inline-flex items-center justify-center px-3 py-1 rounded text-white 
         ${disabled
-          ? "bg-gray-400 cursor-not-allowed"
-          : "bg-blue-600 hover:bg-blue-800"}
+          ? "bg-gray-600 cursor-not-allowed"
+          : "bg-blue-700 hover:bg-blue-800"}
         ${className}
         `}
       onClick={onClick}

@@ -215,7 +215,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
                 )}
             </span>
             
-            <div className="flex gap-2 items-center">
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
               {/* Username */}
               <input
                 type="text"
@@ -225,8 +225,8 @@ const PlayerList: React.FC<PlayerListProps> = ({
                 onChange={(e) => updateField(role, "username", e.target.value)}
                 className={`p-2 border rounded flex-1 ${
                   player.isSelf || isVerified
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-black"
+                    ? "bg-gray-900 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-900 text-white"
                 }`}
               />
 
@@ -239,8 +239,8 @@ const PlayerList: React.FC<PlayerListProps> = ({
                 onChange={(e) => updateField(role, "password", e.target.value)}
                 className={`p-2 border rounded flex-1 ${
                   player.isSelf || isVerified
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-black"
+                    ? "bg-gray-900 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-900 text-white"
                 }`}
               />
 
@@ -259,8 +259,8 @@ const PlayerList: React.FC<PlayerListProps> = ({
                   errors[role] ? "border-red-500" : "border-gray-300"
                 } ${
                   isAliasLocked
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-black"
+                    ? "bg-gray-900 text-white cursor-not-allowed"
+                    : "bg-gray-900 text-white"
                 }`}
               />
 
@@ -269,6 +269,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
                 <Button
                   onClick={() => handleAddPlayer(role, player)}
                   disabled={!isFormComplete(role, player) || isCurrentlyLoading}
+                  className="min-w-[6.3rem]"
                 >
                   {isCurrentlyLoading ? "Adding..." : "Add Player"}
                 </Button>

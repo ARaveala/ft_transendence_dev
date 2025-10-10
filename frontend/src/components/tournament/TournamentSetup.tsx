@@ -132,7 +132,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({
   return (
     <div className="mt-10 space-y-6">
       <div>
-        <p className="text-gray-300 mb-4">Players in Tournament</p>
+        <p className="text-gray-300 mb-4 ml-7">Players in Tournament</p>
 
         <PlayerList
           tournament={tournament}
@@ -141,7 +141,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({
         />
       </div>
 
-      <div className="flex gap-4 mt-6">
+      <div className="flex gap-4 mt-6 ml-7">
         <Button onClick={onCancel} disabled={loading}>
           Cancel tournament
         </Button>

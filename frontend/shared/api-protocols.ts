@@ -71,19 +71,9 @@ export const API_PROTOCOL = {
     method: 'GET',
   },
   
-  GET_ALL_REGISTERED_PLAYERS: {
-    path: '/api/tournament/search',
-    method: 'GET'
-  },
-
   VERIFY_PLAYER: {
   path: '/api/tournament/verify-player',
   method: 'POST',
-  },
-
-  ADD_ALIAS: {
-    path: '/api/tournament/add-alias',
-    method: 'POST',
   },
 
   REMOVE_PLAYER_FROM_TOURNAMENT: {

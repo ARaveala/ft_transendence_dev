@@ -18,6 +18,7 @@ import type {
 	UpdateProfileResponse,
 } from "../../shared/payloads";
 
+const tournamentsByToken: Record<string, TournamentState> = {};
 
 const mockProfile: UserProfile = {
   user_id: "123",
@@ -128,8 +129,8 @@ export const handlers = [
             const newAvatar = body?.avatar as string | undefined;
             if (!newAvatar) {
                     return HttpResponse.json(
-                            { status: "ERROR", error: "no avatar" } satisfies UpdateProfileRespon$
-                            { status: 400 }, 
+                            { status: "ERROR", error: "no avatar" } satisfies UpdateProfileResponse,
+                            { status: 400 },
                     );
             }
             mockProfile.avatarFile = newAvatar;
@@ -162,7 +163,7 @@ export const handlers = [
             const MAX = 2 * 1024 * 1024;
             if (file.size > MAX) {
                     return HttpResponse.json(
-                            { status: "ERROR", error: "too large" } satisfies UploadAvatarRespons$
+                            { status: "ERROR", error: "too large" } satisfies UploadAvatarResponse,
                             { status: 413 }
                     );
             }
@@ -192,10 +193,10 @@ export const handlers = [
             if (friendId) {
                     if (mockFriends.some((f) => f.user_id === friendId)) {
                         return HttpResponse.json(
-                            { status: "ADDED", friend: mockFriends.find(f => f.user_id === friend$
+                            { status: "ADDED", friend: mockFriends.find(f => f.user_id === friendId) },
                             { status: 200 }
                     );
-            } 
+            }
                 
             toAdd = {
                     user_id: friendId,
@@ -222,7 +223,7 @@ export const handlers = [
                 
         mockFriends.push(toAdd);
         return HttpResponse.json(
-            { status: "ADDED", friend: toAdd },    
+            { status: "ADDED", friend: toAdd },
             { status: 200 }
         );
     }),
@@ -255,7 +256,7 @@ export const handlers = [
     );
   }),
 
-  // Mock for password verification
+  // Mock for player verification
   http.post(API_PROTOCOL.VERIFY_PLAYER.path, async ({ request }) => {
     const body = (await request.json()) as VerifyPlayerPayload;
     const { role, username, password, alias } = body;
@@ -414,52 +415,6 @@ export const handlers = [
   return HttpResponse.json(res, { status: 200 });
 }),
 
-
-  // Mock for adding/updating a player's alias
-  http.post(API_PROTOCOL.ADD_ALIAS.path, async ({ request }) => {
-    const body = (await request.json()) as AddAliasPayload;
-    const { role, alias } = body;
-
-    // Alias must be at least 5 characters
-    if (!alias || alias.length < 5) {
-      const res: AddAliasResponse = { 
-        status: "ERROR", 
-        error: "Alias must be at least 5 characters",
-        tournament: currentTournament!, 
-      };
-      return HttpResponse.json(res, { status: 200 });
-    }
-
-    // Check for uniqueness among tournament players
-    const duplicate = currentTournament?.players.some(
-      (p) => p.role !== role && p.alias?.toLowerCase() === alias.toLowerCase()
-    );
-    if (duplicate) {
-      const res: AddAliasResponse = { 
-        status: "ERROR", 
-        error: "Alias must be unique",
-        tournament: currentTournament!,
-      };
-      return HttpResponse.json(res, { status: 200 });
-    }
-
-    // Update the alias for the specified player
-    currentTournament = {
-      ...currentTournament!,
-      players: currentTournament!.players.map((p) =>
-        p.role === role ? { ...p, alias } : p
-      ),
-    };
-
-  const res: AddAliasResponse = {
-    status: "OK",
-    tournament: currentTournament!,
-  };
-
-  return HttpResponse.json(res, { status: 200 });
-}),
-
-
   // Mock for creating a new tournament
   http.post(API_PROTOCOL.CREATE_TOURNAMENT.path, async ({ request }) => {
   const tournamentId = "tour-" + Date.now();
@@ -488,11 +443,31 @@ export const handlers = [
   };
 
   currentTournament = tournament;
+  tournamentsByToken["localP1"] = tournament;
 
   return HttpResponse.json(
     { status: "OK", tournament },
     { status: 200 }
   );
+  }),
+
+  // Mock for getting active tournament (upon refresh)
+  http.get(API_PROTOCOL.GET_ACTIVE_TOURNAMENT.path, async ({ request }) => {
+    
+    const playerToken = request.headers.get("Authorization") || "localP1";
+    const tournament = tournamentsByToken[playerToken];
+
+    if (!tournament) {
+      return HttpResponse.json(
+        { status: "ERROR", error: "No active tournament for this player" },
+        { status: 200 }
+      );
+    }
+
+    return HttpResponse.json(
+      { status: "OK", tournament },
+      { status: 200 }
+    );
   }),
 
   // Mock for starting a tournament
