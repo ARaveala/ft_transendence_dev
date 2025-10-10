@@ -275,12 +275,6 @@ export interface RemovePlayerResponse {
 
 export interface StartTournamentPayload {
   tournament_id: string;
-  players: {
-    username: string;
-    alias: string;
-    isSelf?: boolean;
-    isVerified?: boolean;
-  }[];
 }
 
 export interface StartTournamentResponse {

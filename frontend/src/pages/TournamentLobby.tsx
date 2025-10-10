@@ -72,6 +72,10 @@ const TournamentLobby: React.FC = () => {
    */
   const handleTournamentUpdated = (updated: TournamentState) => {
     setTournament(updated);
+
+    if (updated.status === "ongoing") {
+      setShowSetup(false);
+    }
   };
 
   const handleCancelTournament = async () => {

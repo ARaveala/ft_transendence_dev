@@ -16,7 +16,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
   onCancel
 }) => {
 
-  const firstRound = tournament.bracket[0]; // 2 matches with 2 players each
+  const firstRound = tournament.bracket?.[0] ?? [];// 2 matches with 2 players each
 
   // Final match placeholder (between the 2 winners of round 1)
   const finalMatch: Match = {
@@ -79,11 +79,11 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
       
         {/* Vertical line down from final player1 center */}
         <svg width="2" height="50" className="absolute top-12 left-20">
-          <line x1="1" y1="0" x2="1" y2="50" stroke="#374151" strokeWidth="2" />
+          <line x1="1" y1="0" x2="1" y2="26" stroke="#374151" strokeWidth="2" />
         </svg>
         {/* Vertical line down from final player2 center */}
         <svg width="2" height="50" className="absolute top-12 right-20">
-          <line x1="1" y1="0" x2="1" y2="50" stroke="#374151" strokeWidth="2" />
+          <line x1="1" y1="0" x2="1" y2="26" stroke="#374151" strokeWidth="2" />
         </svg>
     </div>
 

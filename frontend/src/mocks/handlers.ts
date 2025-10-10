@@ -232,7 +232,11 @@ export const handlers = [
     }
 
     // Remove the player
-    const updatedPlayers = currentTournament.players.filter(p => p.role !== role);
+    const updatedPlayers = currentTournament.players.map(p =>
+      p.role === role
+        ? { ...p, username: "", alias: "", isVerified: false, status: "waiting" }
+        : p
+    );
 
     // Recalculate pending players and can_start
     const verifiedCount = updatedPlayers.filter(p => p.isVerified).length;
@@ -343,28 +347,10 @@ export const handlers = [
 
   // Mock for starting a tournament
   http.post(API_PROTOCOL.START_TOURNAMENT.path, async ({ request }) => {
-
     const payload = (await request.json()) as StartTournamentPayload;
 
-    if (!payload.players || payload.players.length < 4) {
-      const res: StartTournamentResponse = {
-        status: "ERROR",
-        error: "Need 4 players to start",
-        tournament: currentTournament,
-      };
-      return HttpResponse.json(res, { status: 400 });
-    }
-
-    const fullPlayers: TournamentPlayer[] = payload.players.map((p, index) => ({
-      username: p.username,
-      alias: p.alias,
-      isSelf: p.isSelf || false,
-      isVerified: p.isVerified || false,
-      role: `player${index + 1}`,
-      status: 'ready',
-      score: 0,
-    }));
-
+    const fullPlayers = currentTournament?.players || [];
+    
     // First round matches
     const firstRound: Match[] = [
       {

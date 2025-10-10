@@ -60,14 +60,10 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({
   const handleStartTournament = async () => {
     if (!tournament) return;
 
-  const payload: StartTournamentPayload = {
+    const payload: StartTournamentPayload = {
       tournament_id: tournament.tournament_id,
-      players: tournament.players.map(p => ({
-        username: p.username,
-        alias: p.alias,
-        isSelf: p.isSelf,
-    })),
-  };
+    };
+
     try {
       setLoading(true);
       const res = await fetch(API_PROTOCOL.START_TOURNAMENT.path, {
@@ -84,30 +80,30 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({
         return;
       }
 
-  // Builds bracket structure: first round + placeholders for later rounds
-  const firstRound = data.tournament.bracket[0];
+    // Builds bracket structure: first round + placeholders for later rounds
+    const firstRound = data.tournament.bracket[0];
 
-  const bracket: Match[][] = [
-    firstRound,
-    firstRound.map(() => ({
-      match_id: "tbd",
-      player1: { ...TBD_PLAYER },
-      player2: { ...TBD_PLAYER },
-      winner: { ...TBD_PLAYER },
-      status: "pending",
-      score: { player1: 0, player2: 0 },
-    })),
-      [
-      {
-        match_id: "tbd-final",
+    const bracket: Match[][] = [
+      firstRound,
+      firstRound.map(() => ({
+        match_id: "tbd",
         player1: { ...TBD_PLAYER },
         player2: { ...TBD_PLAYER },
         winner: { ...TBD_PLAYER },
         status: "pending",
         score: { player1: 0, player2: 0 },
-      },
-    ],
-  ];
+      })),
+        [
+        {
+          match_id: "tbd-final",
+          player1: { ...TBD_PLAYER },
+          player2: { ...TBD_PLAYER },
+          winner: { ...TBD_PLAYER },
+          status: "pending",
+          score: { player1: 0, player2: 0 },
+        },
+      ],
+    ];
 
    // Constructs TournamentState and notifies parent
     const updatedTournament: TournamentState = {
