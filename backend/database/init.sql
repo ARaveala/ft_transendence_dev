@@ -1,3 +1,6 @@
+
+PRAGMA foreign_keys = ON;
+
 CREATE TABLE IF NOT EXISTS users
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -74,10 +77,10 @@ CREATE TABLE IF NOT EXISTS games
 -- tournament table
 CREATE TABLE IF NOT EXISTS tournaments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    status TEXT NOT NULL DEFAULT 'pending',
-        CHECK (status IN ('pending', 'active', 'completed')),
+    status TEXT NOT NULL DEFAULT 'waiting',
+        CHECK (status IN ('waiting', 'ongoing', 'finished')),
     winner_id INTEGER,
-    FOREING KEY (winner_id) REFERENCES tournament_players(id) ON DELETE SET NULL
+    FOREIGN KEY (winner_id) REFERENCES tournament_players(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT  EXISTS tournament_players (
@@ -86,15 +89,20 @@ CREATE TABLE IF NOT  EXISTS tournament_players (
     user_id INTEGER NOT NULL,
     alias TEXT NOT NULL,
     seed INTEGER NOT NULL CHECK (seed BETWEEN 1 AND 4),
-    UNIQUE (tournament_id, user_id, alias),
-    FOREING KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
-    FOREING KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    UNIQUE (tournament_id, user_id),
+    UNIQUE (tournament_id, alias)
+    UNIQUE (tournament_id, seed),
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     
 );
 
 ALTER TABLE games ADD COLUMN round INTEGER;
 ALTER TABLE games ADD COLUMN bracket_pos INTEGER;
--- ALTER TABLE games ADD COLUMN status TEXT NOT NULL DEFAULT ''
+ALTER TABLE games ADD COLUMN status TEXT NOT NULL DEFAULT 'waiting'
+    CHECK (status IN ('waiting', 'ongoing', 'finished'));
+ALTER TABLE games ADD COLUMN winner_id INTEGER;
+
 
 -- leaderboard table to track user rankings
 -- this avoids scanning the entire users/matchHistory table for rankings
