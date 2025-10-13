@@ -21,6 +21,17 @@
 # CMD ["node", "server.js"]
 
 # --- build/runtime image ---
+# FROM node:20-alpine
+# WORKDIR /app
+# COPY package*.json ./
+# RUN npm ci --omit=dev
+# RUN apk add --no-cache sqlite
+# COPY . .
+# RUN mkdir -p /app/data
+# ENV NODE_ENV=production DB_DIR=/app/data DB_FILE=app.sqlite INIT_SQL=/app/database/init.sql
+# EXPOSE 3000
+# CMD ["node", "server.js"]
+
 FROM node:20-bookworm-slim
 
 WORKDIR /app

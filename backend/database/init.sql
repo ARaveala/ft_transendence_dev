@@ -24,10 +24,12 @@ CREATE TABLE IF NOT EXISTS friends (
     user_id INTEGER NOT NULL,
     friend_id INTEGER NOT NULL,
 	status TEXT NOT NULL DEFAULT 'pending',
+    CHECK (user_id <> friend_id),
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (friend_id) REFERENCES users(id),
     PRIMARY KEY (user_id, friend_id) -- ensures no duplicate friendships
 );
+CREATE INDEX IF NOT EXISTS idx_friend_friend_id ON friends(friend_id);
 
 
 -- do we want to add if game was 1v1 or tournament ?
