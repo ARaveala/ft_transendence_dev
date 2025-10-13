@@ -15,8 +15,12 @@ const Profile: React.FC = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [twoFactor, setTwoFactor] = useState(false);
 
-const [selectedAvatar, setSelectedAvatar] = useState<string>
+  const [selectedAvatar, setSelectedAvatar] = useState<string>
   (profile?.avatarFile || defaultAvatar);
+
+  //2FA states
+  const [qrCode, setQrCode] = useState<string | null>(null); // qrcode image
+  const [otp, setOtp] = useState<string>(""); //the 6 digit code the user types
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -31,15 +35,100 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
         }
 
         setProfile(data);
-        setTwoFactor(data.twoFactor);
+        //setTwoFactor(data.twoFactor); removed old tickbox logic
         setSelectedAvatar(data.avatarFile); // default avatar
       } catch (err) {
         console.error("Failed to fetch profile", err);
       }
     };
 
+	const fetch2faStatus = async () => {
+        try {
+            const res = await fetch('/api/2fa/status', {
+                credentials: "include"
+            });
+            const data = await res.json();
+            setTwoFactor(data.isEnabled); // check if checkbox is toggled or not
+        } catch (err) {
+            console.error("Failed to fetch 2FA status", err);
+            setTwoFactor(false);
+        }
+    };
+
     fetchProfile();
+	fetch2faStatus();
   }, []);
+
+  //2fa handlers
+  const handle2faCheckboxChange = async () => {
+        if (!twoFactor && !qrCode) {
+			try {
+                const res = await fetch('/api/2fa/setup', {
+                    method: 'POST',
+                    credentials: "include"
+                });
+                const data = await res.json();
+                if (data.qrCodeUrl) {
+                    setQrCode(data.qrCodeUrl);
+                }
+            }
+			catch (err) {
+                console.error("Failed to setup 2FA", err);
+                alert("Could not start 2FA setup!!!!.");
+            }
+		}
+		else if (twoFactor) {
+			if (window.confirm("Are you sure you want to disable 2FA?")) {
+				try {
+                	const res = await fetch('/api/2fa/disable', {
+                    	method: 'POST',
+                    	credentials: "include"
+                	});
+					const data = await res.json();
+                	if (data.disabled) {
+                    	alert("2FA has been disabled.");
+                    	setTwoFactor(false);
+                	}
+            	}
+				catch (err) {
+                	alert("Failed to disable 2FA.");
+            	}
+        	}
+		}
+		else {
+            console.log("Disabling 2FA is still TODO! need separate flow.");
+        }
+    };
+
+    const handleVerify2fa = async () => {
+        if (otp.length !== 6) {
+            alert("Please enter a 6-digit code.");
+            return;
+        }
+        try {
+            const res = await fetch('/api/2fa/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: "include",
+                body: JSON.stringify({ otp })
+            });
+            const data = await res.json();
+            if (data.verified) {
+                alert("2FA enabled successfully!");
+                setTwoFactor(true); // mark 2FA enabled in UI
+                setQrCode(null);    // Hide the qrcode
+                setOtp("");
+            }
+			else {
+                alert(data.error || "Invalid code, please try again.");
+            }
+        }
+		catch (err) {
+            alert("Failed to verify 2FA.");
+        }
+    };
+
+
 
   // Handle updating avatar and 2FA preference
   const handleUpdate = async () => {
@@ -92,13 +181,36 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
       {/* Settings */}
       <div className="mb-6">
         <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={twoFactor}
-            onChange={() => setTwoFactor(!twoFactor)}
+		  <input //added new 2FA checkboc logic here
+		  	type="checkbox"
+			checked={twoFactor}
+			onChange={handle2faCheckboxChange}
+			disabled={!!qrCode}
           />
-          Enable 2FA via Email
+          Enable 2FA
         </label>
+
+		{qrCode && (
+			<div className="mt-4 p-4 border rounded-lg bg-gray-50">
+			<h3 className="font-semibold text-lg">Enable Two-Factor Authentication</h3>
+			<p className="text-sm mt-1">1. Scan this QR code with your authenticator app (e.g., Google Authenticator).</p>
+			<img src={qrCode} alt="2FA QR Code" className="my-3 mx-auto" />
+			<p className="text-sm">2. Enter the 6-digit code from your app below.</p>
+			<div className="flex items-center mt-2">
+			  <input
+			  	type="text"
+				className="border p-2 rounded-md w-32 text-center text-black"
+				placeholder="123456"
+				value={otp}
+				onChange={(e) => setOtp(e.target.value)}
+				maxLength={6}
+			  />
+			  <button onClick={handleVerify2fa} className="ml-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">
+			    Verify & Enable
+			  </button>
+			</div>
+		  </div>
+		)}
 
         <div className="mt-2">
           <label>Change Avatar:</label>

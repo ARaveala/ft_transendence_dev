@@ -1,4 +1,4 @@
-                {
+{
   "name": "my-first-backend",
   "version": "1.0.0",
   "main": "server.js",
@@ -15,7 +15,9 @@
     "fastify": "^4.29.1",
     "jsonwebtoken": "^9.0.2",
     "module-alias": "^2.2.3",
+    "qrcode": "^1.5.4",
     "sinclair": "^0.2.0",
+    "speakeasy": "^2.0.0",
     "sqlite3": "^5.1.7",
     "typebox": "^0.0.1"
   },
@@ -34,7 +36,7 @@
     "@Rauth": "routes/auth",
     "@Rprofile": "routes/profile",
     "@Rgame": "routes/game.js",
-	"@logger": "logger.js"
+    "@logger": "logger.js"
   },
   "devDependencies": {
     "@fastify/static": "^6.12.0",

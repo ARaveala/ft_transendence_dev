@@ -66,10 +66,27 @@ function getUserIdFromToken(token) {
 //Optionally confirm that the user still exists in the database this is done by returning to me id
 //  potentailly may require more returned as an object , backend sends to database verify user in db. 
 
+/* functions for creating temporary token on login with 2FA enabled
+ */
+function generateTemporaryToken(payload) {
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: '3m' });
+}
+
+function verifyTemporaryToken(token) {
+    try {
+        return jwt.verify(token, JWT_SECRET);
+    } catch (err) {
+        console.error('Invalid or expired temporary token:', err.message);
+        return null;
+    }
+}
+
 module.exports = { generateToken,
 	setAuthCookie,
 	verifyToken,
 	getUserIdFromToken,
 	generateWsToken,
-	clearAuthCookie
+	clearAuthCookie,
+	generateTemporaryToken,
+    verifyTemporaryToken
 	};
