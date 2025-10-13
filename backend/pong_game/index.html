@@ -117,11 +117,13 @@
 							{
 								document.getElementById("resulttest").textContent = "Player 1 won!";
 								document.getElementById("resettestbutton").style.display = "inline-block";
+								webSocket.send(JSON.stringify({ type: "gameOver", gameId: gameId }));
 							}
 							else if (data.player2_score == victory_score)
 							{
 								document.getElementById("resulttest").textContent = "Player 2 won!";
 								document.getElementById("resettestbutton").style.display = "inline-block";
+								webSocket.send(JSON.stringify({ type: "gameOver", gameId: gameId }));
 							}
 							else
 								webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["ball", "gameRunning"]}));

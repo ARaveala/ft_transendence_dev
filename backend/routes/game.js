@@ -164,7 +164,7 @@ async function joinGame(fastify, options) {
 					userId = 'AI' + generateRandomId();
 				}
 
-				addPlayer(gameId, userId.id, {type: type, ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+				addPlayer(gameId, userId, {type: type, ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
 				log('JOIN_GAME', `added player ${JSON.stringify(getGame(gameId))}`);
 			}
 				reply.send({ player: "player"+player_count, status: 'ready', });
