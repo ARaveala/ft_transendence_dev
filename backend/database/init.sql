@@ -31,6 +31,14 @@ CREATE TABLE IF NOT EXISTS friends (
 );
 CREATE INDEX IF NOT EXISTS idx_friend_friend_id ON friends(friend_id);
 
+-- tournament table
+CREATE TABLE IF NOT EXISTS tournaments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    status TEXT NOT NULL DEFAULT 'waiting'
+        CHECK (status IN ('waiting','ongoing','finished')),
+    winner_id INTEGER,
+    FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
+);
 
 -- do we want to add if game was 1v1 or tournament ?
 -- no match key as we want to use this to build leaderboard
@@ -38,52 +46,23 @@ CREATE INDEX IF NOT EXISTS idx_friend_friend_id ON friends(friend_id);
 CREATE TABLE IF NOT EXISTS games
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tournament_id INTEGER,--deleted on game over?
+    tournament_id INTEGER,
     p1_id INTEGER,
     p2_id INTEGER,
     p1_score INTEGER NOT NULL DEFAULT 0,
     p2_score INTEGER NOT NULL DEFAULT 0,
-    CHECK (p1_id <> p2_id),
-    FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
-    FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE SET NULL
-);
--- CREATE TABLE matches (
--- 	user_id INTEGER NOT NULL,
--- 	match_index INTEGER NOT NULL, -- 0 to 9
--- 	result TEXT NOT NULL,
--- 	opponent_type TEXT NOT NULL DEFAULT 'user',
--- 	opponent_id INTEGER, -- null if ai or guest
--- 	score INTEGER NOT NULL DEFAULT 0,
--- 	timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
--- 	PRIMARY KEY (user_id, match_index),
--- 	FOREIGN KEY (user_id) REFERENCES users(id),
--- 	FOREIGN KEY (opponent_id) REFERENCES users(id)
--- );
-
---///just eg 
---CREATE TABLE IF NOT EXISTS matches (
---    id INTEGER PRIMARY KEY AUTOINCREMENT,
---    user_id INTEGER NOT NULL,           -- the player whose history this is
---    opponent_type TEXT NOT NULL,        -- 'user', 'guest', 'ai'
---    opponent_id INTEGER,                -- nullable if guest or ai
---    result TEXT NOT NULL,               -- 'win' or 'loss'
---    score INTEGER,
---    timestamp TEXT NOT NULL,
---    tournament_id INTEGER,              -- optional
---    FOREIGN KEY (user_id) REFERENCES users(id),
---    FOREIGN KEY (opponent_id) REFERENCES users(id),
---    FOREIGN KEY (tournament_id) REFERENCES tournaments(id)
---);
-
--- tournament table
-CREATE TABLE IF NOT EXISTS tournaments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    status TEXT NOT NULL DEFAULT 'waiting',
-        CHECK (status IN ('waiting', 'ongoing', 'finished')),
     winner_id INTEGER,
-    FOREIGN KEY (winner_id) REFERENCES tournament_players(id) ON DELETE SET NULL
+    round INTEGER,
+    bracket_pos INTEGER,
+    status TEXT NOT NULL DEFAULT 'waiting'
+        CHECK (status IN ('waiting', 'ongoing', 'finished')),
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+    FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
 );
+
+
 
 CREATE TABLE IF NOT  EXISTS tournament_players (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -92,18 +71,11 @@ CREATE TABLE IF NOT  EXISTS tournament_players (
     alias TEXT NOT NULL,
     seed INTEGER NOT NULL CHECK (seed BETWEEN 1 AND 4),
     UNIQUE (tournament_id, user_id),
-    UNIQUE (tournament_id, alias)
+    UNIQUE (tournament_id, alias),
     UNIQUE (tournament_id, seed),
     FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    
 );
-
-ALTER TABLE games ADD COLUMN round INTEGER;
-ALTER TABLE games ADD COLUMN bracket_pos INTEGER;
-ALTER TABLE games ADD COLUMN status TEXT NOT NULL DEFAULT 'waiting'
-    CHECK (status IN ('waiting', 'ongoing', 'finished'));
-ALTER TABLE games ADD COLUMN winner_id INTEGER;
 
 
 -- leaderboard table to track user rankings

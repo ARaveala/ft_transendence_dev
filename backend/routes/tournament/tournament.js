@@ -1,17 +1,15 @@
 
-const fastify = require('fastify')({ logger: true });
 const { API_PROTOCOL } = require('@sharedApi');
-const {logger} = require('@logger');
-const flog = logger.child({ fileContext: 'tournament.js' }); // scoped logger
 
 module.exports = async function tournamentRoutes(fastify, options) {
 	const {db, secure} = options;
+	
 	const run = (sql, params=[]) => new Promise((res, rej) => db.run(sql, params, function(err){
 		if (err) rej(err); else res({lastID: this.lastID, changes: this.changes});
 	}));
 	const get = (sql, params=[]) => new Promise((res, rej) => db.get(sql, params, (e, row) => e ? rej(e) : res(row)));
 	const all = (sql, params=[]) => new Promise((res, rej) => db.all(sql, params, (e, rows) => e ? rej(e) : res(rows)));
-	const tx =  async(fn) => {await run('BEGIN'); try {const r = await fn(); await run('COMIT'); return r} catch (e) {await run('ROLLBACK'); throw e;} };
+	const tx =  async(fn) => {await run('BEGIN'); try {const r = await fn(); await run('COMMIT'); return r} catch (e) {await run('ROLLBACK'); throw e;} };
 	const requireUser = (request, reply) => {
 		const token = request.cookies?.auth_token;
 		if (!token) {reply.code(401).send({error: 'Not authenticated'}); return null;}
@@ -41,8 +39,10 @@ module.exports = async function tournamentRoutes(fastify, options) {
 		}
 	});
 	fastify.post(API_PROTOCOL.JOIN_TOURNAMENT.path, async (request, reply) => {
-		const userId = requireUser(request, reply);
-		if (!userId) return;
+		db.exec('PRAGMA foreign_keys = ON;');
+
+		const userRow = await get(`SELECT id FROM users WHERE id = ?`, [userId]);
+		if (!userRow) return reply.code(401).send({ status: 'ERROR', error: 'User no longer exists' });
 		const tid = Number(request.params.tid);
 		const {alias, seed} = request.body || {};
 		if (!alias || typeof alias !== 'string' || ![1, 2, 3, 4].includes(Number(seed)))
@@ -50,17 +50,20 @@ module.exports = async function tournamentRoutes(fastify, options) {
 		try {
 			const t = await get(`SELECT id, status FROM tournaments WHERE id = ?`, [tid]);
 			if (!t) return reply.code(404).send({status: 'ERROR', error: 'Tournament not found'});
-			if (t.status !== 'pending') return reply.code(409).send({status: 'ERROR', error: 'Tournament not joinable'});
-		const u = await get(`SELECT COUNT(*) AS c FROM tournament_palyers WHERE tournament_id = ?`, [tid] || {c: 0});
-		if (c >= 4) return reply.code(409).send({status: 'ERROR', error: 'Tournament full'});
-		await run(
-			`INSERT INTO tournament_players (tournament_id, user_id, alias, seed) VALUES (?, ?, ?,,?)`, [tid, userId, alias.trim(), Number(seed)]
-		);
-		reply.code(201).send({status: 'OK'});
+			if (t.status !== 'waiting') return reply.code(409).send({status: 'ERROR', error: 'Tournament not joinable'});
+			const u = await get(`SELECT COUNT(*) AS c FROM tournament_players WHERE tournament_id = ?`, [tid] || {c: 0});
+			if (!u) return reply.code(400).send({status: 'ERROR', error: 'Tournament full'});
+			const row = await get(`SELECT COUNT(*) AS c FROM tournament_players WHERE tournament_id = ?`, [tid]);
+			const c = row?.c ?? 0;
+			if (c >= 4) return reply.code(409).send({status: 'ERROR', error: 'Tournament full'});
+			await run(
+				`INSERT INTO tournament_players (tournament_id, user_id, alias, seed) VALUES (?, ?, ?, ?)`, [tid, userId, alias.trim(), Number(seed)]
+			);
+			reply.code(201).send({status: 'OK'});
 		}
 		catch (err)
 		{
-			const msg = STring(err.message || '');
+			const msg = String(err.message || '');
 			if (msg.includes('UNIQUE'))
 				return reply.code(409).send({status: 'ERROR', error: 'Alias or seed already used'});
 			flog.error({err}, 'Join failed');
@@ -70,13 +73,13 @@ module.exports = async function tournamentRoutes(fastify, options) {
 	fastify.post(API_PROTOCOL.START_TOURNAMENT.path, async (request, reply) => {
 		const userId = requireUser(request, reply);
 		if (!userId) return;
-		const tid = Number(request.prarams.tid);
+		const tid = Number(request.params.tid);
 		try
 		{
 			await tx(async () => {
-				const t = await get(`SELECT id status FROM tournaments WHERE id = ?`, [tid]);
-				if (!it) throw Object.assign(new Error('Tournament not found'), {code: 404});
-				if (t.status !== 'pending') throw Object.assign(new Error('Tournament already started'), {code: 409});
+				const t = await get(`SELECT id, status FROM tournaments WHERE id = ?`, [tid]);
+				if (!t) throw Object.assign(new Error('Tournament not found'), { code: 404 });
+				if (t.status !== 'waiting') throw Object.assign(new Error('Tournament already started'), {code: 409});
 				const players = await all(
 					`SELECT tp.user_id, tp.alias, tp.seed
 						FROM tournament_players tp
@@ -92,7 +95,7 @@ module.exports = async function tournamentRoutes(fastify, options) {
 				await run(`INSERT INTO games (tournament_id, round, bracket_pos, p1_id, p2_id, status)
 							VALUES (?, 1, 1, ?, ?, 'waiting')`, [tid, s1, s4]);
 				await run(`INSERT INTO games (tournament_id, round, bracket_pos, p1_id, p2_id, status)
-							VALUES (?, 1, 1, ?, ?, 'waiting')`, [tid, s2, s3]);
+							VALUES (?, 1, 2, ?, ?, 'waiting')`, [tid, s2, s3]);
 				// Final
 				await run(`INSERT INTO games (tournament_id, round, bracket_pos, p1_id, p2_id, status)
 							VALUES (?, 2, 1, NULL, NULL, 'waiting')`, [tid]);
@@ -324,5 +327,3 @@ export interface TournamentStateResponse {
 //	}
 //	//});
 //}
-
-module.exports = tournamentRoutes;
