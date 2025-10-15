@@ -1,6 +1,10 @@
 const schemas = require('@sharedSchemas');
 const { API_PROTOCOL } = require('@sharedApi');
 const {log} = require('@logger');
+
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'auth' }); // scoped logger
+
 /**
  * @type {import('../../shared/payloads').RegisterUserPayload}
  */
@@ -24,18 +28,19 @@ async function registerUser(fastify, options) {
 		const { username, password} = request.body;
 		const  score = 0;
 		const  status = 'online';
-
-		log('REGISTER_USER:', `in coming body ${JSON.stringify(request.body)}`);
+		flog.info( {function: 'registerUser'}, `see trace.log/server.log for body/verbose`);
+		flog.trace({ function: 'registerUser', payload: request.body }, 'Incoming body');
+		//log('REGISTER_USER:', `in coming body ${JSON.stringify(request.body)}`);
 		try {
 			const result = await DBinsert.insertUser({ username, password, score, status });
-			log('REGISTER_USER', `User registration result: ${result}`);
 
 			const token = secure.generateToken(result, username);
-			log('LOGINUSER', `token on creation ${token}`);
 			secure.setAuthCookie(reply, token)
+			//saftey protocols here ? or centralize?
 			reply.code(200).send('ok');
 		} catch (err) {
 			reply.code(500).send(err);
+			flog.error( {function: 'registerUser', error: err}, 'Error during user registration::', err);
 		}
 	});
 }

@@ -1,9 +1,12 @@
 
 const { API_PROTOCOL } = require('@sharedApi');
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'tournamnet.js' });
+
 
 module.exports = async function tournamentRoutes(fastify, options) {
 	const {db, secure} = options;
-	
+	console.log('CHECKING FUNCTION ACCESS CREATE TOURNAMNET111 ');
 	const run = (sql, params=[]) => new Promise((res, rej) => db.run(sql, params, function(err){
 		if (err) rej(err); else res({lastID: this.lastID, changes: this.changes});
 	}));
@@ -17,6 +20,8 @@ module.exports = async function tournamentRoutes(fastify, options) {
 		catch {reply.code(401).send({error: 'Invalid token'}); return null;}
 	};
 	fastify.post(API_PROTOCOL.CREATE_TOURNAMENT.path, async (request, reply) => {
+		//flog('CHECKING FUNCTION ACCESS CREATE TOURNAMNET ');
+
 		const userId = requireUser(request, reply);
 		if (!userId) return;
 		try
@@ -26,7 +31,7 @@ module.exports = async function tournamentRoutes(fastify, options) {
 				status: 'OK',
 				tournament: {
 					tournament_id: String(lastID),
-					status: waiting,
+					status: 'waiting',
 					players: [],
 					bracket: [],
 				}

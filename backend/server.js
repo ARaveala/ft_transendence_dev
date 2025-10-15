@@ -6,21 +6,24 @@
 	// Create a Fastify instance
 	// logger is enabled for debugging purposes
 
-	//const WebSocket = require('ws');
-
-	const fastify = require('fastify')({ logger: true });
-	const {log} = require('@logger'); //dev
-	// use stict mode for better error handling
 	'use strict';
+	const { logger, log } = require('@logger');
+	const fastify = require('fastify')({ logger });
+
+	const app = fastify;
+
 	// set up fucntion userRoutes , require from user.js
 	//this will be split later into multiple files we can use this now as the tetsing ground
 	const userRoutes = require('@routes/user.js');
+	const tournamentRoutes = require('@routes/tournament/tournament.js');
+	const tournamentContext = require('@routes/tournament/context.js');
 	// set up context, require from context.js 
 	// there will be multiple index or context.txt for each file ....
 	const context = require('@context');
 	const {db, secure} = context;
 	// attatch context to fucntion options 
 	fastify.register(userRoutes, context);
+	fastify.register(tournamentRoutes, tournamentContext)
 
 	// set up auth routes with context
 	const authRoutes = require('@Rauth/auth.js');
@@ -48,8 +51,8 @@
 	const cookie = require('@fastify/cookie');
 	// utalizes api routing from  routes/user.js
 
-	const tournamentRoutes = require('./routes/tournament/tournament');
-	fastify.register(tournamentRoutes, { db, secure });
+//	const tournamentRoutes = require('./routes/tournament/tournament');
+//	fastify.register(tournamentRoutes, { db, secure });
 
 	fastify.register(cookie);
 	// no i need to register all of above? not just user routes
@@ -105,11 +108,12 @@
 	});
 	// Log all incoming requests for testing and debugging
 	fastify.addHook('onRequest', async (request, reply) => {
-		console.log(`[${request.method}] ${request.url}`);
-		console.log('Headers:', request.headers);
-		if (request.body) {
-		  console.log('Body:', request.body);
-		}
+		logger.trace({ function: 'onRequest', method: request.method, url: request.url, headers: request.headers, body: request.body }, 'Incoming request');
+		//console.log(`[${request.method}] ${request.url}`);
+		//console.log('Headers:', request.headers);
+		//if (request.body) {
+		//  console.log('Body:', request.body);
+		//}
 	});
 	const start = async () => {
 
