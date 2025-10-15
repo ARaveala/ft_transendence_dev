@@ -11851,3 +11851,38 @@
 [GETGAME] geting game called
 [GETGAME] geting game called
 [GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] taking id from token
+[LOGINUSER] Incoming user data: {"username":"dev1","password":"PASSWORD"}
+[LOGINUSER] Incoming user data: {"username":"dev1","password":"password"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6MX0sInVzZXJuYW1lIjoiZGV2MSIsImlhdCI6MTc2MDUzMDgyOSwiZXhwIjoxNzYwNTM0NDI5fQ.jSeUMhb3epHWvu946PcIHYrB93cdC703S_zkA9U9Gno
+[LOGINUSER] User registration result:{"id":1}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1760530829,"exp":1760534429}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1760530829,"exp":1760534429}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1760530829,"exp":1760534429}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1760530829,"exp":1760534429}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1760530829,"exp":1760534429}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":2},"username":"testies","iat":1760531251,"exp":1760534851}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":2},"username":"testies","iat":1760531251,"exp":1760534851}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":2},"username":"testies","iat":1760531251,"exp":1760534851}
+[LOGINUSER] Incoming user data: {"username":"testies","password":"Password"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6Mn0sInVzZXJuYW1lIjoidGVzdGllcyIsImlhdCI6MTc2MDUzMTI5MiwiZXhwIjoxNzYwNTM0ODkyfQ.8oh12fK6O9fRnKvyQZxRlgOlzutwmRiCtRZ_mboa-1Y
+[LOGINUSER] User registration result:{"id":2}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":2},"username":"testies","iat":1760531292,"exp":1760534892}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":2},"username":"testies","iat":1760531292,"exp":1760534892}
