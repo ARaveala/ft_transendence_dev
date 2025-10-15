@@ -21,6 +21,11 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
 
+  UPDATE_2FA: {
+    path: '/api/profile/update2FA',
+    method: 'POST',
+  },
+
   GET_PROFILE: {
     path: '/api/profile',
     method: 'GET',
@@ -41,6 +46,11 @@ export const API_PROTOCOL = {
     method: 'GET',
   },
 
+  REMOVE_FRIEND: {
+	  path: '/api//friends/remove',
+	  method: 'POST'
+  },
+
   GET_PLAYER: {
     path: '/api/player',
     method: 'GET',
@@ -55,25 +65,20 @@ export const API_PROTOCOL = {
     path:'/api/tournament',
     method: 'POST',
   },
-  
-  GET_ALL_REGISTERED_PLAYERS: {
-    path: '/api/tournament/search',
-    method: 'GET'
-  },
 
+  GET_ACTIVE_TOURNAMENT: {
+    path: 'api/tournament/get-active',
+    method: 'GET',
+  },
+  
   VERIFY_PLAYER: {
   path: '/api/tournament/verify-player',
   method: 'POST',
   },
 
-  ADD_PLAYER_TO_TOURNAMENT: {
-    path: '/api/tournament/add-player',
+  REMOVE_PLAYER_FROM_TOURNAMENT: {
+    path: '/api/tournament/remove-player',
     method: 'POST',
-  },
-
-  REGISTER_PLAYER_ALIAS: {
-    path: "/api/tournament/register-alias",
-    method: "POST",
   },
 
   START_TOURNAMENT: {
@@ -81,10 +86,10 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
   
-  /*START_TOURNAMENT: {
-    path:'/api/tournament/:id/start',
-    method: 'POST',
-  }, */
+  CANCEL_TOURNAMENT: {
+    path: '/api/tournament/:id/cancel',
+    method: 'DELETE',
+  },
 
   TOURNAMENT_STATE: {
     path: '/api/tournament/:id/state',
@@ -131,8 +136,17 @@ export const API_PROTOCOL = {
   CHANGE_AVATAR: {
 	  path: '/api/profile/avatar',
 	  method: 'PATCH',
-  }
+  },
 
+  UPLOAD_AVATAR: {
+	  path: '/api/profile/avatar',
+	  method: 'POST',
+  },
+
+  CHANGE_2FA: {
+	  path: '/api/profile/2fa',
+	  method: 'POST',
+  }
 
 } as const;
 

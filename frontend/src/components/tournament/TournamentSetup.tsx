@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import PlayerList from "./PlayerList";
-import { PlayerSearch } from "./PlayerSearch";
-import type { TournamentPlayer, TournamentState, Match } from "../../types/tournament";
+import type { TournamentState, Match } from "../../types/tournament";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
 import { TBD_PLAYER } from "../../../shared/constants";
-import { PlayerSearchRequest, PlayerSearchResponse, StartTournamentPayload, StartTournamentResponse } from '../../../shared/payloads';
+import { StartTournamentPayload, StartTournamentResponse, RemovePlayerPayload, RemovePlayerResponse } from '../../../shared/payloads';
 import Button from "../ui/Button";
 
 interface TournamentSetupProps {
@@ -13,63 +12,43 @@ interface TournamentSetupProps {
   onCancel: () => void;
 }
 
-const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTournamentUpdated, onCancel }) => {
-  // Players currently in the tournament (starts with logged-in user)
-  const [tournamentPlayers, setTournamentPlayers] = useState<TournamentPlayer[]>([
-    { 
-      username: "currentUser",
-      alias: "",
-      status: "waiting",
-      score: 0,
-      isSelf: true },
-  ]);
-  // All registered players
-  const [allRegisteredPlayers, setAllRegisteredPlayers] = useState<TournamentPlayer[]>([]);
-  // Tracks whether tournament can start (set by PlayerList validation)
-  const [canStart, setCanStart] = useState(false);
+const TournamentSetup: React.FC<TournamentSetupProps> = ({
+  tournament,
+  onTournamentUpdated,
+  onCancel,
 
-  // Fetches all registered players from backend
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      try {
-        const res = await fetch(API_PROTOCOL.GET_ALL_REGISTERED_PLAYERS.path);
-        if (!res.ok) throw new Error("Failed to fetch players");
+}) => {
 
-        const data: PlayerSearchResponse = await res.json();
+  const [loading, setLoading] = useState(false);
 
-        setAllRegisteredPlayers(data.players || []);  // Returns an empty array if backend returns nothing
-      } catch (err) {
-        console.error(err);
-        setAllRegisteredPlayers([]); // fallback in case of error
-      }
+  const handleRemovePlayer = async (role: string) => {
+    if (!tournament) return;
+
+    const payload: RemovePlayerPayload = {
+      tournament_id: tournament.tournament_id,
+      role,
     };
-  fetchPlayers();
-}, []);
+    try {
+      setLoading(true);
+      const res = await fetch(API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.path, {
+        method: API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
+      
+      const data: RemovePlayerResponse = await res.json();
 
-  // Update a single tournament player’s data
-  const handleUpdatePlayer = (index: number, updates: Partial<TournamentPlayer>) => {
-    setTournamentPlayers((prev) => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], ...updates };
-      return updated;
-    });
-  };
-
-  // Add a player (from PlayerSearch) to the tournament
-  const handleAddPlayer = (player: TournamentPlayer) => {
-    if (tournamentPlayers.length >= 4) return;              // max number of players reached
-  
-    setTournamentPlayers(prev => [
-      ...prev,
-      {
-        username: player.username,
-        alias: "",       // alias must start empty
-        isSelf: false,   // new player is never the logged-in user
-        password: "",    // initializes empty password field
-        status: "waiting",
-        score: 0,
-      },
-    ]);
+      if (data.status === "OK" && data.tournament) {
+        onTournamentUpdated(data.tournament);
+      } else {
+        console.error("Error removing player:", data.error);
+      }
+    } catch (err) {
+      console.error("Network error when removing player:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* Starts the tournament:
@@ -81,108 +60,102 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({tournament, onTourname
   const handleStartTournament = async () => {
     if (!tournament) return;
 
-  const payload: StartTournamentPayload = {
+    const payload: StartTournamentPayload = {
       tournament_id: tournament.tournament_id,
-      players: tournamentPlayers.map(p => ({
-        username: p.username,
-        alias: p.alias,
-        isSelf: p.isSelf,
-    })),
-  };
+    };
+
     try {
+      setLoading(true);
       const res = await fetch(API_PROTOCOL.START_TOURNAMENT.path, {
         method: API_PROTOCOL.START_TOURNAMENT.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        credentials: "include",
       });
-
-      if (!res.ok) throw new Error("Failed to start tournament");
 
       const data: StartTournamentResponse = await res.json();
 
-      if (data.status !== "OK") {
+      if (data.status !== "OK" || !data.tournament) {
         console.error("Tournament start error:", data.error);
         return;
       }
 
-  // Builds bracket structure: first round + placeholders for later rounds
-  const firstRound = data.tournament.bracket[0];
+    // Builds bracket structure: first round + placeholders for later rounds
+    const firstRound = data.tournament.bracket[0];
 
-  const bracket: Match[][] = [
-    firstRound,
-    firstRound.map(() => ({
-      match_id: "tbd",
-      player1: { ...TBD_PLAYER },
-      player2: { ...TBD_PLAYER },
-      winner: { ...TBD_PLAYER },
-      status: "pending",
-      score: { player1: 0, player2: 0 },
-    })),
-      [
-      {
-        match_id: "tbd-final",
+    const bracket: Match[][] = [
+      firstRound,
+      firstRound.map(() => ({
+        match_id: "tbd",
         player1: { ...TBD_PLAYER },
         player2: { ...TBD_PLAYER },
         winner: { ...TBD_PLAYER },
         status: "pending",
         score: { player1: 0, player2: 0 },
-      },
-    ],
-  ];
+      })),
+        [
+        {
+          match_id: "tbd-final",
+          player1: { ...TBD_PLAYER },
+          player2: { ...TBD_PLAYER },
+          winner: { ...TBD_PLAYER },
+          status: "pending",
+          score: { player1: 0, player2: 0 },
+        },
+      ],
+    ];
 
    // Constructs TournamentState and notifies parent
-    const tournamentState: TournamentState = {
-      tournament_id: data.tournament.tournament_id,
-      status: "ongoing",
-      players: data.tournament.players,
-      bracket,
-      currentMatch: firstRound[0],
-      createdAt: new Date(),
+    const updatedTournament: TournamentState = {
+      ...data.tournament,
+        status: "ongoing",
+        bracket,
+        currentMatch: firstRound[0],
     };
 
-    onTournamentUpdated(tournamentState);
+    onTournamentUpdated(updatedTournament);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (!tournament) {
+    return (
+      <div className="text-gray-300 mt-8">
+        No tournament loaded. Please create one first.
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <div className="mt-20">
-        <p className="text-gray-300">Select 3 players</p>
-      </div>
+    <div className="mt-10 space-y-6">
+      <div>
+        <p className="text-gray-300 mb-4 ml-7">Players in Tournament</p>
 
-      <div className="mt-4">
-        <PlayerSearch players={allRegisteredPlayers} addedPlayers={tournamentPlayers} onAddPlayer={handleAddPlayer} />
-      </div>
-
-      <div className="mt-20">
-        <p className="text-gray-300">Players in tournament</p>
-      </div>
-
-      <div className="mt-4">
         <PlayerList
-          players={tournamentPlayers}
-          onUpdatePlayer={handleUpdatePlayer}
-          onValidationChange={setCanStart}
-          onRemovePlayer={(index) =>
-            setTournamentPlayers((prev) => prev.filter((_, i) => i !== index))
-          }
+          tournament={tournament}
+          onTournamentUpdated={onTournamentUpdated}
+          onRemovePlayer={handleRemovePlayer}
         />
       </div>
-      <div className="flex gap-4 mt-4">
-        <Button
-          onClick={onCancel}
-          >Cancel tournament
+
+      <div className="flex gap-4 mt-6 ml-7">
+        <Button onClick={onCancel} disabled={loading}>
+          Cancel tournament
         </Button>
 
-        {canStart && tournamentPlayers.length === 4 && (
-          <Button
-            onClick={handleStartTournament}
-          >
-            Start tournament
-          </Button>
-        )}
+        <Button
+          onClick={handleStartTournament}
+          disabled={!tournament.can_start || loading}
+        >
+          {loading
+            ? "Processing..."
+            : tournament.can_start
+            ? "Start Tournament"
+            : "Waiting for players..."}
+        </Button>
       </div>
     </div>
   );

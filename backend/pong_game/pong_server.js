@@ -57,13 +57,15 @@ function updateKeys(state, keys) {
 }
 
 function updateGame(state, player1, player2) {
-	if (!state.gameRunning) return;
 
 	// Move paddles
 	if (state.keysDown[0]) state.positions[state.leftPaddleI] -= state.paddleSpeed;
 	if (state.keysDown[1]) state.positions[state.leftPaddleI] += state.paddleSpeed;
 	if (state.keysDown[2]) state.positions[state.rightPaddleI] -= state.paddleSpeed;
 	if (state.keysDown[3]) state.positions[state.rightPaddleI] += state.paddleSpeed;
+
+	// moving paddles would be always possible
+	if (!state.gameRunning) return;
 
 	// keep inside bounds by clamping
 	// subtract paddleHeight to keep the bottom inside window

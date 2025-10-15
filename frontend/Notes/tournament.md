@@ -22,7 +22,7 @@ export interface TournamentPlayer {
   avatar?: string;
   score: number;
   isSelf?: boolean;
-  password?: string; 
+  isVerified?: boolean;
 }
 ```
 ```
@@ -167,7 +167,6 @@ Component that manages the list of players added to the tournament
   - Shows each round of the tournament in a bracket-style layout with connecting lines
   - Displays players, current match statuses, and the winner when available
   - Allows matches to be started through `onStartMatch` callback
-  - Handles "loading" state for matches currently starting
 
  Data Flow:
   - Input: `tournament` (state including players, matches, winners)
@@ -175,7 +174,6 @@ Component that manages the list of players added to the tournament
 
  Helpers:
   - `isMatchPlayable`: ensures matches can only be started when both players are ready
-  - `isLoading`: disables a match's button while it's being started
 
 Sequence:
   1. Once all players are validated (PlayerList) → parent builds `tournament` state

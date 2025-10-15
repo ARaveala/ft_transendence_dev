@@ -1,22 +1,11 @@
-import avatar1 from "../assets/avatars/avatar1.png";
-import avatar2 from "../assets/avatars/avatar2.png";
-import avatar3 from "../assets/avatars/avatar3.png";
-import avatar4 from "../assets/avatars/avatar4.png";
 import defaultAvatar from "../assets/avatars/default-avatar.png";
-
 import React, { useEffect, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
-import type { UserProfile, UpdateProfilePayload } from "../../shared/payloads";
-
-const availableAvatars = [avatar1, avatar2, avatar3, avatar4];
+import type { UserProfile, UpdateTwoFactorAuthPayload, UpdateTwoFactorAuthResponse } from "../../shared/payloads";
 
 const Profile: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [twoFactor, setTwoFactor] = useState(false);
-
-const [selectedAvatar, setSelectedAvatar] = useState<string>
-  (profile?.avatarFile || defaultAvatar);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -32,7 +21,6 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
 
         setProfile(data);
         setTwoFactor(data.twoFactor);
-        setSelectedAvatar(data.avatarFile); // default avatar
       } catch (err) {
         console.error("Failed to fetch profile", err);
       }
@@ -41,33 +29,33 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
     fetchProfile();
   }, []);
 
-  // Handle updating avatar and 2FA preference
-  const handleUpdate = async () => {
+  // Handle updating 2FA preference
+  const handle2FAUpdate = async () => {
     if (!profile) return;
 
-    const payload: UpdateProfilePayload = {
-      twoFactor,
-      avatar: selectedAvatar,
-    };
+    const payload: UpdateTwoFactorAuthPayload = { twoFactor };
 
     try {
-      const res = await fetch(API_PROTOCOL.UPDATE_PROFILE.path, {
-        method: API_PROTOCOL.UPDATE_PROFILE.method,
+      const res = await fetch(API_PROTOCOL.UPDATE_2FA.path, {
+        method: API_PROTOCOL.UPDATE_2FA.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         //credentials: "include", // for HttpOnly cookie
       });
 
-      if (!res.ok) throw new Error("Update failed");
-
-      const updatedProfile: UserProfile = await res.json();
-	  console.log("Updated profile response:", updatedProfile);
-	  setProfile(updatedProfile);
-      setSelectedAvatar(updatedProfile.avatarFile || avatar1);
-      alert("Profile updated successfully!");
+      const data: UpdateTwoFactorAuthResponse = await res.json();
+	  
+      if (data.status === "UPDATED") {
+        alert("2FA settings updated successfully!");
+        setProfile(prev => prev ? { ...prev, twoFactor } : prev);
+    
+      } else {
+        console.error(data.error);
+        alert("Failed to update 2FA settings");
+      }
     } catch (err) {
       console.error(err);
-      alert("Failed to update profile.");
+      alert("Failed to update 2FA settings");
     }
   };
 
@@ -80,7 +68,7 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
       {/* Avatar and username */}
       <div className="flex items-center gap-4 mb-4">
         <img
-          src={selectedAvatar || profile.avatarFile || defaultAvatar}
+          src={profile.avatarFile || defaultAvatar}
           alt="Avatar"
           className="w-24 h-24 rounded-full"
         />
@@ -99,24 +87,7 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
           />
           Enable 2FA via Email
         </label>
-
-        <div className="mt-2">
-          <label>Change Avatar:</label>
-            <div className="flex gap-2 mt-1">
-              {availableAvatars.map((avatar) => (
-                <img
-                  key={avatar}
-                  src={avatar}
-                  className={`w-12 h-12 rounded-full cursor-pointer border-2 ${
-                    selectedAvatar === avatar ? "border-blue-500" : "border-transparent"
-                  }`}
-                  alt="Avatar"
-                  onClick={() => setSelectedAvatar(avatar)}
-                />
-              ))}
-             </div>
-        </div>
-       </div>
+      </div>
 
       {/* Stats */}
       <div className="mb-6">
@@ -129,23 +100,6 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
         </p>
       </div>
 
-      {/* Friends */}
-      <div className="mb-6">
-        <h3 className="font-semibold">Friends</h3>
-        <ul>
-          {profile.friends.map((friend) => (
-            <li key={friend.user_id} className="flex items-center gap-2">
-              <img
-                src={friend.avatar || "/default-avatar.png"}
-                className="w-8 h-8 rounded-full"
-                alt={friend.username}
-              />
-              {friend.username}
-            </li>
-          ))}
-        </ul>
-      </div>
-
       {/* Match History */}
       <div>
         <h3 className="font-semibold">Match History</h3>
@@ -155,6 +109,7 @@ const [selectedAvatar, setSelectedAvatar] = useState<string>
               <th className="border px-2 py-1">Opponent</th>
               <th className="border px-2 py-1">Result</th>
               <th className="border px-2 py-1">Score</th>
+              <th className="border px-2 py-1">Date</th>
             </tr>
           </thead>
           <tbody>

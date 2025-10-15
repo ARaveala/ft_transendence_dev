@@ -3,9 +3,10 @@ export interface TournamentPlayer {
   alias: string;
   status: 'waiting' | 'ready' | 'playing' | 'finished';
   avatar?: string;
-  score: number;
+  score?: number;
   isSelf?: boolean;
   isVerified?: boolean;
+  role: string;
 }
 
 export interface Match {
@@ -25,10 +26,13 @@ export interface Match {
 export interface TournamentState {
   tournament_id: string;
   status: 'waiting' | 'ongoing' | 'finished';
+  owner: string;
   players: TournamentPlayer[];
   currentMatch?: Match;
-  bracket: Match[][];
+  bracket?: Match[][];
   winner?: TournamentPlayer;
   createdAt?: Date;
   lastUpdated?: Date
+  can_start?: boolean;
+  pending_players?: number;
 }

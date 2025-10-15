@@ -1,20 +1,22 @@
 import React from "react";
 import type { TournamentState, Match } from "../../types/tournament";
 import { TBD_PLAYER } from "../../../shared/constants";
+import { API_PROTOCOL } from "../../../shared/api-protocols";
 import Button from "../ui/Button";
 
 interface TournamentBracketProps {
   tournament: TournamentState;
-  loadingMatchId?: string | null;           // ID of match currently being started
   onStartMatch?: (match: Match) => void;    // callback when a match start is requested
+  onCancel?: () => void                    // callback to cancel tournament
 }
 
 const TournamentBracket: React.FC<TournamentBracketProps> = ({
   tournament,
-  loadingMatchId,
-  onStartMatch 
+  onStartMatch,
+  onCancel
 }) => {
-  const firstRound = tournament.bracket[0]; // 2 matches with 2 players each
+
+  const firstRound = tournament.bracket?.[0] ?? [];// 2 matches with 2 players each
 
   // Final match placeholder (between the 2 winners of round 1)
   const finalMatch: Match = {
@@ -38,9 +40,6 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
       match.status === "pending"
     );
   };
-
-// Check if a given match is currently loading
-  const isLoading = (match: Match) => loadingMatchId === match.match_id;
 
   return (
   <div className="flex flex-col items-center mt-10 gap-8 relative">
@@ -80,17 +79,17 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
       
         {/* Vertical line down from final player1 center */}
         <svg width="2" height="50" className="absolute top-12 left-20">
-          <line x1="1" y1="0" x2="1" y2="50" stroke="#374151" strokeWidth="2" />
+          <line x1="1" y1="0" x2="1" y2="26" stroke="#374151" strokeWidth="2" />
         </svg>
         {/* Vertical line down from final player2 center */}
         <svg width="2" height="50" className="absolute top-12 right-20">
-          <line x1="1" y1="0" x2="1" y2="50" stroke="#374151" strokeWidth="2" />
+          <line x1="1" y1="0" x2="1" y2="26" stroke="#374151" strokeWidth="2" />
         </svg>
     </div>
 
       <Button
         onClick={() => onStartMatch?.(finalMatch)}
-        disabled={!isMatchPlayable(finalMatch, 2) || isLoading(finalMatch)}
+        disabled={!isMatchPlayable(finalMatch, 2)}
         className="-mt-6"
       >
         Play final
@@ -126,14 +125,26 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
           <Button
             onClick={() => onStartMatch?.(match)}
-            disabled={!isMatchPlayable(match, 1) || isLoading(match)}
+            disabled={!isMatchPlayable(match, 1)}
           >
             Play match {idx + 1}
           </Button>
         </div>
-      ))}
+       ))}
+      </div>
+
+        {/* Cancel button at the bottom */}
+        {onCancel && (
+          <div className="mt-8">
+            <Button 
+              onClick={onCancel}
+              className="bg-red-600 hover:bg-red-700"
+              >
+                Cancel Tournament
+          </Button>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
 }
 export default TournamentBracket;
