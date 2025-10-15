@@ -40,7 +40,6 @@ module.exports = async function tournamentRoutes(fastify, options) {
 	});
 	fastify.post(API_PROTOCOL.JOIN_TOURNAMENT.path, async (request, reply) => {
 		db.exec('PRAGMA foreign_keys = ON;');
-
 		const userRow = await get(`SELECT id FROM users WHERE id = ?`, [userId]);
 		if (!userRow) return reply.code(401).send({ status: 'ERROR', error: 'User no longer exists' });
 		const tid = Number(request.params.tid);

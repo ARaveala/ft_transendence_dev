@@ -64,16 +64,16 @@ const API_PROTOCOL = {
 	  method: 'PATCH',
   },
   CREATE_TOURNAMENT: {
-	path: '/api/tournaments',
+	path: '/api/tournament',
 	method: 'POST'
 },
 JOIN_TOURNAMENT: {
-	path: '/api/tournaments/:tid/join',
+	path: '/api/tournament/:tid/join',
 	method: 'POST'
 },
 START_TOURNAMENT:
 { 
-	path: '/api/tournaments/:tid/start',
+	path: '/api/tournament/:tid/start',
 	method: 'POST'
 },
 REPORT_GAME_RESULT:{
