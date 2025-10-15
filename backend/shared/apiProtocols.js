@@ -63,7 +63,22 @@ const API_PROTOCOL = {
 	  path: '/api/profile/avatar',
 	  method: 'PATCH',
   },
-
+  CREATE_TOURNAMENT: {
+	path: '/api/tournaments',
+	method: 'POST'
+},
+JOIN_TOURNAMENT: {
+	path: '/api/tournaments/:tid/join',
+	method: 'POST'
+},
+START_TOURNAMENT:
+{ 
+	path: '/api/tournaments/:tid/start',
+	method: 'POST'
+},
+REPORT_GAME_RESULT:{
+	path: '/api/games/result',
+	method: 'POST' },
 };
 
 
