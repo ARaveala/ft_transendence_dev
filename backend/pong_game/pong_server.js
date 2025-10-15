@@ -49,6 +49,9 @@ function initGame(state, settings) {
 	];
 	state.gameRunning = true;
 	state.lastUpdate = Date.now();
+	state.ballSpeed = settings.ballSpeed;
+	state.paddleSpeed = settings.paddleSpeed;
+	state.powerUp = settings.powerUp;
 	// else is now case = keys in websockets messagehandler
 }
 
@@ -87,7 +90,7 @@ function updateGame(state, player1, player2) {
 		state.positions[state.ballYI] = state.positions[state.ballYI] <= 0 ? 0 : state.height - state.ballSize;
 	}
 
-
+	// Check win conditions
 	if (state.positions[state.ballXI] <= 0)
 	{
 		player2.score++;
@@ -101,6 +104,7 @@ function updateGame(state, player1, player2) {
 		return 1;
 	}
 
+	// Check ball-paddle collisions
 	if (ballHitsPaddle(state, state.leftPaddleI))
 	{
 		bounceBallOffPaddle(state, state.leftPaddleI);
@@ -112,7 +116,6 @@ function updateGame(state, player1, player2) {
 		if (state.ball.dx < 0)
 			state.ball.dx = -state.ball.dx;
 	}
-
 	if (ballHitsPaddle(state, state.rightPaddleI))
 	{
 		bounceBallOffPaddle(state, state.rightPaddleI);
@@ -122,6 +125,14 @@ function updateGame(state, player1, player2) {
 		if (state.ball.dx > 0)
 			state.ball.dx = -state.ball.dx;
 	}
+/*
+	// Check powerup collisions
+	for (powerup : powerups)
+	{
+		if (ballHitsPowerup(state, powerup))
+			powerup.effect(state);
+	}
+*/
 	return 0;
 }
 
