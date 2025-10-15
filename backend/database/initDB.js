@@ -70,7 +70,7 @@ const DB_PATH = process.env.DB_PATH || path.join(DB_DIR, DB_FILE);
 const INIT_SQL_PATH = process.env.INIT_SQL || path.join(__dirname, 'init.sql');
 const FORCE_INIT = process.env.INIT_FORCE === '1';
 
-fs.mkdirSync(path.dirname(DB_DIR), { recursive: true });
+fs.mkdirSync(DB_DIR, { recursive: true });
 
 const db = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, async (err) => {
   if (err) return console.error('Failed to open SQLite DB:', err.message);

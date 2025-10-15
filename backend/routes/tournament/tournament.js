@@ -34,7 +34,7 @@ module.exports = async function tournamentRoutes(fastify, options) {
 		}
 		catch (err)
 		{
-			flog.error({err}, 'Failed to create tournament');
+			fastify.log.error({err}, 'Failed to create tournament');
 			reply.code(500).send({status: 'Error', error: 'Failed to create tournament'});
 		}
 	});
@@ -66,7 +66,7 @@ module.exports = async function tournamentRoutes(fastify, options) {
 			const msg = String(err.message || '');
 			if (msg.includes('UNIQUE'))
 				return reply.code(409).send({status: 'ERROR', error: 'Alias or seed already used'});
-			flog.error({err}, 'Join failed');
+			fastify.log.error({err}, 'Join failed');
 			reply.code(500).send({status: 'ERROR', error: 'Join failed'});
 		}
 	});
@@ -78,8 +78,8 @@ module.exports = async function tournamentRoutes(fastify, options) {
 		{
 			await tx(async () => {
 				const t = await get(`SELECT id, status FROM tournaments WHERE id = ?`, [tid]);
-				if (!t) throw Object.assign(new Error('Tournament not found'), { code: 404 });
-				if (t.status !== 'waiting') throw Object.assign(new Error('Tournament already started'), {code: 409});
+				if (!t) throw Object.assign(new Error('Tournament not found'), { statusCode: 404 });
+				if (t.status !== 'waiting') throw Object.assign(new Error('Tournament already started'), {statusCode: 409});
 				const players = await all(
 					`SELECT tp.user_id, tp.alias, tp.seed
 						FROM tournament_players tp
@@ -87,10 +87,10 @@ module.exports = async function tournamentRoutes(fastify, options) {
 					ORDER BY tp.seed ASC`,
 					[tid]
 				);
-				if (players.length !== 4) throw Object.assing(new Error('Tournament requires exactly 4 players'), {code: 409});
+				if (players.length !== 4) throw Object.assing(new Error('Tournament requires exactly 4 players'), {statusCode: 409});
 				const bySeed = (s) => players.find(p => p.seed === s)?.user_id;
 				const s1 = bySeed(1), s2 = bySeed(2), s3 = bySeed(3), s4 = bySeed(4);
-				if (!s1 || !s2 || !s3 || !s4) throw Object.assign(new Error('Seeds 1-4 must be unique'), {code: 409});
+				if (!s1 || !s2 || !s3 || !s4) throw Object.assign(new Error('Seeds 1-4 must be unique'), {statusCode: 409});
 				// Semifinals
 				await run(`INSERT INTO games (tournament_id, round, bracket_pos, p1_id, p2_id, status)
 							VALUES (?, 1, 1, ?, ?, 'waiting')`, [tid, s1, s4]);
@@ -121,7 +121,7 @@ module.exports = async function tournamentRoutes(fastify, options) {
 		try {
 		await tx(async () => {
 			const g = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
-			if (!g) throw Object.assign(new Error('Game not found'), { code: 404 });
+			if (!g) throw Object.assign(new Error('Game not found'), { statusCode: 404 });
 			// store result
 			const winner = p1_score > p2_score ? g.p1_id : p2_score > p1_score ? g.p2_id : null;
 			await run(`UPDATE games
