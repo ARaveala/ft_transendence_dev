@@ -20,6 +20,7 @@
 	// set up context, require from context.js 
 	// there will be multiple index or context.txt for each file ....
 	const context = require('@context');
+	const {db, secure} = context;
 	// attatch context to fucntion options 
 	fastify.register(userRoutes, context);
 	fastify.register(tournamentRoutes, tournamentContext)
@@ -32,6 +33,7 @@
 	const profileRoutes = require('@Rprofile/profile.js');
 	const profilecontext = require('@Rprofile/context.js');
 	fastify.register(profileRoutes, profilecontext);
+
 
 	// Attach WebSocket server to Fastify's internal server
 	const setUpWebSockets = require('@Wbs/startUp.js');
@@ -49,6 +51,8 @@
 	const cookie = require('@fastify/cookie');
 	// utalizes api routing from  routes/user.js
 
+	const tournamentRoutes = require('./routes/tournament/tournament');
+	fastify.register(tournamentRoutes, { db, secure });
 
 	fastify.register(cookie);
 	// no i need to register all of above? not just user routes

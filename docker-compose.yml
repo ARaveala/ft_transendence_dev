@@ -1,5 +1,12 @@
 name: transcendence
 
+# enviroment:
+#   NODE_DEV: production
+#   PORT: 3000
+#   DB_DIR: /app/data
+#   DB_FILE: app.sqlite
+#   INIT_SQL: /app/database/init.sql
+
 services:
   backend:
     build:
