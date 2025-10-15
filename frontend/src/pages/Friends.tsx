@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useTranslation } from "../shared/Translation";
+import { useAuth } from "../context/AuthContext";
+
 
 type Friend = {
 	user_id: string;
@@ -19,6 +21,7 @@ const MAX_FRIENDS = 20;
 
 const Friends: React.FC = () => {
 	const { t } = useTranslation();
+	const { user, refreshSession } = useAuth(); //now using AuthContext to get user info
 
 	// Inline status
 	const [msg, setMsg] = useState<string | null>(null);
@@ -32,8 +35,8 @@ const Friends: React.FC = () => {
 	const [removing, setRemoving] = useState(false);
 
 	// List friend
-	const [friends, setFriends] = useState<Friend[]>([]);
-	const [loading, setLoading] = useState(true);
+	const [friends, setFriends] = useState<Friend[]>(user?.friends.slice(0, MAX_FRIENDS) || []);// means we use the friends from AuthContext if available. Slice to limit to MAX_FRIENDS
+	//const [loading, setLoading] = useState(!user); 
 
 	// Add friend
 	const [username, setUsername] = useState("");
@@ -51,30 +54,36 @@ const Friends: React.FC = () => {
 		setRemoveConfirmId((cur) => (cur === friendId ? null : friendId));
 	}
 
+	// useEffect(() => { //removed as we now get friends from AuthContext
+	// 	loadFriends();
+	// }, []);
+
 	useEffect(() => {
-		loadFriends();
-	}, []);
-
-	async function loadFriends() {
-		setLoading(true);
-		setErr(null);
-		setMsg(null);
-		try {
-			const res = await fetch(API_PROTOCOL.GET_FRIENDS.path, {
-				method: API_PROTOCOL.GET_FRIENDS.method,
-				headers: { "Content-Type": "application/json" },
-			});
-			if (!res.ok) throw new Error("Failed to get friends.");
-
-			const data: Friend[] = await res.json();
-
-			setFriends(data.slice(0, MAX_FRIENDS));
-		} catch (e: any) {
-			setErr(e?.message || "Failed to load friends.");
-		} finally {
-			setLoading(false);
-		}
+	if (user) {
+		setFriends(user.friends.slice(0, MAX_FRIENDS));
 	}
+	}, [user]);
+
+	// async function loadFriends() {
+	// 	setLoading(true);
+	// 	setErr(null);
+	// 	setMsg(null);
+	// 	try {
+	// 		const res = await fetch(API_PROTOCOL.GET_FRIENDS.path, {
+	// 			method: API_PROTOCOL.GET_FRIENDS.method,
+	// 			headers: { "Content-Type": "application/json" },
+	// 		});
+	// 		if (!res.ok) throw new Error("Failed to get friends.");
+
+	// 		const data: Friend[] = await res.json();
+
+	// 		setFriends(data.slice(0, MAX_FRIENDS));
+	// 	} catch (e: any) {
+	// 		setErr(e?.message || "Failed to load friends.");
+	// 	} finally {
+	// 		setLoading(false);
+	// 	}
+	// }
 
 	async function handleAdd() {
 		setErr(null);
@@ -100,6 +109,7 @@ const Friends: React.FC = () => {
 				method: API_PROTOCOL.ADD_FRIEND.method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ username: value }),
+				credentials: "include", // include cookies
 			});
 			if (res.status === 404) {
 				setErr(t("error.userNotFound"));
@@ -117,6 +127,7 @@ const Friends: React.FC = () => {
 			resetAddForm();
 			setMsg(t("common.friendAdded"));
 			setOpenAdd(false);
+			await refreshSession(); // Refresh user data in AuthContext to update friends list there too
 		} catch (e: any) {
 			setErr(e?.message || "Could not add friend.");
 		} finally {
@@ -133,6 +144,7 @@ const Friends: React.FC = () => {
 				method: API_PROTOCOL.REMOVE_FRIEND.method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ friend_id: friendId }),
+				credentials: "include",
 			});
 			if (!res.ok) throw new Error("Failed to remove friend.");
 
@@ -144,6 +156,7 @@ const Friends: React.FC = () => {
 			setFriends((prev) => prev.filter((f) => f.user_id !== friendId));
 			setRemoveConfirmId(null);
 			setMsg(t("common.friendRemoved"));
+			await refreshSession(); // Refresh user data in AuthContext to update friends list there too
 		} catch (e: any) {
 			setErr(e?.message || "Could not remove friend.");
 		} finally {
@@ -151,7 +164,14 @@ const Friends: React.FC = () => {
 		}
 	}
 
-	if (loading) return <div className="p-6">{t("common.loading")}</div>;
+	//if (loading) return <div className="p-6">{t("common.loading")}</div>;
+	if (!user) {
+	return (
+		<div className="p-6 text-center text-gray-300">
+		Please log in to view your friends.
+		</div>
+	);
+	}
 
 	return (
 		<div className="p-6 max-w-4xl mx-auto">

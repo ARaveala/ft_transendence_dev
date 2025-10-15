@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useTranslation } from "../shared/Translation";
+import { useAuth } from "../context/AuthContext";
 import type {
 	ChangeLanguagePayload,
 	ChangeLanguageResponse,
@@ -24,6 +25,7 @@ type Row = "language" | "username" | "password" | "avatar" | "twofa" | null;
 
 const SettingsPage: React.FC = () => {
 	const { t, setLang } = useTranslation();
+	const { user, refreshSession } = useAuth();
 
 	// Which row is open state
 	const [openRow, setOpenRow] = useState<Row>(null);
@@ -51,44 +53,62 @@ const SettingsPage: React.FC = () => {
 
 	// 2FA state
 	const [twoFactor, setTwoFactor] = useState<boolean>(false);
-	const [loadingTwoFA, setLoadingTwoFA] = useState<boolean>(false);
+	const [loadingTwoFA, setLoadingTwoFA] = useState<boolean>(false); //may need to update the code to remove this with the AuthContext additio
 
 	// Delete Profile state
 	const [deleting, setDeleting] = useState(false);
 	const [deleted, setDeleted] = useState(false);
 	const [deleteError, setDeleteError] = useState<string | null>(null);
 
-	//Preload current 2FA status
+	if (!user) {
+	return (
+		<div className="p-6 text-center text-gray-300">
+		Please log in to access settings.
+		</div>
+		);
+	}
+
 	useEffect(() => {
-		let cancelled = false;
-		async function preloadTwoFA() {
-			try {
-				setLoadingTwoFA(true);
-				const res = await fetch(API_PROTOCOL.GET_PROFILE.path, {
-					method: API_PROTOCOL.GET_PROFILE.method,
-					headers: { "Content-Type": "application/json" },
-				});
-				if (!res.ok) return;
+	if (user) {
+		setUsername(user.username);
+		const avatar = user.avatarFile || availableAvatars[0];
+		setCurrentAvatar(avatar);
+		setSelectedAvatar(avatar);
+		setTwoFactor(user.twoFactor ?? false);
+	}
+	}, [user]);
 
-				const data = await res.json();
-				if (!cancelled && typeof data?.twoFactor === "boolean") {
-					setTwoFactor(data.twoFactor);
-				}
+	//Preload current 2FA status. Should be redundant now as we use user info from AuthContext
+	// useEffect(() => {
+	// 	let cancelled = false;
+	// 	async function preloadTwoFA() {
+	// 		try {
+	// 			setLoadingTwoFA(true);
+	// 			const res = await fetch(API_PROTOCOL.GET_PROFILE.path, {
+	// 				method: API_PROTOCOL.GET_PROFILE.method,
+	// 				headers: { "Content-Type": "application/json" },
+	// 			});
+	// 			if (!res.ok) return;
 
-				if (!cancelled) {
-					const serverAvatar = (data?.avatarFile || data?.avatar) as string | undefined;
-					if (serverAvatar) {
-						setCurrentAvatar(serverAvatar);
-						setSelectedAvatar(serverAvatar);
-					}
-				}
-			} finally {
-				if (!cancelled) setLoadingTwoFA(false);
-			}
-		}
-		preloadTwoFA();
-		return () => { cancelled = true; };
-	}, []);
+	// 			const data = await res.json();
+	// 			if (!cancelled && typeof data?.twoFactor === "boolean") {
+	// 				setTwoFactor(data.twoFactor);
+	// 			}
+
+	// 			if (!cancelled) {
+	// 				const serverAvatar = (data?.avatarFile || data?.avatar) as string | undefined;
+	// 				if (serverAvatar) {
+	// 					setCurrentAvatar(serverAvatar);
+	// 					setSelectedAvatar(serverAvatar);
+	// 				}
+	// 			}
+	// 		} finally {
+	// 			if (!cancelled) setLoadingTwoFA(false);
+	// 		}
+	// 	}
+	// 	preloadTwoFA();
+	// 	return () => { cancelled = true; };
+	// }, []);
 
 	// Clear forms
 	function resetUsernameForm() {
@@ -245,6 +265,7 @@ const SettingsPage: React.FC = () => {
 			setLang(language);
 			setMsg(t("common.languageUpdated"));
 			setOpenRow(null);
+			await refreshSession();
 		} catch (e: any) {
 			setErr(e?.message || "Could not update language.");
 		} finally {
@@ -271,6 +292,7 @@ const SettingsPage: React.FC = () => {
 			setMsg(t("common.usernameUpdated"));
 			resetUsernameForm();
 			setOpenRow(null);
+			await refreshSession();
 		} catch (e: any) {
 			setErr(e?.message || "Could not update username.");
 		} finally {
@@ -329,6 +351,7 @@ const SettingsPage: React.FC = () => {
 			if (fileInputRef.current) fileInputRef.current.value = "";
 			setMsg(t("common.avatarUpdated"));
 			setOpenRow(null);
+			await refreshSession();
 		} catch (e: any) {
 			setErr(e?.message || "Could not update avatar.");
 		} finally {
@@ -363,6 +386,7 @@ const SettingsPage: React.FC = () => {
 			setAvatarDirty(false);
 			setMsg(t("common.avatarUpdated"));
 			setOpenRow(null);
+			await refreshSession();
 		} catch (e: any) {
 			setErr(e?.message || "Could not upload avatar.");
 		} finally {
@@ -388,6 +412,7 @@ const SettingsPage: React.FC = () => {
 
 			setMsg(twoFactor ? t("common.twofaEnabled") : t("common.twofaDisabled"));
 			setOpenRow(null);
+			await refreshSession();
 		} catch (e: any) {
 			setErr(e?.message || "Could not change 2FA.");
 		} finally {

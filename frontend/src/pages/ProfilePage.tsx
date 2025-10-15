@@ -7,170 +7,164 @@ import defaultAvatar from "../assets/avatars/default-avatar.png";
 import React, { useEffect, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile, UpdateProfilePayload } from "../../shared/payloads";
+import { useAuth } from "../context/AuthContext";
 
 const availableAvatars = [avatar1, avatar2, avatar3, avatar4];
 
 const Profile: React.FC = () => {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [twoFactor, setTwoFactor] = useState(false);
+const { user, isLoggedIn, refreshSession } = useAuth();
+const [twoFactor, setTwoFactor] = useState(user?.twoFactor ?? false);
+const [selectedAvatar, setSelectedAvatar] = useState(user?.avatarFile || defaultAvatar);
+const [updating, setUpdating] = useState(false);
 
-const [selectedAvatar, setSelectedAvatar] = useState<string>
-  (profile?.avatarFile || defaultAvatar);
+useEffect(() => { //changed to using the user info from AuthContext
+	if (user) {
+	setTwoFactor(user.twoFactor);
+	setSelectedAvatar(user.avatarFile || defaultAvatar);
+	}
+}, [user]);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch(API_PROTOCOL.GET_PROFILE.path, {
-        credentials: "include", // send HttpOnly cookie
-        });
-        const data: UserProfile = await res.json();
+// Handle updating avatar and 2FA preference
+const handleUpdate = async () => {
+	if (!user) return;
 
-        if (!data.avatarFile) {
-          data.avatarFile = defaultAvatar;
-        }
+	const payload: UpdateProfilePayload = {
+	twoFactor,
+	avatar: selectedAvatar,
+	};
 
-        setProfile(data);
-        setTwoFactor(data.twoFactor);
-        setSelectedAvatar(data.avatarFile); // default avatar
-      } catch (err) {
-        console.error("Failed to fetch profile", err);
-      }
-    };
+	try {
+	setUpdating(true);
+	const res = await fetch(API_PROTOCOL.UPDATE_PROFILE.path, {
+		method: API_PROTOCOL.UPDATE_PROFILE.method,
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(payload),
+		credentials: "include",
+	});
 
-    fetchProfile();
-  }, []);
+	if (!res.ok) throw new Error("Update failed");
 
-  // Handle updating avatar and 2FA preference
-  const handleUpdate = async () => {
-    if (!profile) return;
+	alert("Profile updated successfully!");
+	await refreshSession(); // ✅ Update user data in AuthContext
+	} catch (err) {
+	console.error(err);
+	alert("Failed to update profile.");
+	} finally {
+	setUpdating(false);
+	}
+};
 
-    const payload: UpdateProfilePayload = {
-      twoFactor,
-      avatar: selectedAvatar,
-    };
+if (!isLoggedIn) return <div>Please log in to view your profile.</div>;
+if (!user) return <div>Loading profile...</div>;
 
-    try {
-      const res = await fetch(API_PROTOCOL.UPDATE_PROFILE.path, {
-        method: API_PROTOCOL.UPDATE_PROFILE.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        //credentials: "include", // for HttpOnly cookie
-      });
+return (
+	<div className="p-6 max-w-4xl mx-auto">
+	<h1 className="text-3xl font-bold mb-4">Profile</h1>
 
-      if (!res.ok) throw new Error("Update failed");
+	{/* Avatar and username */}
+	<div className="flex items-center gap-4 mb-4">
+		<img
+		src={selectedAvatar || defaultAvatar}
+		alt="Avatar"
+		className="w-24 h-24 rounded-full"
+		/>
+		<div>
+		<h2 className="text-xl font-semibold">{user.username}</h2>
+		</div>
+	</div>
 
-      const updatedProfile: UserProfile = await res.json();
-	  console.log("Updated profile response:", updatedProfile);
-	  setProfile(updatedProfile);
-      setSelectedAvatar(updatedProfile.avatarFile || avatar1);
-      alert("Profile updated successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to update profile.");
-    }
-  };
+	{/* Settings */}	
+	<div className="mb-6">
+		<label className="flex items-center gap-2">
+		<input
+			type="checkbox"
+			checked={twoFactor}
+			onChange={() => setTwoFactor(!twoFactor)}
+		/>
+		Enable 2FA via Email
+		</label>
 
-  if (!profile) return <div>Loading profile...</div>;
+		<div className="mt-2">
+		<label>Change Avatar:</label>
+			<div className="flex gap-2 mt-1">
+			{availableAvatars.map((avatar) => (
+				<img
+				key={avatar}
+				src={avatar}
+				className={`w-12 h-12 rounded-full cursor-pointer border-2 ${
+					selectedAvatar === avatar ? "border-blue-500" : "border-transparent"
+				}`}
+				alt="Avatar"
+				onClick={() => setSelectedAvatar(avatar)}
+				/>
+			))}
+			</div>
+		</div>
+	</div>
 
-  return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Profile</h1>
+	<button
+		onClick={handleUpdate}
+		disabled={updating}
+		className="px-6 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+		>
+		{updating ? "Saving..." : "Save Changes"}
+	</button>
 
-      {/* Avatar and username */}
-      <div className="flex items-center gap-4 mb-4">
-        <img
-          src={selectedAvatar || profile.avatarFile || defaultAvatar}
-          alt="Avatar"
-          className="w-24 h-24 rounded-full"
-        />
-        <div>
-          <h2 className="text-xl font-semibold">{profile.username}</h2>
-        </div>
-      </div>
+	{/* Stats */}
+	<div className="mt-6">
+		<h3 className="font-semibold">Stats</h3>
+		<p>Rank: {user.rank}</p>
+		<p>Score: {user.score}</p>
+		<p>
+		Victories: {user.victories} | Losses: {user.losses} | Matches:{" "}
+		{user.totalMatches}
+		</p>
+	</div>
 
-      {/* Settings */}
-      <div className="mb-6">
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={twoFactor}
-            onChange={() => setTwoFactor(!twoFactor)}
-          />
-          Enable 2FA via Email
-        </label>
+	{/* Friends */}  
+	{/* <div className="mb-6"> //removed as we have a dedicated Friends page
+		<h3 className="font-semibold">Friends</h3>
+		<ul>
+		{profile.friends.map((friend) => (
+			<li key={friend.user_id} className="flex items-center gap-2">
+			<img
+				src={friend.avatar || "/default-avatar.png"}
+				className="w-8 h-8 rounded-full"
+				alt={friend.username}
+			/>
+			{friend.username}
+			</li>
+		))}
+		</ul>
+	</div> */} 
 
-        <div className="mt-2">
-          <label>Change Avatar:</label>
-            <div className="flex gap-2 mt-1">
-              {availableAvatars.map((avatar) => (
-                <img
-                  key={avatar}
-                  src={avatar}
-                  className={`w-12 h-12 rounded-full cursor-pointer border-2 ${
-                    selectedAvatar === avatar ? "border-blue-500" : "border-transparent"
-                  }`}
-                  alt="Avatar"
-                  onClick={() => setSelectedAvatar(avatar)}
-                />
-              ))}
-             </div>
-        </div>
-       </div>
 
-      {/* Stats */}
-      <div className="mb-6">
-        <h3 className="font-semibold">Stats</h3>
-        <p>Rank: {profile.rank}</p>
-        <p>Score: {profile.score}</p>
-        <p>
-          Victories: {profile.victories} | Losses: {profile.losses} | Matches:{" "}
-          {profile.totalMatches}
-        </p>
-      </div>
-
-      {/* Friends */}
-      <div className="mb-6">
-        <h3 className="font-semibold">Friends</h3>
-        <ul>
-          {profile.friends.map((friend) => (
-            <li key={friend.user_id} className="flex items-center gap-2">
-              <img
-                src={friend.avatar || "/default-avatar.png"}
-                className="w-8 h-8 rounded-full"
-                alt={friend.username}
-              />
-              {friend.username}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Match History */}
-      <div>
-        <h3 className="font-semibold">Match History</h3>
-        <table className="w-full text-left border">
-          <thead>
-            <tr>
-              <th className="border px-2 py-1">Opponent</th>
-              <th className="border px-2 py-1">Result</th>
-              <th className="border px-2 py-1">Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            {profile.matchHistory.map((match) => (
-              <tr key={match.id}>
-                <td className="border px-2 py-1">{match.opponent}</td>
-                <td className="border px-2 py-1">{match.result}</td>
-                <td className="border px-2 py-1">{match.score}</td>
-                <td className="border px-2 py-1">{match.timestamp}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+	{/* Match History */}
+	<div className="mt-6">
+		<h3 className="font-semibold">Match History</h3>
+		<table className="w-full text-left border">
+		<thead>
+			<tr>
+			<th className="border px-2 py-1">Opponent</th>
+			<th className="border px-2 py-1">Result</th>
+			<th className="border px-2 py-1">Score</th>
+			<th className="border px-2 py-1">Time</th>
+			</tr>
+		</thead>
+		<tbody>
+			{user.matchHistory.map((match) => (
+			<tr key={match.id}>
+				<td className="border px-2 py-1">{match.opponent}</td>
+				<td className="border px-2 py-1">{match.result}</td>
+				<td className="border px-2 py-1">{match.score}</td>
+				<td className="border px-2 py-1">{match.timestamp}</td>
+			</tr>
+			))}
+		</tbody>
+		</table>
+	</div>
+	</div>
+);
 };
 
 export default Profile;
