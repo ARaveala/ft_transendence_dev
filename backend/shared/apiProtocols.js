@@ -75,7 +75,7 @@ const API_PROTOCOL = {
   },
 
   CREATE_TOURNAMENT: {
-    path:'/api/tournament',
+    path:'/api/tournaments',
     method: 'POST',
   },
 

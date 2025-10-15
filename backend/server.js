@@ -51,8 +51,8 @@
 	const cookie = require('@fastify/cookie');
 	// utalizes api routing from  routes/user.js
 
-	const tournamentRoutes = require('./routes/tournament/tournament');
-	fastify.register(tournamentRoutes, { db, secure });
+//	const tournamentRoutes = require('./routes/tournament/tournament');
+//	fastify.register(tournamentRoutes, { db, secure });
 
 	fastify.register(cookie);
 	// no i need to register all of above? not just user routes
