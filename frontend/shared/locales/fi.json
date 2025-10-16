@@ -71,6 +71,7 @@
   "error.avatarTooLarge": "Tiedoston enimmäiskoko on 2 Mt.",
   "error.avatarType": "Vain PNG-, JPG-, tai WEBP-tiedostot sallittu.",
   "error.avatarUploadFailed": "Avatarin päivitys epäonnistui.",
+  "error.currentPasswordIncorrect": "Nykyinen salasana on virheellinen.",
 
   "notice.passwordLength": "Vähintään 8 merkkiä"
 }

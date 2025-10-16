@@ -127,7 +127,7 @@ export const handlers = [
             const newAvatar = body?.avatar as string | undefined;
             if (!newAvatar) {
                     return HttpResponse.json(
-                            { status: "ERROR", error: "no avatar" } satisfies UpdateProfileRespon$
+                            { status: "ERROR", error: "no avatar" } satisfies UpdateProfileResponse,
                             { status: 400 }, 
                     );
             }
@@ -161,7 +161,7 @@ export const handlers = [
             const MAX = 2 * 1024 * 1024;
             if (file.size > MAX) {
                     return HttpResponse.json(
-                            { status: "ERROR", error: "too large" } satisfies UploadAvatarRespons$
+                            { status: "ERROR", error: "too large" } satisfies UploadAvatarResponse,
                             { status: 413 }
                     );
             }
@@ -191,7 +191,7 @@ export const handlers = [
             if (friendId) {
                     if (mockFriends.some((f) => f.user_id === friendId)) {
                         return HttpResponse.json(
-                            { status: "ADDED", friend: mockFriends.find(f => f.user_id === friend$
+                            { status: "ADDED", friend: mockFriends.find(f => f.user_id === friendId) },
                             { status: 200 }
                     );
             } 
