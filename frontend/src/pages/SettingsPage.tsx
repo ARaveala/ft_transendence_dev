@@ -25,7 +25,7 @@ type Row = "language" | "username" | "password" | "avatar" | "twofa" | null;
 
 const SettingsPage: React.FC = () => {
 	const { t, setLang } = useTranslation();
-	const { user, refreshSession } = useAuth();
+	const { user, loading, refreshSession } = useAuth();
 
 	// Which row is open state
 	const [openRow, setOpenRow] = useState<Row>(null);
@@ -60,14 +60,6 @@ const SettingsPage: React.FC = () => {
 	const [deleted, setDeleted] = useState(false);
 	const [deleteError, setDeleteError] = useState<string | null>(null);
 
-	if (!user) {
-	return (
-		<div className="p-6 text-center text-gray-300">
-		Please log in to access settings.
-		</div>
-		);
-	}
-
 	useEffect(() => {
 	if (user) {
 		setUsername(user.username);
@@ -77,6 +69,17 @@ const SettingsPage: React.FC = () => {
 		setTwoFactor(user.twoFactor ?? false);
 	}
 	}, [user]);
+	
+	if (loading) {
+		return <div className="p-6 text-center text-gray-300">Loading...</div>;
+	}
+	if (!user) {
+	return (
+		<div className="p-6 text-center text-gray-300">
+		Please log in to access settings.
+		</div>
+		);
+	}
 
 	//Preload current 2FA status. Should be redundant now as we use user info from AuthContext
 	// useEffect(() => {
