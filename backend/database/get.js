@@ -73,19 +73,20 @@ async function fetchUserByUsername(username) {
 // get friends list for userId, take information from users table , as usenames may change
 // rename provided results to make data access clearer
 // status is pending, accepted, blocked etc. attatched which can be used in front end if wished
-async function getFriendsForPlayer({ userId }) {
-	console.log('DB::Fetching friends for user ID:', userId);
-	const test = userId.id;
+async function getFriendsForPlayer( userId ) {
+	flog.info({ function: 'getFriendsForPlayer', username: userId}, 'checking id matches  ');
+	//const test = userId.id;
 	return new Promise((resolve, reject) => {
 		db.all(
 			`SELECT users.id AS friendID,
-				users.username AS friendName,
-				users.avatar_file AS friendAvatar,
+				users.username AS username,
+				users.avatar_file AS avatar,
+				users.status AS status,
 				friends.status AS friendshipstatus
 			FROM friends
 			JOIN users ON friends.friend_id = users.id
 			WHERE friends.user_id = ?`,
-			[test],
+			[userId],
 			(err, rows) => {
 				if (err) {
 					if (!rows) {	
@@ -104,7 +105,7 @@ async function getFriendsForPlayer({ userId }) {
 }
 // can we have a schema that checks if table empty first?
 async function getMatchHistory({ userId }) {
-	console			.log('DB::Fetching match history for user ID:', userId);
+	//console			.log('DB::Fetching match history for user ID:', userId);
 	const test = userId.id;
 	return new Promise((resolve, reject) => {
 		db.all(

@@ -135,7 +135,7 @@ const Friends: React.FC = () => {
 		}
 	}
 
-	async function confirmRemove(friendId: string) {
+	async function confirmRemove(username: string) {
 		setRemoving(true);
 		setErr(null);
 		setMsg(null);
@@ -143,7 +143,7 @@ const Friends: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.REMOVE_FRIEND.path, {
 				method: API_PROTOCOL.REMOVE_FRIEND.method,
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ friend_id: friendId }),
+				body: JSON.stringify({ username: username }),
 				credentials: "include",
 			});
 			if (!res.ok) throw new Error("Failed to remove friend.");
@@ -276,7 +276,7 @@ const Friends: React.FC = () => {
 											</p>
 											<div className="flex gap-2">
 											<PrimaryTiny
-											onClick={() => confirmRemove(f.user_id)}
+											onClick={() => confirmRemove(f.username)}
 											disabled={removing}
 											>
 											{t("common.remove")}
