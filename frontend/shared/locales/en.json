@@ -72,6 +72,7 @@
   "error.avatarTooLarge": "Max file size is 2MB.",
   "error.avatarType": "Only PNG, JPG or WEBP files are allowed.",
   "error.avatarUploadFailed": "Could not update avatar.",
+  "error.currentPasswordIncorrect": "Your current password is incorrect.",
 
   "notice.passwordLength": "At least 8 characters"
 

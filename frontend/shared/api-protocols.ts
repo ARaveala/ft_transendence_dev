@@ -42,7 +42,7 @@ export const API_PROTOCOL = {
   },
 
   REMOVE_FRIEND: {
-	  path: '/api//friends/remove',
+	  path: '/api/friends/remove',
 	  method: 'POST'
   },
 
