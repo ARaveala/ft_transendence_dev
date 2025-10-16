@@ -1,4 +1,6 @@
 const db = require('./initDB.js');
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'insert.js' }); // scoped logger
 
 // naming can be changed 
 // get each element from database , such as score, name , status
@@ -48,6 +50,26 @@ async function fetchUser({ userId }) {
 		});
 }
 
+// get user by username , ie when adding friend
+async function fetchUserByUsername(username) {
+	if (username === undefined) {flog.warn({ function: 'fetUserByUsername'}, 'username undefined')}
+	flog.info({ function: 'fetUserByUsername', username: username}, 'username: ');
+		return new Promise((resolve, reject) => {
+			db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) =>{
+				if (err) {
+					flog.error({ function: 'fetUserByUsername', err}, 'DB error:');
+					reject({ error: 'DB error fecth' });
+				} else if (!row) {
+					flog.warn({ function: 'fetUserByUsername', username: username}, 'User not found :');
+					reject({ error: 'User not found fecth' });
+				} else {
+					flog.info({ function: 'fetUserByUsername', row}, 'User found:');
+					resolve(row.id);
+				}
+
+			});
+		});
+}
 // get friends list for userId, take information from users table , as usenames may change
 // rename provided results to make data access clearer
 // status is pending, accepted, blocked etc. attatched which can be used in front end if wished
@@ -174,6 +196,7 @@ module.exports = { fetchUser,
 	getMatchHistory,
 	checkUsernameAvailable,
 	checkPasswordMatch,
+	fetchUserByUsername,
 };
 //similar logic as below may be required
 //async function userRoutes(fastify, options) {

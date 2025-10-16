@@ -1,5 +1,6 @@
 const { API_PROTOCOL } = require('@sharedApi');
-//const { use } = require('react');
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'profile.js' }); // scoped logger
 /**
  * 
     const player = await db.getPlayerById(playerId);
@@ -33,12 +34,8 @@ async function getUser(fastify, options) {
 		//  reply.code(401).send({ error: "Unauthorized" });
 		//  return;
 		//}
-		console.log('Cookies in get User:', request.cookies);
 
 		const userId = secure.getUserIdFromToken(token);
-		console.log("-------- is the id valid", userId);
-		console.log("debug :: after get userid from");
-
 		const mockProfile = {
 				username: "PlayerOne",
 				avatarFile: undefined,
@@ -67,6 +64,7 @@ async function getUser(fastify, options) {
 			
 			const profile = await DBget.fetchUser({userId});
 			const friends = await DBget.getFriendsForPlayer({userId});
+
 			const matchHistory = await DBget.getMatchHistory({userId});
 			console.log("the user we should be returning is :", profile);
 			//const { password, ...safeUser } = profile;
