@@ -260,12 +260,13 @@ async function gameRoutes(fastify, options) {
 	await startGame(fastify, options);
 	await joinGame(fastify, options);
 	getGame();
+	generateRandomId();
 
 	//await updateProfile(fastify, options);
 }
 //module.exports = gameRoutes;
 
-module.exports = {gameRoutes, startGame, joinGame, createGame, getGame};
+module.exports = {gameRoutes, startGame, joinGame, createGame, getGame, generateRandomId};
 
 //front end connects to websocket like so
 /**async function gameRoutes(fastify, options) {

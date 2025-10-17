@@ -81,6 +81,8 @@ module.exports = async function tournamentRoutes(fastify, options) {
 		catch {reply.code(401).send({error: 'Invalid token'}); return null;}
 	};
 	fastify.post(API_PROTOCOL.CREATE_TOURNAMENT.path, async (request, reply) => {
+		//flog('CHECKING FUNCTION ACCESS CREATE TOURNAMNET ');
+
 		const userId = requireUser(request, reply);
 		if (!userId) return;
 		try

@@ -79,7 +79,7 @@ function attachPlayerToGame(ws, session) {
 function getGameContext(ws, data, playerinit) {
     if (!playerinit) return undefined;
 
-	const gameId = ws ? ws.gameId || Number(data.gameId) : Number(data.gameId);
+	const gameId = ws ? ws.gameId || data.gameId : data.gameId;
 	const game = getGame(gameId);
     if (!game) return undefined;
 

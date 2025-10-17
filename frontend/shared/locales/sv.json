@@ -71,6 +71,7 @@
   "error.avatarTooLarge": "Maximal filstorlek är 2 MB.",
   "error.avatarType": "Endast PNG-, JPG- eller WEBP-filer är tillåtna.",
   "error.avatarUploadFailed": "Det gick inte att uppdatera avataren.",
+  "error.currentPasswordIncorrect": "Nuvarande lösenord är felaktigt",
 
   "notice.passwordLength": "Minst 8 tecken"
 }

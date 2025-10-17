@@ -1,54 +1,37 @@
 // Shared endpoint definitions for frontend & backend
 
-export const API_PROTOCOL = {
+const API_PROTOCOL = {
   REGISTER_USER: {
     path: '/api/register',
     method: 'POST',
   },
-
   LOGIN_USER: {
     path: '/api/login',
     method: 'POST',
   },
-
   GET_USER: {
     path: '/api/user/:id',
     method: 'GET',
   },
-
   UPDATE_PROFILE: {
     path: '/api/profile/update',
     method: 'POST',
   },
-
-  UPDATE_2FA: {
-    path: '/api/profile/update2FA',
-    method: 'POST',
-  },
-
   GET_PROFILE: {
     path: '/api/profile',
     method: 'GET',
   },
-
   GET_LEADERBOARD: {
     path: '/api/leaderboard',
     method: 'GET',
   },
-
   ADD_FRIEND: {
     path: '/api/friends/add',
     method: 'POST',
   },
-  
   GET_FRIENDS: {
     path: '/api/friends',
     method: 'GET',
-  },
-
-  REMOVE_FRIEND: {
-	  path: '/api/friends/remove',
-	  method: 'POST'
   },
 
   GET_PLAYER: {
@@ -62,22 +45,32 @@ export const API_PROTOCOL = {
   },
 
   CREATE_TOURNAMENT: {
-    path:'/api/tournaments',
+    path:'/api/tournament',
     method: 'POST',
   },
-
-  GET_ACTIVE_TOURNAMENT: {
-    path: 'api/tournament/get-active',
-    method: 'GET',
-  },
   
-  VERIFY_PLAYER: {
+  GET_ALL_REGISTERED_PLAYERS: {
+    path: '/api/tournament/search',
+    method: 'GET'
+  },
+
+   VERIFY_PLAYER: {
   path: '/api/tournament/verify-player',
   method: 'POST',
   },
 
-  REMOVE_PLAYER_FROM_TOURNAMENT: {
-    path: '/api/tournament/remove-player',
+  ADD_PLAYER_TO_TOURNAMENT: {
+    path: '/api/tournament/add-player',
+    method: 'POST',
+  },
+
+  REGISTER_PLAYER_ALIAS: {
+    path: "/api/tournament/register-alias",
+    method: "POST",
+  },
+
+  JOIN_TOURNAMENT: {
+    path:'/api/tournament/:id/join',
     method: 'POST',
   },
 
@@ -86,31 +79,20 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
   
-  CANCEL_TOURNAMENT: {
-    path: '/api/tournament/:id/cancel',
-    method: 'DELETE',
-  },
+  /*START_TOURNAMENT: {
+    path:'/api/tournament/:id/start',
+    method: 'POST',
+  }, */
 
   TOURNAMENT_STATE: {
     path: '/api/tournament/:id/state',
     method: 'POST',
   },
 
-  GET_TOURNAMENT_STATE: {
-    path: '/api/tournament/state',
-    method: 'GET',
-  },
-
-  START_TOURNAMENT_MATCH: {
-    path: '/api/tournament/:id/start-match',
-    method: 'POST',
-  },
-
   LOGOUT_USER: {
-	  path: '/api/logout',
-	  method: 'POST',
+	path: '/api/logout',
+	method: 'POST',
   },
-
 // SettingsPage;
 
   DELETE_PROFILE: {
@@ -136,19 +118,10 @@ export const API_PROTOCOL = {
   CHANGE_AVATAR: {
 	  path: '/api/profile/avatar',
 	  method: 'PATCH',
-  },
-
-  UPLOAD_AVATAR: {
-	  path: '/api/profile/avatar',
-	  method: 'POST',
-  },
-
-  CHANGE_2FA: {
-	  path: '/api/profile/2fa',
-	  method: 'POST',
   }
 
-} as const;
+
+}
 
 
 /* handled through websockets??
@@ -158,3 +131,6 @@ export const API_PROTOCOL = {
   }
 
 */ 
+
+
+module.exports = { API_PROTOCOL };

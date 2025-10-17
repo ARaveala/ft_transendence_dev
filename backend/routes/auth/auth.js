@@ -1,6 +1,10 @@
 const schemas = require('@sharedSchemas');
 const { API_PROTOCOL } = require('@sharedApi');
 const {log} = require('@logger');
+
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'auth' }); // scoped logger
+
 /**
  * @type {import('../../shared/payloads').RegisterUserPayload}
  */

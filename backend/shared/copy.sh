@@ -28,7 +28,7 @@ comm -23 "$FRONT_KEYS" "$BACK_KEYS" > "$MISSING_KEYS"
 > "$MISSING_BLOCKS"
 while read -r key; do
   awk "/^ *$key: *\{/,/^ *\},?/" "$FRONT_BLOCK" >> "$MISSING_BLOCKS"
-  echo "," >> "$MISSING_BLOCKS"
+  echo >> "$MISSING_BLOCKS"
 done < "$MISSING_KEYS"
 
 # Insert missing blocks before closing };
