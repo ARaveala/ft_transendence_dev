@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 
 
 type Friend = {
+	user_id: string;
 	username: string;
 	avatar?: string | null;
 	online_status: boolean;
@@ -17,7 +18,6 @@ type FriendRequestResponse = {
 };
 
 const MAX_FRIENDS = 20;
-const normalize = (s: string) => s.trim().toLowercase();
 
 const Friends: React.FC = () => {
 	const { t } = useTranslation();
@@ -31,7 +31,7 @@ const Friends: React.FC = () => {
 	const [openAdd, setOpenAdd] = useState(false);
 
 	// Remove friend
-	const [removeConfirmKey, setRemoveConfirmKey] = useState<string | null>(null);
+	const [removeConfirmId, setRemoveConfirmId] = useState<string | null>(null);
 	const [removing, setRemoving] = useState(false);
 
 	// List friend
@@ -48,11 +48,10 @@ const Friends: React.FC = () => {
 	}
 
 	// Open/close remove friend
-	function toggleRemove(friendUsername: string) {
+	function toggleRemove(friendId: string) {
 		setMsg(null);
 		setErr(null);
-		const key = norm(friendUsername);
-		setRemoveConfirmKey((cur) => (cur === key ? null : key));
+		setRemoveConfirmId((cur) => (cur === friendId ? null : friendId));
 	}
 
 	// useEffect(() => { //removed as we now get friends from AuthContext
@@ -154,8 +153,8 @@ const Friends: React.FC = () => {
 				throw new Error(data.error || "Could not remove friend.");
 			}
 
-			setFriends((prev) => prev.filter((f) => norm(f.username) !== norm(friendUsername)));
-			setRemoveConfirmKey(null);
+			setFriends((prev) => prev.filter((f) => f.user_id !== friendId));
+			setRemoveConfirmId(null);
 			setMsg(t("common.friendRemoved"));
 			await refreshSession(); // Refresh user data in AuthContext to update friends list there too
 		} catch (e: any) {
@@ -232,7 +231,7 @@ const Friends: React.FC = () => {
 				) : (
 					<div className="space-y-3">
 						{friends.map((f) => (
-							<div key={norm(f.username)} className="space-y-2">
+							<div key={f.user_id} className="space-y-2">
 								<div className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50 border border-gray-700">
 									<div className="flex items-center gap-3">
 										<img
@@ -258,7 +257,7 @@ const Friends: React.FC = () => {
 
 									<button
 										type="button"
-										onClick={() => toggleRemove(f.username)}
+										onClick={() => toggleRemove(f.user_id)}
 										className="px-2 py-1 text-sm rounded-md text-white bg-gray-800 hover:bg-gray-700 border border-gray-700"
 									>
 										{t("friends.remove")}
@@ -266,7 +265,7 @@ const Friends: React.FC = () => {
 								</div>
 
 								{/* Remove confirmation */}
-								{removeConfirmKey === norm(f.username) && (
+								{removeConfirmId === f.user_id && (
 									<div className="px-4 pb-4">
 										<div className="border border-red-500/30 bg-red-900/10 rounded p-4">
 											<h3 className="text-red-400 font-semibold mb-2">
@@ -283,7 +282,7 @@ const Friends: React.FC = () => {
 											{t("common.remove")}
 											</PrimaryTiny>
 											<SecondaryTiny
-											onClick={() => setRemoveConfirmKey(null)}
+											onClick={() => setRemoveConfirmId(null)}
 											disabled={removing}
 											>
 											{t("common.cancel")}
