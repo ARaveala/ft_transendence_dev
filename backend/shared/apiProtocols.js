@@ -138,23 +138,32 @@ const API_PROTOCOL = {
   path: '/api/tournament/verify-player',
   method: 'POST',
   },
-  CREATE_TOURNAMENT: {
-	path: '/api/tournaments',
-	method: 'POST'
-},
-JOIN_TOURNAMENT: {
+
+  JOIN_TOURNAMENT: {
 	path: '/api/tournaments/:tid/join',
 	method: 'POST'
-},
-START_TOURNAMENT:
-{ 
-	path: '/api/tournaments/:tid/start',
-	method: 'POST'
-},
+  },
+
 REPORT_GAME_RESULT:{
 	path: '/api/games/result',
 	method: 'POST' },
+  CHANGE_2FA: {
+	path: '/api/profile/2fa',
+	method: 'POST',
+  },
+
+  REMOVE_FRIEND: {
+	path: '/api/friends/remove',
+	method: 'POST'
+  },
+
+  UPLOAD_AVATAR: {
+	path: '/api/profile/avatar',
+	method: 'POST',
+  },
+
 };
+
 
 
 module.exports = { API_PROTOCOL };
