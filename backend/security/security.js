@@ -20,7 +20,12 @@ function setAuthCookie(reply, token) {
 }
 
 function clearAuthCookie(reply) {
-	return jwt.verify(token, JWT_SECRET);
+	reply.clearCookie('auth_token', {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  });
 }
 
 function verifyToken(token) {

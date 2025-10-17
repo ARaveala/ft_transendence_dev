@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users
 	language TEXT NOT NULL DEFAULT 'en',
     status TEXT NOT NULL DEFAULT 'offline',
     mfa_enabled INTEGER NOT NULL DEFAULT 0,
+    mfa_secret TEXT,
     rank INTEGER NOT NULL DEFAULT 0,
     score INTEGER NOT NULL DEFAULT 0,
     wins INTEGER NOT NULL DEFAULT 0,

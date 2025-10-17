@@ -13,6 +13,9 @@
 	// use stict mode for better error handling
 	const cookie = require('@fastify/cookie');
 	fastify.register(cookie);
+	const authRoutes = require('@Rauth/auth.js');
+	const authcontext = require('@Rauth/context.js');
+	fastify.register(authRoutes, authcontext);
 	// set up fucntion userRoutes , require from user.js
 	//this will be split later into multiple files we can use this now as the tetsing ground
 	const userRoutes = require('@routes/user.js');
@@ -24,9 +27,9 @@
 	fastify.register(userRoutes, context);
 
 	// set up auth routes with context
-	const authRoutes = require('@Rauth/auth.js');
-	const authcontext = require('@Rauth/context.js');
-	fastify.register(authRoutes, authcontext);
+	// const authRoutes = require('@Rauth/auth.js');
+	// const authcontext = require('@Rauth/context.js');
+	// fastify.register(authRoutes, authcontext);
 
 	const profileRoutes = require('@Rprofile/profile.js');
 	const profilecontext = require('@Rprofile/context.js');

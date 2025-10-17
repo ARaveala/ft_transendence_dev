@@ -8,11 +8,11 @@ function insertUser({ username, password, score = 0, status = 'online'}) {
         try
         {
             const hash = await bcrypt.hash(password, 10);
-            const avatarFile = 'frontend/src/assets/avatars/avatar1.png';
+            // const avatarFile = 'frontend/src/assets/avatars/avatar1.png';
             db.run(
-                `INSERT INTO users (username, password, avatar_file, status, score)
-                 VALUES(?, ?, ?, ?, ?)`,
-                [username, hash, avatarFile, score],
+                `INSERT INTO users (username, password, status, score)
+                 VALUES(?, ?, ?, ?)`,
+                [username, hash, status, score],
                 function (err) {
                     if (err)
                     {

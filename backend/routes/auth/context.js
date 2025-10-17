@@ -3,11 +3,15 @@ const DBinsert = require('@db/insert.js');
 const DBdelete = require('@db/delete.js');
 const DBget = require('@db/get.js') //testing minilogin
 const secure = require('@security');
-//const game = require('@Rgame'); // testing
+
+const { API_PROTOCOL } = require('@sharedApi');
+const schemas = require('@sharedSchemas');
 module.exports = {
 	db,
 	DBinsert,
 	DBget,
 	DBdelete,
 	secure,
+	API_PROTOCOL,
+	schemas
 };

@@ -15,7 +15,7 @@ function getUserByUsername(username) {
 async function miniLogin(username, password) {
 	const row = await getUserByUsername(username);
 	if (!row)
-		throw {status: 401, error: 'Invalid uswername or password'};
+		throw {status: 401, error: 'Invalid username or password'};
 	const ok = await bcrypt.compare(password, row.password);
 	if (!ok)
 		throw {status: 401, error: 'Invalid username or password'};
