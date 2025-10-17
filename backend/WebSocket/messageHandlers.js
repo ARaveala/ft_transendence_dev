@@ -43,11 +43,11 @@ gameState.keys = {
 
  */
 function handleMessage(ws, data) {
-
+	currentWs = ws; // this will have to be changed for remote play
 	const context = getGameContext(ws, data, playerinit);
 	const {game, gameState} = context || {};
 
-	currentWs = ws; // this will have to be changed for remote play
+	
 	switch (data.type) {
 		case 'greet':
 			handleGreet(currentWs, data);

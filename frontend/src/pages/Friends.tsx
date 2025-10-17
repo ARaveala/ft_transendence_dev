@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useTranslation } from "../shared/Translation";
+import { useAuth } from "../context/AuthContext";
+
 
 type Friend = {
-	user_id: string;
 	username: string;
 	avatar?: string | null;
 	online_status: boolean;
@@ -16,9 +17,11 @@ type FriendRequestResponse = {
 };
 
 const MAX_FRIENDS = 20;
+const normalize = (s: string) => s.trim().toLowercase();
 
 const Friends: React.FC = () => {
 	const { t } = useTranslation();
+	const { user, refreshSession } = useAuth(); //now using AuthContext to get user info
 
 	// Inline status
 	const [msg, setMsg] = useState<string | null>(null);
@@ -28,12 +31,12 @@ const Friends: React.FC = () => {
 	const [openAdd, setOpenAdd] = useState(false);
 
 	// Remove friend
-	const [removeConfirmId, setRemoveConfirmId] = useState<string | null>(null);
+	const [removeConfirmKey, setRemoveConfirmKey] = useState<string | null>(null);
 	const [removing, setRemoving] = useState(false);
 
 	// List friend
-	const [friends, setFriends] = useState<Friend[]>([]);
-	const [loading, setLoading] = useState(true);
+	const [friends, setFriends] = useState<Friend[]>(user?.friends.slice(0, MAX_FRIENDS) || []);// means we use the friends from AuthContext if available. Slice to limit to MAX_FRIENDS
+	//const [loading, setLoading] = useState(!user); 
 
 	// Add friend
 	const [username, setUsername] = useState("");
@@ -45,36 +48,43 @@ const Friends: React.FC = () => {
 	}
 
 	// Open/close remove friend
-	function toggleRemove(friendId: string) {
+	function toggleRemove(friendUsername: string) {
 		setMsg(null);
 		setErr(null);
-		setRemoveConfirmId((cur) => (cur === friendId ? null : friendId));
+		const key = norm(friendUsername);
+		setRemoveConfirmKey((cur) => (cur === key ? null : key));
 	}
+
+	// useEffect(() => { //removed as we now get friends from AuthContext
+	// 	loadFriends();
+	// }, []);
 
 	useEffect(() => {
-		loadFriends();
-	}, []);
-
-	async function loadFriends() {
-		setLoading(true);
-		setErr(null);
-		setMsg(null);
-		try {
-			const res = await fetch(API_PROTOCOL.GET_FRIENDS.path, {
-				method: API_PROTOCOL.GET_FRIENDS.method,
-				headers: { "Content-Type": "application/json" },
-			});
-			if (!res.ok) throw new Error("Failed to get friends.");
-
-			const data: Friend[] = await res.json();
-
-			setFriends(data.slice(0, MAX_FRIENDS));
-		} catch (e: any) {
-			setErr(e?.message || "Failed to load friends.");
-		} finally {
-			setLoading(false);
-		}
+	if (user) {
+		setFriends(user.friends.slice(0, MAX_FRIENDS));
 	}
+	}, [user]);
+
+	// async function loadFriends() {
+	// 	setLoading(true);
+	// 	setErr(null);
+	// 	setMsg(null);
+	// 	try {
+	// 		const res = await fetch(API_PROTOCOL.GET_FRIENDS.path, {
+	// 			method: API_PROTOCOL.GET_FRIENDS.method,
+	// 			headers: { "Content-Type": "application/json" },
+	// 		});
+	// 		if (!res.ok) throw new Error("Failed to get friends.");
+
+	// 		const data: Friend[] = await res.json();
+
+	// 		setFriends(data.slice(0, MAX_FRIENDS));
+	// 	} catch (e: any) {
+	// 		setErr(e?.message || "Failed to load friends.");
+	// 	} finally {
+	// 		setLoading(false);
+	// 	}
+	// }
 
 	async function handleAdd() {
 		setErr(null);
@@ -100,6 +110,7 @@ const Friends: React.FC = () => {
 				method: API_PROTOCOL.ADD_FRIEND.method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ username: value }),
+				credentials: "include", // include cookies
 			});
 			if (res.status === 404) {
 				setErr(t("error.userNotFound"));
@@ -117,6 +128,7 @@ const Friends: React.FC = () => {
 			resetAddForm();
 			setMsg(t("common.friendAdded"));
 			setOpenAdd(false);
+			await refreshSession(); // Refresh user data in AuthContext to update friends list there too
 		} catch (e: any) {
 			setErr(e?.message || "Could not add friend.");
 		} finally {
@@ -124,7 +136,7 @@ const Friends: React.FC = () => {
 		}
 	}
 
-	async function confirmRemove(friendId: string) {
+	async function confirmRemove(friendUsername: string) {
 		setRemoving(true);
 		setErr(null);
 		setMsg(null);
@@ -132,7 +144,8 @@ const Friends: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.REMOVE_FRIEND.path, {
 				method: API_PROTOCOL.REMOVE_FRIEND.method,
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ friend_id: friendId }),
+				body: JSON.stringify({ friend_username: friendUsername }),
+				credentials: "include",
 			});
 			if (!res.ok) throw new Error("Failed to remove friend.");
 
@@ -141,9 +154,10 @@ const Friends: React.FC = () => {
 				throw new Error(data.error || "Could not remove friend.");
 			}
 
-			setFriends((prev) => prev.filter((f) => f.user_id !== friendId));
-			setRemoveConfirmId(null);
+			setFriends((prev) => prev.filter((f) => norm(f.username) !== norm(friendUsername)));
+			setRemoveConfirmKey(null);
 			setMsg(t("common.friendRemoved"));
+			await refreshSession(); // Refresh user data in AuthContext to update friends list there too
 		} catch (e: any) {
 			setErr(e?.message || "Could not remove friend.");
 		} finally {
@@ -151,7 +165,14 @@ const Friends: React.FC = () => {
 		}
 	}
 
-	if (loading) return <div className="p-6">{t("common.loading")}</div>;
+	//if (loading) return <div className="p-6">{t("common.loading")}</div>;
+	if (!user) {
+	return (
+		<div className="p-6 text-center text-gray-300">
+		Please log in to view your friends.
+		</div>
+	);
+	}
 
 	return (
 		<div className="p-6 max-w-4xl mx-auto">
@@ -211,7 +232,7 @@ const Friends: React.FC = () => {
 				) : (
 					<div className="space-y-3">
 						{friends.map((f) => (
-							<div key={f.user_id} className="space-y-2">
+							<div key={norm(f.username)} className="space-y-2">
 								<div className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50 border border-gray-700">
 									<div className="flex items-center gap-3">
 										<img
@@ -237,7 +258,7 @@ const Friends: React.FC = () => {
 
 									<button
 										type="button"
-										onClick={() => toggleRemove(f.user_id)}
+										onClick={() => toggleRemove(f.username)}
 										className="px-2 py-1 text-sm rounded-md text-white bg-gray-800 hover:bg-gray-700 border border-gray-700"
 									>
 										{t("friends.remove")}
@@ -245,7 +266,7 @@ const Friends: React.FC = () => {
 								</div>
 
 								{/* Remove confirmation */}
-								{removeConfirmId === f.user_id && (
+								{removeConfirmKey === norm(f.username) && (
 									<div className="px-4 pb-4">
 										<div className="border border-red-500/30 bg-red-900/10 rounded p-4">
 											<h3 className="text-red-400 font-semibold mb-2">
@@ -256,13 +277,13 @@ const Friends: React.FC = () => {
 											</p>
 											<div className="flex gap-2">
 											<PrimaryTiny
-											onClick={() => confirmRemove(f.user_id)}
+											onClick={() => confirmRemove(f.username)}
 											disabled={removing}
 											>
 											{t("common.remove")}
 											</PrimaryTiny>
 											<SecondaryTiny
-											onClick={() => setRemoveConfirmId(null)}
+											onClick={() => setRemoveConfirmKey(null)}
 											disabled={removing}
 											>
 											{t("common.cancel")}
