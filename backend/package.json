@@ -1,4 +1,4 @@
-                {
+{
   "name": "my-first-backend",
   "version": "1.0.0",
   "main": "server.js",
@@ -7,9 +7,9 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "@fastify/static": "^6.12.0",
-    "@fastify/cookie": "^7.4.0",
+    "@fastify/cookie": "9.4.0",
     "@fastify/cors": "^8.5.0",
+    "@fastify/static": "^6.12.0",
     "@fastify/websocket": "^11.2.0",
     "@sinclair/typebox": "^0.34.40",
     "dotenv": "^17.2.1",
@@ -35,7 +35,7 @@
     "@Rauth": "routes/auth",
     "@Rprofile": "routes/profile",
     "@Rgame": "routes/game.js",
-	"@logger": "logger.js"
+    "@logger": "logger.js"
   },
   "devDependencies": {
     "@fastify/static": "^6.12.0",

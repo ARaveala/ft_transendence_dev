@@ -1,15 +1,79 @@
 
 const { API_PROTOCOL } = require('@sharedApi');
 
+let _db;
+const _wrap = (db) => ({
+	run: (sql, params = []) => new Promise((res, rej) =>
+		db.run(sql, params, function (err){
+			if (err) return rej(err);
+			else res({lastID: this.lastID, changes: this.changes});
+		})
+	),
+	get: (sql, params = []) => new Promise((res, rej) =>
+	db.get(sql, params, (e, row) => (e ? rej(e) : res(row)))
+	),
+	all: (sql, params = []) => new Promise((res, rej) =>
+	db.all(sql, params, (e, rows) => (e ? rej(e) : res(rows)))
+	),
+	tx: async (fn) => {
+		const run = (sql, p=[]) => _wrap(db).run(sql, p);
+		await run('BEGIN');
+		try{const r = await fn(); await run('COMMIT'); return r;}
+		catch (e) {await run('ROLLBACK'); throw e;}
+	}
+});
+
+async function reportGameResultDirect(game_id, p1_score, p2_score) {
+	if (!_db) throw new Error('Tournament DB not initialized');
+	const {run, get, tx} = _wrap(_db);
+	return tx(async () => {
+		const g = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
+		if (!g) throw Object.assign(new Error('Game not found'), {statusCode: 404});
+		const winner_user_id = p1_score > p2_score ? g.p1_id : p2_score > p1_score ? g.p2_id : null;
+		await run(
+			`UPDATE games
+				SET p1_score = ?, p2_score = ?, status = 'finished', winner_user_id = ?
+			WHERE id = ?`,
+			[p1_score, p2_score, winner_user_id, game_id]
+		);
+		if (g.round === 1 && winner_user_id)
+		{
+			const final = await get(
+				`SELECT id, p1_id, p2_id FROM games
+				WHERE tournament_id = ? AND round = 2 AND bracket_pos 1`,
+				[g.tournament_id]
+			);
+			if (final)
+			{
+				if (!final.p1_id)
+					await run(`UPDATE games SET p1_id = ? WHERE id = ?`, [winner_user_id, final.id]);
+				else if (!final.p2_id)
+					await run(`UPDATE games SET p2_id = ? WHERE id = ?`, [winner_user_id, final.id]);
+			}
+		}
+		if (g.round === 2 && winner_user_id)
+		{
+			await run(
+			`UPDATE tournaments SET status = 'finished', winner_id = ? WHERE id = ?`,
+			[winner_user_id, g.tournament_id]
+			);
+		}
+		return {status: 'OK', winner_user_id};
+	});
+}
+
+module.exports.reportGameResultDirect = reportGameResultDirect;
+
 module.exports = async function tournamentRoutes(fastify, options) {
 	const {db, secure} = options;
-	
-	const run = (sql, params=[]) => new Promise((res, rej) => db.run(sql, params, function(err){
-		if (err) rej(err); else res({lastID: this.lastID, changes: this.changes});
-	}));
-	const get = (sql, params=[]) => new Promise((res, rej) => db.get(sql, params, (e, row) => e ? rej(e) : res(row)));
-	const all = (sql, params=[]) => new Promise((res, rej) => db.all(sql, params, (e, rows) => e ? rej(e) : res(rows)));
-	const tx =  async(fn) => {await run('BEGIN'); try {const r = await fn(); await run('COMMIT'); return r} catch (e) {await run('ROLLBACK'); throw e;} };
+	_db = db;
+	const {run, get, all, tx} = _wrap(db);
+	// const run = (sql, params=[]) => new Promise((res, rej) => db.run(sql, params, function(err){
+	// 	if (err) rej(err); else res({lastID: this.lastID, changes: this.changes});
+	// }));
+	// const get = (sql, params=[]) => new Promise((res, rej) => db.get(sql, params, (e, row) => e ? rej(e) : res(row)));
+	// const all = (sql, params=[]) => new Promise((res, rej) => db.all(sql, params, (e, rows) => e ? rej(e) : res(rows)));
+	// const tx =  async(fn) => {await run('BEGIN'); try {const r = await fn(); await run('COMMIT'); return r} catch (e) {await run('ROLLBACK'); throw e;} };
 	const requireUser = (request, reply) => {
 		const token = request.cookies?.auth_token;
 		if (!token) {reply.code(401).send({error: 'Not authenticated'}); return null;}
@@ -26,7 +90,7 @@ module.exports = async function tournamentRoutes(fastify, options) {
 				status: 'OK',
 				tournament: {
 					tournament_id: String(lastID),
-					status: waiting,
+					status: 'waiting',
 					players: [],
 					bracket: [],
 				}
@@ -40,6 +104,17 @@ module.exports = async function tournamentRoutes(fastify, options) {
 	});
 	fastify.post(API_PROTOCOL.JOIN_TOURNAMENT.path, async (request, reply) => {
 		db.exec('PRAGMA foreign_keys = ON;');
+		const token = request.cookies?.auth_token;
+		if (!token) return reply.code(401).send({status: 'ERROR', error: 'Not authenticated'});
+		let userId;
+		try
+		{
+			const payload = fastify.jwt.verify(token);
+			userId = payload.id || payload.user_id;
+		} catch(e)
+		{
+			return reply.code(401).send({status: 'ERROR', error: 'Invalid auth token'});
+		}
 		const userRow = await get(`SELECT id FROM users WHERE id = ?`, [userId]);
 		if (!userRow) return reply.code(401).send({ status: 'ERROR', error: 'User no longer exists' });
 		const tid = Number(request.params.tid);
@@ -109,46 +184,52 @@ module.exports = async function tournamentRoutes(fastify, options) {
 		}
 	});
 	fastify.post(API_PROTOCOL.REPORT_GAME_RESULT.path, async (request, reply) => {
+		// const userId = requireUser(request, reply);
+		// if (!userId) return;
+
+		// const { game_id, p1_score, p2_score } = request.body || {};
+		// if (!game_id || typeof p1_score !== 'number' || typeof p2_score !== 'number') {
+		// return reply.code(400).send({ status: 'ERROR', error: 'game_id, p1_score, p2_score required' });
+		// }
+
+		// try {
+		// await tx(async () => {
+		// 	const g = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
+		// 	if (!g) throw Object.assign(new Error('Game not found'), { statusCode: 404 });
+		// 	// store result
+		// 	const winner = p1_score > p2_score ? g.p1_id : p2_score > p1_score ? g.p2_id : null;
+		// 	await run(`UPDATE games
+		// 				SET p1_score = ?, p2_score = ?, status = 'completed', winner_user_id = ?
+		// 				WHERE id = ?`,
+		// 			[p1_score, p2_score, winner, game_id]);
+		// 	// if it was a semi, slot winner into final
+		// 	if (g.round === 1) {
+		// 	const final = await get(
+		// 		`SELECT id, p1_id, p2_id FROM games WHERE tournament_id = ? AND round = 2 AND bracket_pos = 1`,
+		// 		[g.tournament_id]
+		// 	);
+		// 	if (final) {
+		// 		if (!final.p1_id) await run(`UPDATE games SET p1_id = ? WHERE id = ?`, [winner, final.id]);
+		// 		else if (!final.p2_id) await run(`UPDATE games SET p2_id = ? WHERE id = ?`, [winner, final.id]);
+		// 	}
+		// 	}
+
+		// 	if (g.round === 2)
+		// 		await run(`UPDATE tournaments SET status = 'completed', winner_id = NULL WHERE id = ?`, [g.tournament_id]);
+
+		// });
+
+		// reply.send({ status: 'OK' });
+		// } catch (err) {
+		// const code = err.code && Number.isInteger(err.code) ? err.code : 500;
+		// reply.code(code).send({ status: 'ERROR', error: err.message || 'Failed to report result' });
+		// }
 		const userId = requireUser(request, reply);
 		if (!userId) return;
+		const {game_id, p1_score, p2_score} = request.body || {};
+		if (!game_id || typeof p1_score !== 'number' || typeof p2_score !== 'number')
+			return reply.code(400).send({status: 'ERROR', error: 'Game id, player 1 score and player 2 score required'});
 
-		const { game_id, p1_score, p2_score } = request.body || {};
-		if (!game_id || typeof p1_score !== 'number' || typeof p2_score !== 'number') {
-		return reply.code(400).send({ status: 'ERROR', error: 'game_id, p1_score, p2_score required' });
-		}
-
-		try {
-		await tx(async () => {
-			const g = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
-			if (!g) throw Object.assign(new Error('Game not found'), { statusCode: 404 });
-			// store result
-			const winner = p1_score > p2_score ? g.p1_id : p2_score > p1_score ? g.p2_id : null;
-			await run(`UPDATE games
-						SET p1_score = ?, p2_score = ?, status = 'completed', winner_user_id = ?
-						WHERE id = ?`,
-					[p1_score, p2_score, winner, game_id]);
-			// if it was a semi, slot winner into final
-			if (g.round === 1) {
-			const final = await get(
-				`SELECT id, p1_id, p2_id FROM games WHERE tournament_id = ? AND round = 2 AND bracket_pos = 1`,
-				[g.tournament_id]
-			);
-			if (final) {
-				if (!final.p1_id) await run(`UPDATE games SET p1_id = ? WHERE id = ?`, [winner, final.id]);
-				else if (!final.p2_id) await run(`UPDATE games SET p2_id = ? WHERE id = ?`, [winner, final.id]);
-			}
-			}
-
-			if (g.round === 2)
-				await run(`UPDATE tournaments SET status = 'completed', winner_id = NULL WHERE id = ?`, [g.tournament_id]);
-
-		});
-
-		reply.send({ status: 'OK' });
-		} catch (err) {
-		const code = err.code && Number.isInteger(err.code) ? err.code : 500;
-		reply.code(code).send({ status: 'ERROR', error: err.message || 'Failed to report result' });
-		}
 	});
 };
 /**

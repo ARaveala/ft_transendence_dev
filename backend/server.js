@@ -1,4 +1,4 @@
-
+	'use strict';
 	require('module-alias/register'); // enables aliases
 	// env file
 	require('dotenv').config();
@@ -11,7 +11,8 @@
 	const fastify = require('fastify')({ logger: true });
 	const {log} = require('@logger'); //dev
 	// use stict mode for better error handling
-	'use strict';
+	const cookie = require('@fastify/cookie');
+	fastify.register(cookie);
 	// set up fucntion userRoutes , require from user.js
 	//this will be split later into multiple files we can use this now as the tetsing ground
 	const userRoutes = require('@routes/user.js');
@@ -31,8 +32,6 @@
 	const profilecontext = require('@Rprofile/context.js');
 	fastify.register(profileRoutes, profilecontext);
 
-
-	// Attach WebSocket server to Fastify's internal server
 	const setUpWebSockets = require('@Wbs/startUp.js');
 
 	const errorCodes = require('@sharedEcode');
@@ -43,15 +42,10 @@
 
 	const path = require('path');
 
-	// websocket handlers
-	//const WBhandlers = require ('Webscoket/');
-	const cookie = require('@fastify/cookie');
-	// utalizes api routing from  routes/user.js
-
-	const tournamentRoutes = require('./routes/tournament/tournament');
+	const tournamentRoutes = require('@routes/tournament/tournament');
 	fastify.register(tournamentRoutes, { db, secure });
 
-	fastify.register(cookie);
+	
 	// no i need to register all of above? not just user routes
 
 
@@ -81,13 +75,6 @@
 	decorateReply: false // prevents re-adding sendFile
 	});
 
-	// TEST:: docker does not seem to need this 
-	//fastify.register(require('@fastify/cors'), {
-	//  origin: 'http://localhost:5173', // your frontend dev server 5173 front end dev
-	//  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-	//  allowedHeaders: ['Content-Type', 'Authorization'], // include any custom headers you use
-	//  credentials: true // if you're sending cookies or auth headers
-	//});
 	// Global error handler
 	fastify.setErrorHandler((error, request, reply) => {
 	if (error.validation) {
@@ -99,7 +86,7 @@
 	reply.code(code).send({ error: 'VALIDATION_FAILED', formatted});
 		
 	} else {
-		console.log('Server error in srver.js:', error);
+		console.log('Server error in server.js:', error);
 		reply.code(500).send({ error: 'SERVER_ERROR', message: error.message });
 	}
 	});
@@ -141,25 +128,3 @@
 	  console.log('=========================\n');
 	});
 	start();
-
-
-
-	//fastify.server.on('upgrade', (req, socket, head) => {
-	//  console.log('Upgrade request received:', req.url);
-	//  wss.handleUpgrade(req, socket, head, (ws) => {
-	//    console.log('WebSocket handshake successful');
-	//    wss.emit('connection', ws, req);
-	//  });
-	//});
-
-
-	// just an example of returning a different type of data
-	//function getAllUsers() {
-	//    return new Promise((resolve, reject) => {
-	//        db.all(`SELECT id, username, avatar FROM users`, [], (err, rows) => {
-	//            if (err) reject(err);
-	//            else resolve(rows); // rows is an array of user objects
-	//        });
-	//    });
-	//}
-	//SELECT id, username FROM users WHERE score > 100

@@ -11,67 +11,51 @@ const {log} = require('@logger');
 
 console.log('API_PROTOCOL:', API_PROTOCOL);
 
-/**
- * 
-defaults 
- */
+
 async function registerUser(fastify, options) {
-	const {secure, DBinsert,} = options;
-	fastify.post(API_PROTOCOL.REGISTER_USER.path, {
-	schema: { body: schemas.RegisterUser }
+	const {secure, DBinsert} = options;
+	fastify.post(API_PROTOCOL.REGISSTER_USER.path, {
+		schema: {body: schemas.RegisterUser}
 	}, async (request, reply) => {
-		/** @type {RegisterUserPayload} */
-		const { username, password} = request.body;
-		const  score = 0;
-		const  status = 'online';
-
-		log('REGISTER_USER:', `in coming body ${JSON.stringify(request.body)}`);
-		try {
-			const result = await DBinsert.insertUser({ username, password, score, status });
-			log('REGISTER_USER', `User registration result: ${result}`);
-
-			const token = secure.generateToken(result, username);
-			log('LOGINUSER', `token on creation ${token}`);
-			secure.setAuthCookie(reply, token)
-			reply.code(200).send('ok');
-		} catch (err) {
-			reply.code(500).send(err);
+		const {username, password} = /** @type {{username:string,password:string}} */ (request.body);
+		const score = 0;
+		const status = 'online';
+		try
+		{
+			const userId = await DBinsert.insertUser({username, password, score, status});
+			const token = secure.generateToken(userId, username);
+			secure.setAuthCookie(reply, token);
+			reply.code(201).send({id: userId, username});
+		}
+		catch (err)
+		{
+			const status = err?.status || 500;
+			reply.code(status).send({error: err.error || 'Registration failed'});
 		}
 	});
 }
 
 // result change may affect frontend testing due to incorrect path
 async function loginUser(fastify, options) {
-	const { DBget, secure } = options;
 	fastify.route({
 		method: API_PROTOCOL.LOGIN_USER.method,
 		url: API_PROTOCOL.LOGIN_USER.path,
 		handler: async (request, reply) => {
-		//schema: { body: schemas.LoginUser },
-
-		const { username, password} = request.body;
-		log('LOGINUSER', `Incoming user data: ${JSON.stringify(request.body)}`);
-		try {
-		// here it looks to find if user exists and password matches.
-			const result = await DBget.miniLogin(username, password);//*DBinsert.loginUser({ username, password});
-			// if user 2fa -> securty.js handle that
-			// dev testing for now
-			const token = secure.generateToken(result, username);
-			log('LOGINUSER', `token on creation ${token}`);
-			secure.setAuthCookie(reply, token);
-			// change status function once everything verified
-
-			
-			log('LOGINUSER', `User registration result:${JSON.stringify(result)}`);
-			reply.code(200).send('ok');
-			//reply.send(result);
-		} catch (err) {
-			console.log(('Error during login:', err));
-			reply.code(500).send(err);
+			const {username, password} = /** @type {{username:string,password:string}} */ (request.body);
+			try
+			{
+				const userId = await DBget.minilogin(username, password);
+				const token = secure.generateToken(userId, username);
+				secure.setAuthCookie(reply, token);
+				reply.code(200).send({id: userId, username});
+			}
+			catch (err)
+			{
+				const status = err?.status || 500;
+				reply.code(status).send({error: err.error || 'Login failed'});
+			}
 		}
-	}
 	});
-
 }
 
 async function logoutUser(fastify, options) {

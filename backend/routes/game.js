@@ -47,9 +47,10 @@ function generateRandomId() {
   return Math.random().toString(36).substring(2, 10);
 }
 
-function createGameMap(owner, mode, type) {
-	const gameId = 1;// 1 for testing now //crypto.randomUUID(); // or generateRandomId()
+function createGameMap(owner, mode, type, forceGameId) {
+	const gameId = forceGameId ?? 1;
 	games.set(gameId, {
+		id: gameId,
 		owner,
 		type,
 		mode,
