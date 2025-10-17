@@ -22,7 +22,8 @@
     "sinclair": "^0.2.0",
     "speakeasy": "^2.0.0",
     "sqlite3": "^5.1.7",
-    "typebox": "^0.0.1"
+    "typebox": "^0.0.1",
+	"pino-pretty": "^13.1.2"
   },
   "_moduleAliases": {
     "@db": "database",

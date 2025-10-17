@@ -153,7 +153,7 @@ return (
 
 	{isLoggedIn && (
 		<div className="flex flex-col items-center gap-2">
-		<p>Welcome, {user?.username}!</p>
+		<p id="welcome">Welcome, {user?.username}!</p>
 		<button
 			className="px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition"
 			onClick={logoutUser}

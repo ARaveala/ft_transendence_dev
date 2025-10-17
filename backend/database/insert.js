@@ -1,6 +1,9 @@
 // this does not re initialize the database , just connects to it
 const db = require('./initDB.js');
 
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'insert.js' }); // scoped logger
+
 // function to insert a new user into database, validation should happen elsewhere (where) 
 // the assumption here is that the data is clean and valid 
 
@@ -25,7 +28,6 @@ avatarFile: "avatars/avatar1.png",
 				matchHistory: 0 (format unknown)
  */
 function insertUser({ username, password}) {
-    console.log('Incoming user data:', { username, password});
 
     return new Promise((resolve, reject) => {
         db.run(
@@ -43,62 +45,45 @@ function insertUser({ username, password}) {
 }
 
 
-//function insertUser({ username, password }) {
-//  console.log('Incoming user data:', { username, password });
-//
-//  return new Promise((resolve, reject) => {
-//    db.serialize(() => {
-//      db.run(
-//        `INSERT INTO users (username, password, avatar_file) VALUES (?, ?, ?)`,
-//        [username, password, 'frontend/src/assets/avatars/avatar1.png'],
-//        function (err) {
-//          if (err) {
-//            reject({ error: 'Failed to add user', details: err });
-//          } else {
-//            const userId = this.lastID;
-//
-//            // Force a read to flush visibility
-//            db.get("SELECT id FROM users WHERE id = ?", [userId], (err, row) => {
-//              if (err || !row) {
-//                reject({ error: 'Post-insert read failed', details: err });
-//              } else {
-//                resolve({ userId }); // Now safe to use in registerUser
-//              }
-//            });
-//          }
-//        }
-//      );
-//    });
-//  });
-//}
-//
+function insertFriend(friendId, userId) {
+	flog.info({ function: 'insertFRiend' }, 'inserting friend');
+	flog.debug({ function: 'insertFRiend', friend: friendId, user: userId }, 'checking ids');
 
+  return new Promise((resolve, reject) => {
+    db.serialize(() => {
+      db.run(
+        `INSERT INTO friends (user_id, friend_id) VALUES (?, ?)`,
+        [userId, friendId],
+        function (err) {
+          if (err) {
+			flog.warn({ function: 'insertFRiend', error: err }, 'what error');
 
-// this fucntion has to look inside database and confirm if username and password match
-// dev style right now just utalizes simple create a new user logic 
-// function loginUser({ username, password}) {
-//     console.log('Incoming user data:', { username, password});
-// 	const score = 0; // this is only dev !!
-// 	const status = "online"; // status should be changed to online after verificiation
-// 	// this would be easiest with a change status function that i call from apiroute.
-//     return new Promise((resolve, reject) => {
-//         db.run(
-//             `INSERT INTO users (username, password, score, status) VALUES (?, ?, ?, ?)`,
-//             [username, password, score, status],
-//             function (err) {
-//                 if (err) {
-//                     reject({ error: 'Failed to add user', details: err });
-//                 } else {
-//                     resolve({userId: this.lastID, user: username });
-//                 }
-//             }
-//         );
-//     });
-// }
-// // change status fucntion 
+            reject({ error: 'Failed to add friend', details: err });
+          } else {
+				flog.debug({ function: 'insertFRiend', friend: friendId, user: userId }, 'what went in ');
+                db.all(
+              `SELECT * FROM friends WHERE user_id = ?`,
+              [userId],
+              (err2, rows) => {
+                if (err2) {
+                  flog.error({ function: 'insertFriend', error: err2 }, 'Error fetching friends after insert');
+                } else {
+                  flog.info({ function: 'insertFriend', friends: rows }, 'Current friends for user');
+                }
+				resolve({ message: 'friend added' }); // Now safe to use in registerUser
+              }
+            );
+          }
+        }
+      );
+    });
+  });
+}
+
 
 module.exports = {
-	insertUser, 
+	insertUser,
+	insertFriend,
 	// loginUser
 };
 
