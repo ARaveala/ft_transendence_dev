@@ -13826,3 +13826,5 @@
 [GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1760534347,"exp":1760537947}
 [GET USER ID FROM TOKEN] taking id from token
 [GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1760534347,"exp":1760537947}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
