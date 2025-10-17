@@ -105,7 +105,7 @@ function handleMessage(ws, data) {
 		}
 		case 'init': {
 			// if remote initgame should only happen for player1
-			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset }
+			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset, ballSpeed, paddleSpeed, powerUp }
 			currentWs.send(JSON.stringify({type: 'init_ack', message: 'game init success' }));
 		}
 			break;

@@ -53,8 +53,8 @@ const startGame = async (settings?: typeof gameSettings) => {
 		const createRes = await fetch("/api/create-game", {
 	method: "POST",
 	headers: { "Content-Type": "application/json" },
-	body: JSON.stringify({ 
-		type: "local", 
+	body: JSON.stringify({
+		type: "local",
 		mode: "vs",
 		settings: settings, // <-- pass settings here. backend needs to be updated to handle this
 	}),
@@ -133,7 +133,7 @@ return (
 
 	{gameStarted && player1Token && player2Token && gameId && (
 		<iframe
-		src={`http://localhost:3000/pong_game/index.html?gameId=${gameId}&player1Token=${player1Token}&player2Token=${player2Token}`}
+		src={`http://localhost:3000/pong_game/index.html?gameId=${gameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}`}
 		className="w-full h-screen border-none"
 		/>
 	)}
