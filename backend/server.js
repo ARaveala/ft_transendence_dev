@@ -1,8 +1,8 @@
 
-'use strict'
+'use strict';
 
 /*----------------
-	Bootstrapping
+  Bootstrapping
 ------------------*/
 require('module-alias/register');
 require('dotenv').config();
@@ -10,116 +10,102 @@ require('dotenv').config();
 const Fastify = require('fastify');
 const cookie = require('@fastify/cookie');
 const cors = require('@fastify/cors');
-const path = require('path');
 
-const fastify = Fastify({logger: true});
+const fastify = Fastify({ logger: true });
 
-/*----------------
-	Shared stuff/context
-------------------*/
-const {API_PROTOCOL} = require('@sharedApi');
-const schemas = require('@sharedSchemas');
-const formatError = require('@errors');
-const baseContext = require('@context');
-const { error } = require('console');
-
-/*----------------
-	Plugins
-------------------*/
-fastify.register(cookie);
-
-//CORS so that frontend can talk
+/*-------------
+  Plugins
+---------------*/
+fastify.register(cookie, {
+  secret: process.env.COOKIE_SECRET || 'dev-only',
+});
 fastify.register(cors, {
-	origin: process.env.FRONTEND_OROGON || true,
-	credentials: true
+  origin: true,
+  credentials: true,
 });
 
 /*----------------
-	Plugins
+  Error handling
 ------------------*/
-// Auth: register/login/logout/delete
-{
-	const authRoutes = require('@Rauth/auth.js');
-	const authContext = require('@Rauth/context.js');
-	fastify.register(authRoutes, authContext);
-}
-
-// Profile endpoints (GET /api/profile, PATCHes…)
-{
-	const profileRoutes = require('@Rprofile/profile.js');
-	const profileContext = require('@Rprofile/context.js');
-	fastify.register(profileRoutes, profileContext);
-}
-
-
-// Game endpoints (create/join/start/report)
-{
-	const gameRoutes = require('@Rgame');
-	fastify.register(gameRoutes, {db: baseContext.tx, secure: baseContext.secure});
-}
-
-
-// Tournament endpoints
-{
-	const tournamentRoutes = require('@routes/tournament/tournament.js');
-	const tournamnetContext = require('@routes/tournament/context.js');
-	fastify.register(tournamentRoutes, {db: tournamnetContext.db, secure: tournamnetContext.secure});
-}
-
-/*---------------------
-	Health & faalbacks
------------------------*/
-fastify.get('/health', async () => ({ok: true}));
+const formatError = require('./utils/errorFormatter.js');
 
 fastify.setNotFoundHandler((req, reply) => {
-	reply.code(404).send({error: 'NOT_FOUND', path: req.url});
+  reply.code(404).send({ error: 'NOT_FOUND', path: req.url });
 });
 
 fastify.setErrorHandler((err, _req, reply) => {
-	if (err && err.validation)
-	{
-		const body = formatError.formatValidationError(err, 'validation');
-		reply/code(400).send(body);
-		return;
-	}
-	const body = formatError.formatServerError(err);
-	const status = Number.isInteger(err?.status) ? err.status
-				 : Number.isInteger(err?.statusCode) ? err.statusCode
-				 : 500;
-	reply.code(status).send(body);
-})
+  try {
+    if (err && err.validation) {
+      const body = formatError.formatValidationError(err, 'validation');
+      reply.code(400).send(body);
+      return;
+    }
+  } catch (e) {
+    fastify.log.error({ err: e }, 'validation formatter exploded');
+  }
+
+  const body = formatError.formatServerError(err);
+  const status = Number.isInteger(err?.status)
+    ? err.status
+    : Number.isInteger(err?.statusCode)
+    ? err.statusCode
+    : 500;
+
+  fastify.log.error({ err }, 'Server error');
+  reply.code(status).send(body);
+});
 
 /*----------------
-	Websockets
+  Routes wiring
+------------------*/
+const db = require('@db/initDB.js');
+const secure = require('@security');
+
+// Game endpoints (create/join/start/report)
+{
+  const gameRoutes = require('@Rgame'); // default export = Fastify plugin function
+  fastify.register(gameRoutes, { db, secure });
+}
+
+/*----------------
+  WebSockets
 ------------------*/
 const setUpWebSockets = require('@Wbs/startUp.js');
 
 /*-------------------
-	Start the engine
+  Start the engine
 ---------------------*/
+fastify.get('/health', async () => ({ ok: true }));  // <-- move this up
+
 async function start() {
-	try
-	{
-		const port = parseInt(process.env.PORT, 10) || 3000;
-		const host = process.env.HOST || '0.0.0.0';
-		await fastify.listen({port, host});
-		setUpWebSockets(fastify.server);
-		fastify.log.info('Websocket server running');
-		fastify.ready(err => {
-			if (err) throw err;
-			console.log('\n=== Registered routes ===');
-			console.log(fastify.printRoutes());
-			console.log('=========================\n')
-		});
-	}
-	catch (err)
-	{
-		fastify.log.error(err);
-		process.exit(1);
-	}
+  try {
+    const port = parseInt(process.env.PORT ?? '3000', 10);
+    const host = process.env.HOST || '0.0.0.0';
+
+    // DO NOT add routes after this
+    await fastify.listen({ port, host });
+
+    // WebSockets can be attached after listen (they hook server.upgrade)
+    setUpWebSockets(fastify.server);
+    fastify.log.info('WebSocket server running');
+
+    fastify.ready(err => {
+      if (err) throw err;
+      console.log('\n=== Registered routes ===');
+      console.log(fastify.printRoutes());
+      console.log('=========================\n');
+    });
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
 }
 
 start();
+
+// Optional: process-level traps
+// process.on('unhandledRejection', (err) => fastify.log.error({ err }, 'unhandledRejection'));
+// process.on('uncaughtException', (err) => fastify.log.error({ err }, 'uncaughtException'));
 
 
 

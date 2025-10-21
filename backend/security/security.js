@@ -1,44 +1,46 @@
-// this file is just for dev testing , package.json points to this file specifically
+'use strict';
 
 const jwt = require('jsonwebtoken');
-const {log} = require('@logger');
-const COOKIE = 'auth_token'
+
+const COOKIE = 'auth_token';
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
 
+// Session token for HTTP auth
 function generateToken(id, username) {
-	return jwt.sign({id, username}, JWT_SECRET, {expiresIn: '1h'});
+  return jwt.sign({ id, username }, JWT_SECRET, { expiresIn: '1h' });
+}
+
+// Short-lived token for WebSockets, scoped to a single game
+function generateWsToken(playerId, gameId) {
+  return jwt.sign({ id: playerId, gameId }, JWT_SECRET, { expiresIn: '15m' });
+}
+
+function verifyToken(token) {
+  return jwt.verify(token, JWT_SECRET);
+}
+
+function getUserIdFromToken(token) {
+  const payload = verifyToken(token);
+  return payload.id;
 }
 
 function setAuthCookie(reply, token) {
-	reply.setCookie(COOKIE, token, {
-		httpOnly: true,
-		sameSite: 'lax',
-		sevure: process.env.NODE_ENV === 'production',
-		path: '/',
-		maxAge: 60 * 60,
-	});
+  reply.setCookie(COOKIE, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60, // 1 hour
+  });
 }
 
 function clearAuthCookie(reply) {
-	reply.clearCookie('auth_token', {
+  reply.clearCookie(COOKIE, {
     path: '/',
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
   });
-}
-
-function verifyToken(token) {
-	return jwt.verify(token, JWT_SECRET);
-}
-
-function getUserIdFromToken(token) {
-	const payload = verifyToken(token);
-	return payload.id;
-}
-
-function generateWsToken(id, username) {
-	return generateToken(id, username);
 }
 
 module.exports = {
@@ -49,6 +51,63 @@ module.exports = {
   generateWsToken,
   clearAuthCookie,
 };
+
+
+
+
+
+
+// // this file is just for dev testing , package.json points to this file specifically
+
+// const jwt = require('jsonwebtoken');
+// const {log} = require('@logger');
+// const COOKIE = 'auth_token'
+// const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
+
+// function generateToken(id, username) {
+// 	return jwt.sign({id, username}, JWT_SECRET, {expiresIn: '1h'});
+// }
+
+// function setAuthCookie(reply, token) {
+// 	reply.setCookie(COOKIE, token, {
+// 		httpOnly: true,
+// 		sameSite: 'lax',
+// 		sevure: process.env.NODE_ENV === 'production',
+// 		path: '/',
+// 		maxAge: 60 * 60,
+// 	});
+// }
+
+// function clearAuthCookie(reply) {
+// 	reply.clearCookie('auth_token', {
+//     path: '/',
+//     httpOnly: true,
+//     sameSite: 'lax',
+//     secure: process.env.NODE_ENV === 'production',
+//   });
+// }
+
+// function verifyToken(token) {
+// 	return jwt.verify(token, JWT_SECRET);
+// }
+
+// function getUserIdFromToken(token) {
+// 	const payload = verifyToken(token);
+// 	return payload.id;
+// }
+
+// function generateWsToken(id, username) {
+// 	return generateToken(id, username);
+// }
+
+// module.exports = {
+//   generateToken,
+//   setAuthCookie,
+//   verifyToken,
+//   getUserIdFromToken,
+//   generateWsToken,
+//   clearAuthCookie,
+// };
 
 // function generateToken(id, username) {
 // 	console.log("checking id and name before tokenization", id, username);

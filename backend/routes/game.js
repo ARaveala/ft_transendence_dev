@@ -1,311 +1,349 @@
-'use strict'
-const {API_PROTOCOL} = require('@sharedApi');
-const {log} = require('@logger');
+'use strict';
 
+const { API_PROTOCOL } = require('@sharedApi');
+const { createGameState } = require('../pong_game/pong_server.js');
+
+// In-memory registry shared with WS layer
+const games = new Map(); // gameId -> { id, type, players: Map, payload }
+
+/* ----------------
+   Small sqlite wrap
+-------------------*/
 function wrap(db) {
-	return {
-		run: (sql, params = []) =>
-			new Promise((res, rej) =>
-			db.run(sql, params, function (err) {
-				if (err) rej(err);
-				else res({lastID: this.lastID, changes: this.changes});
-			})
-		),
-		get: (sql, params = []) =>
-			new Promise((res, rej) =>
-				db.get(sql, params, (e, row) => (e ? rej(e): res(row)))
-		),
-		all: (sql, params = []) =>
-			new Promise((res, rej) =>
-			db.all(sql, params, (e, rows) => (e ? rej(e) : res(rows)))
-		),
-		tx: async (fn) => {
-			await new Promise((res, rej) => db.run('BEGIN', (e) => (e ? rej(e) : res())));
-			try
-			{
-				const out = await fn();
-				await new Promise((res, rej) => db.run('COMMIT', (e) => (e ? rej(e) : res())));
-				return out;
-			}
-			catch (e)
-			{
-				await new Promise((res, rej) => db.run('ROLLBACK', (er) => (er ? rej(er) : res())));
-				throw e;
-			}
-		},
-	};
+  return {
+    run: (sql, params = []) =>
+      new Promise((res, rej) =>
+        db.run(sql, params, function (err) {
+          if (err) rej(err);
+          else res({ lastID: this.lastID, changes: this.changes });
+        })
+      ),
+    get: (sql, params = []) =>
+      new Promise((res, rej) => db.get(sql, params, (e, row) => (e ? rej(e) : res(row)))),
+    all: (sql, params = []) =>
+      new Promise((res, rej) => db.all(sql, params, (e, rows) => (e ? rej(e) : res(rows)))),
+    tx: async (fn) => {
+      await new Promise((res, rej) => db.run('BEGIN', (e) => (e ? rej(e) : res())));
+      try {
+        const out = await fn();
+        await new Promise((res, rej) => db.run('COMMIT', (e) => (e ? rej(e) : res())));
+        return out;
+      } catch (e) {
+        await new Promise((res, rej) => db.run('ROLLBACK', (er) => (er ? rej(er) : res())));
+        throw e;
+      }
+    },
+  };
 }
 
-function toPlayer(row)
-{
-	if (!row) return null;
-	return {
-		id: row.id,
-		username: row.username,
-		avatar: row.avatar_file || null,
-		score: row.score ?? 0,
-		rank: row.rank ?? 0,
-	};
+function toPlayer(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    username: row.username,
+    avatar: row.avatar_file || null,
+    score: row.score ?? 0,
+    rank: row.rank ?? 0,
+  };
+}
+function validScore(n) {
+  return Number.isInteger(n) && n >= 0 && n <= 1000;
+}
+function getGame(id) {
+  return games.get(id);
 }
 
-function validScore(n) { return Number.isInteger(n) && n >= 0 && n <= 1000; }
+module.exports = async function gameRoutes(fastify, options) {
+  const { db, secure } = options;
+  const { run, get, all, tx } = wrap(db);
 
-module.exports = async function gameRoutes(fastify, options)
-{
-	const {db, secure} = options;
-	const {run, get, all, tx} = wrap(db);
-	const requireUser = (request, reply) =>
-	{
-		const token = request.cookies?.auth_token;
-		if (!token)
-		{
-			reply.code(401).send({status: 'ERROR', error: 'Not authenticated'});
-			return null;
-		}
-		try
-		{
-			return secure.getUserIdFromToken(token);
-		}
-		catch
-		{
-			reply.code(401).send({status: 'ERROR', error: 'Invalid token'});
-			return null;
-		}
-	};
+  const requireUser = (request, reply) => {
+    const token = request.cookies?.auth_token;
+    if (!token) {
+      reply.code(401).send({ status: 'ERROR', error: 'Not authenticated' });
+      return null;
+    }
+    try {
+      return secure.getUserIdFromToken(token);
+    } catch {
+      reply.code(401).send({ status: 'ERROR', error: 'Invalid token' });
+      return null;
+    }
+  };
 
-	// POST /api/create-game
-	fastify.post(API_PROTOCOL.CREATE_GAME.path, async (request, reply) =>{
-		const uid = requireUser(request, reply);
-		if (!uid) return;
-		await run(
-			`INSERT INTO games (tournament_id, p1_id, p2_id, p1_score, p2_score, winner_id, round, bracket_pos, status)
-			 VALUES (NULL, ?, NULL, 0, 0, NULL, NULL, NULL, 'waiting')`,
-			[uid]
-		);
-		const g = await get(`SELECT * FROM games WHERE id = last_insert_rowid()`);
-		reply.send({
-			status: 'OK',
-			game: {
-				id: g.id,
-				status: g.status,
-				p1_id: g.p1_id;
-				p2_id: g.p2_id
-			}
-		});
-	});
+  /* -------------
+     CREATE_GAME
+  ----------------*/
+  fastify.post(API_PROTOCOL.CREATE_GAME.path, async (request, reply) => {
+    const uid = requireUser(request, reply);
+    if (!uid) return;
 
-	// POST /api/join-game
-	fastify.post(API_PROTOCOL.JOIN_GAME.path, async (request, reply) => {
-		const uid = requireUser(request, reply);
-		if (!uid) return;
-		const {game_id} = request.body || {};
-		if (Number.isInteger(game_id))
-			return reply.code(400).send({status: 'ERROR', error: 'game_id is required'});
-		const g = await get(`SELECT * FROM games WHERE id =?`, [game_id]);
-		if (!g) return reply.code(409).send({status: 'ERROR', error: 'Game not found'});
-		if (g.status !== 'awaiting')
-			return reply.code(409).send({status: 'ERROR', error: 'Game is not open to join'});
-		if (g.p1_id === uid)
-			return reply.code(400).send({status: 'ERROR', error: 'You are already in this game'});
-		if (g.p2_id && g.p2_id !== uid)
-			return reply.code(409).send({status: 'ERROR', error: 'Game already has two players'});
-		await run(`UPDATE games SET p2_id = ? WHERE id = ?`, [uid, game_id]);
-		const gg = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
-		reply.send({
-			status: 'OK',
-			game: {
-				id: gg.id,
-				status: gg.status,
-				p1_id: gg.p1_id,
-				p2_id: gg.p2_id
-			}
-		});
-	});
+    try {
+      const created = await tx(async () => {
+        await run(
+          `INSERT INTO games (tournament_id, p1_id, p2_id, p1_score, p2_score, winner_id, round, bracket_pos, status)
+           VALUES (NULL, ?, NULL, 0, 0, NULL, NULL, NULL, 'waiting')`,
+          [uid]
+        );
+        return await get(`SELECT * FROM games WHERE id = last_insert_rowid()`);
+      });
 
-	// POST /api/start-game
-	fastify.post(API_PROTOCOL.STRAT_GAME.path, async (request, reply) => {
-		const uid = requireUser(request, reply);
-		if (!uid) return;
-		const {game_id} = request.body || {};
-		if (!Number.isInteger(game_id))
-			return reply.code(400).send({status: 'ERROR', error: 'Game ID is required'});
-		const g = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
-		if (!g) return reply.code(404).send({status: 'ERROR', error: 'Game not found'});
-		if (uid !== g.p1_id && uid !== g.p2_id)
-			return reply.code(403).send({status: 'ERROR', error: 'Not a participant'});
-		if (!g.p1_id || !g.p2_id)
-			return reply.code(409).send({status: 'ERROR', error: 'Need two players to start'});
-		if (g.status === 'ongoing')
-			return reply.code(409).send({status: 'ERROR', error: 'Already started'});
-		if (g.status === 'finished')
-			return reply.code(409).send({status: 'ERROR', error: 'Already finished'});
-		await run(`UPDATE games SET status = 'ongoing' WHERE id = ?`, [game_id]);
-		const gg = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
-		reply.send({
-			status: 'OK',
-			game: {
-				id: gg.id,
-				status: gg.status,
-				p1_id: gg.p1_id,
-				p2_id: gg.p2_id
-			}
-		});
-	});
+      // seed WS registry
+      games.set(created.id, {
+        id: created.id,
+        type: 'remote',
+        players: new Map([[uid, { playerId: uid, role: 'player1', ready: false, ws: null, score: 0 }]]),
+        payload: null,
+      });
 
+      reply.code(201).send({
+        status: 'OK',
+        game: { id: created.id, p1_id: created.p1_id, p2_id: created.p2_id, status: created.status },
+      });
+    } catch (err) {
+      fastify.log.error({ err }, 'CREATE_GAME');
+      reply.code(500).send({ status: 'ERROR', error: 'Failed to create game' });
+    }
+  });
 
-	// GET /api/player?ids=1,2,3
-	fastify.get(API_PROTOCOL.GET_PLAYER.path, async (request, reply) => {
-		const idsParam = request.query?.ids;
-		let ids = [];
-		if (idsParam && typeof idsParam === 'string')
-		{
-			ids = idsParam.split(',')
-				.map((s) => s.trim())
-				.filter(Boolean)
-				.map((s) => Number(s))
-				.filter((n) => Number.isInteger(n) && n > 0);
-			if (ids.length === 0) return reply.send([]);
-		}
-		if (ids.length === 0)
-		{
-			const uid = requireUser(request, reply);
-			if (!uid) return;
-			ids = [uid];
-		}
-		const placeholders = ids.map(() => '?').join(',');
-		const row = await all(
-			`SELECT id, username, avatar_file, score, rank
-			FROM users
-			WHERE id IN (${placeholders})`,
-			ids
-		);
-	});
-	// POST /api/games/result
+  /* ----------
+     JOIN_GAME
+  ------------*/
+  fastify.post(API_PROTOCOL.JOIN_GAME.path, async (request, reply) => {
+    const uid = requireUser(request, reply);
+    if (!uid) return;
 
-	fastify.post(API_PROTOCOL.REPORT_GAME_RESULT.path, async (request, reply) => {
-		const userId = requireUser(request, reply);
-		if (!userId) return;
-		const {game_id, p1_id, p2_id, p1_score, p2_score} = request.body || {};
-		if (!validScore(p1_score) || !validScore(p2_score))
-		{
-			return reply.code(400).send({
-				status: 'ERROR',
-				error: 'Player 1 and player 2 score must be integers 0-1000'});
-		}
-		if (p1_score === p2_score)
-			return reply.code(400).send({status: 'ERROR', error: 'Ties are not allowed'});
-		try
-		{
-			const resultPayload = await tx(async () => {
-				let g;
-				if (game_id)
-				{
-					g = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
-					if (!g)
-						throw Object.assign(new Error('Game not found'), {statusCode: 404});
-					if (g.status === 'finished')
-						throw Object.assign(new Error('Game already finished', {statusCode: 409}));
-					if (userId !== g.p1_id && userId !== g.p2_id)
-						throw Object.assign(new Error('Only a participating player can report this result'), {statusCode: 403}); 
-				}
-				else
-				{
-					if (!Number.isInteger(p1_id) || !Number.isInteger(p2_id))
-						throw Object.assign(new Error('Player 1 ID and player 2 ID are required when game ID is not provided'), {statusCode: 400});
-					if (p1_id === p2_id)
-						throw Object.assign(new Error('Players must different'), {statusCode: 400});
-					p1 = await get(`SE:ECT id FROM users WHERE id = ?`, [p1_id]);
-					p2 = await get(`SE:ECT id FROM users WHERE id = ?`, [p2_id]);
-					if (!p1 || !p2)
-						throw Object.assign(new Error('One or both players do not exist'), {statusCode: 404});
-					const winnerId = p1_score > p2_score ? p1_id : p2_id;
-					await run(
-						`INSERT INTO games (tournament_id, p1_id, p2_id, p1_score, p2_score, winner_id, round, bracket_pos, status) 
-						VALUES (NULL, ?, ?, ?, ?, ?, NULL, NULL, 'finished')`,
-						[p1_id, p2_id, p1_score, p2_score, winnerId]
-					);
-					g = await get(`SELECT * FROM games WHERE id = last_insert_rowid()`);
-				}
-				const winnerId = p1_score > p2_score ? g.p1_id : g.p2_id;
-				const loserId = winnerId === g.p1_id ? g.p2_id : g.p1_id;
-				if (game_id)
-				{
-					await run(
-						`UPDATE games
-							SET p1_score = ?, p2_score = ?, winner_id = ?, status = 'finished'
-						WHERE id = ?`,
-						[p1_score, p2_score, winnerId, g.id]
-					);
-				}
-				await run(
-					`UPDATE users SET wins = wins + 1, total_games + 1, WHERE id = ?`,
-					[winnerId]
-				);
-				await run(
-					`UPDATE users SET losses = losses + 1, total_games + 1, WHERE id = ?`,
-					[loserId]
-				);
-				if (g.tournament_id)
-				{
-					if (g.round === 1)
-					{
-						const final = await get(
-							`SELECT id p1_id, p2_id
-								FROM games
-							WHERE tournament_id =? AND round = 2 AND bracket_pos = 1`,
-							[g.tournament_id]
-						);
-						if (final)
-						{
-							if (!final.p1_id)
-								await run(`UPDATE games SET p1_id = ? WHERE id = ?`, [winnerId, final.id]);
-							else if (!final.p2_id)
-								await run(`UPDATE games SET p2_id = ? WHERE id = ?`, [winnerId, final.id]);
-						}
-					}
-					if (g.round === 2)
-					{
-						await run(`
-							UPDATE tournaments SET status = 'finished', winner_id = ? WHERE id = ?`,
-							[winnerId, g.tournament_id]
-						);
-					}
-				}
-				const saved = await get(`SELECT * FROM games WHERE id = ?`, [g.id]);
-				const pRows = await all(
-					`SELECT id, username, avatarfile, score, rank FROM users WHERE id IN (?, ?)`,
-					[saved.p1_id, saved.p2_id]
-				);
-				const players = pRows.map(toPlayer);
-				return {
-					status: 'OK',
-					game: {
-						id: saved.id,
-						tournament_id: saved.tournament_id,
-						round: saved.round,
-						bracket_pos: saved.bracket_pos,
-						p1_id: saved.p1_id,
-						p2_id: saved.p2_id,
-						p1_score: saved.p1_score,
-						p2_score: saved.p2_score,
-						winner_id: saved.winner_id,
-						status: saved.status,
-					},
-					players
-				};
-			});
-			return reply.send(resultPayload);
-		}
-		catch (err)
-		{
-			const code = err.statusCode || 500;
-			log('REPORT_GAME_RESULT', err.message || err);
-			return reply.code(code).send({
-				status: 'ERROR',
-				error: err.message || 'Failed to save game result'});
-		}
-	});
+    const { game_id } = request.body || {};
+    if (!Number.isInteger(game_id)) {
+      return reply.code(400).send({ status: 'ERROR', error: 'game_id is required' });
+    }
+
+    try {
+      const updated = await tx(async () => {
+        const g = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
+        if (!g) throw Object.assign(new Error('Game not found'), { statusCode: 404 });
+        if (g.status !== 'waiting') throw Object.assign(new Error('Only waiting games can be joined'), { statusCode: 409 });
+        if (g.p1_id === uid) throw Object.assign(new Error('You are already p1'), { statusCode: 400 });
+        if (g.p2_id) throw Object.assign(new Error('Game already has p2'), { statusCode: 409 });
+
+        await run(`UPDATE games SET p2_id = ? WHERE id = ?`, [uid, game_id]);
+        return await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
+      });
+
+      const entry = games.get(game_id) || { id: game_id, type: 'remote', players: new Map(), payload: null };
+      entry.players.set(uid, { playerId: uid, role: 'player2', ready: false, ws: null, score: 0 });
+      games.set(game_id, entry);
+
+      reply.send({ status: 'OK', game: { id: updated.id, p1_id: updated.p1_id, p2_id: updated.p2_id, status: updated.status } });
+    } catch (err) {
+      const code = err.statusCode || 500;
+      fastify.log.error({ err }, 'JOIN_GAME');
+      reply.code(code).send({ status: 'ERROR', error: err.message || 'Failed to join game' });
+    }
+  });
+
+  /* ----------
+     START_GAME
+  ------------*/
+  fastify.post(API_PROTOCOL.START_GAME.path, async (request, reply) => {
+    const uid = requireUser(request, reply);
+    if (!uid) return;
+
+    const { game_id } = request.body || {};
+    if (!Number.isInteger(game_id)) {
+      return reply.code(400).send({ status: 'ERROR', error: 'game_id is required' });
+    }
+
+    try {
+      const started = await tx(async () => {
+        const g = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
+        if (!g) throw Object.assign(new Error('Game not found'), { statusCode: 404 });
+
+        if (g.status === 'finished') throw Object.assign(new Error('Game already finished'), { statusCode: 409 });
+        if (uid !== g.p1_id && uid !== g.p2_id) throw Object.assign(new Error('Only p1 or p2 can start'), { statusCode: 403 });
+        if (!g.p1_id || !g.p2_id) throw Object.assign(new Error('Both players must be seated'), { statusCode: 400 });
+
+        if (g.status !== 'ongoing') {
+          await run(`UPDATE games SET status = 'ongoing' WHERE id = ?`, [game_id]);
+        }
+        return await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
+      });
+
+      // initialize game state for WS side
+      const entry = games.get(game_id) || { id: game_id, type: 'remote', players: new Map(), payload: null };
+      if (!entry.payload) entry.payload = createGameState();
+      games.set(game_id, entry);
+
+      // short-lived WS token scoped to this game
+      const token = secure.generateWsToken(uid, game_id);
+
+      reply.send({
+        status: 'OK',
+        game: { id: started.id, p1_id: started.p1_id, p2_id: started.p2_id, status: started.status },
+        ws: { url: '/ws', token },
+      });
+    } catch (err) {
+      const code = err.statusCode || 500;
+      fastify.log.error({ err }, 'START_GAME');
+      reply.code(code).send({ status: 'ERROR', error: err.message || 'Failed to start game' });
+    }
+  });
+
+  /* ---------------
+     GET /api/player
+  ------------------*/
+  fastify.get(API_PROTOCOL.GET_PLAYER.path, async (request, reply) => {
+    const idsParam = request.query?.ids;
+    let ids = [];
+
+    if (idsParam && typeof idsParam === 'string') {
+      ids = idsParam
+        .split(',')
+        .map((s) => Number(s.trim()))
+        .filter((n) => Number.isInteger(n) && n > 0);
+      if (ids.length === 0) return reply.send([]);
+    }
+
+    if (ids.length === 0) {
+      const uid = requireUser(request, reply);
+      if (!uid) return;
+      ids = [uid];
+    }
+
+    const placeholders = ids.map(() => '?').join(',');
+    const rows = await all(
+      `SELECT id, username, avatar_file, score, rank
+       FROM users WHERE id IN (${placeholders})`,
+      ids
+    );
+    reply.send(rows.map(toPlayer));
+  });
+
+  /* ---------------------
+     REPORT_GAME_RESULT
+  ------------------------*/
+  fastify.post(API_PROTOCOL.REPORT_GAME_RESULT.path, async (request, reply) => {
+    const userId = requireUser(request, reply);
+    if (!userId) return;
+
+    const { game_id, p1_id, p2_id, p1_score, p2_score } = request.body || {};
+
+    if (!validScore(p1_score) || !validScore(p2_score)) {
+      return reply.code(400).send({
+        status: 'ERROR',
+        error: 'p1_score and p2_score must be integers between 0 and 1000',
+      });
+    }
+    if (p1_score === p2_score) {
+      return reply.code(400).send({ status: 'ERROR', error: 'Ties are not allowed' });
+    }
+
+    try {
+      const resultPayload = await tx(async () => {
+        let g;
+
+        if (game_id) {
+          g = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
+          if (!g) throw Object.assign(new Error('Game not found'), { statusCode: 404 });
+          if (g.status === 'finished') throw Object.assign(new Error('Game already finished'), { statusCode: 409 });
+          if (userId !== g.p1_id && userId !== g.p2_id) {
+            throw Object.assign(new Error('Only a participant can report this result'), { statusCode: 403 });
+          }
+        } else {
+          // standalone create-and-finish game
+          if (!Number.isInteger(p1_id) || !Number.isInteger(p2_id)) {
+            throw Object.assign(new Error('p1_id and p2_id are required when game_id is not provided'), { statusCode: 400 });
+          }
+          if (p1_id === p2_id) throw Object.assign(new Error('Players must be different'), { statusCode: 400 });
+
+          const p1 = await get(`SELECT id FROM users WHERE id = ?`, [p1_id]);
+          const p2 = await get(`SELECT id FROM users WHERE id = ?`, [p2_id]);
+          if (!p1 || !p2) throw Object.assign(new Error('One or both players do not exist'), { statusCode: 404 });
+
+          const winnerNow = p1_score > p2_score ? p1_id : p2_id;
+          await run(
+            `INSERT INTO games (tournament_id, p1_id, p2_id, p1_score, p2_score, winner_id, round, bracket_pos, status)
+             VALUES (NULL, ?, ?, ?, ?, ?, NULL, NULL, 'finished')`,
+            [p1_id, p2_id, p1_score, p2_score, winnerNow]
+          );
+          g = await get(`SELECT * FROM games WHERE id = last_insert_rowid()`);
+        }
+
+        // finalize existing game if needed
+        const winnerId = p1_score > p2_score ? g.p1_id : g.p2_id;
+        const loserId = winnerId === g.p1_id ? g.p2_id : g.p1_id;
+
+        if (game_id) {
+          await run(
+            `UPDATE games
+               SET p1_score = ?, p2_score = ?, winner_id = ?, status = 'finished'
+             WHERE id = ?`,
+            [p1_score, p2_score, winnerId, g.id]
+          );
+        }
+
+        // update player stats
+        await run(`UPDATE users SET wins = wins + 1, total_games = total_games + 1 WHERE id = ?`, [winnerId]);
+        await run(`UPDATE users SET losses = losses + 1, total_games = total_games + 1 WHERE id = ?`, [loserId]);
+
+        // tournament progression
+        if (g.tournament_id) {
+          if (g.round === 1) {
+            const final = await get(
+              `SELECT id, p1_id, p2_id
+                 FROM games
+                WHERE tournament_id = ? AND round = 2 AND bracket_pos = 1`,
+              [g.tournament_id]
+            );
+            if (final) {
+              if (!final.p1_id) await run(`UPDATE games SET p1_id = ? WHERE id = ?`, [winnerId, final.id]);
+              else if (!final.p2_id) await run(`UPDATE games SET p2_id = ? WHERE id = ?`, [winnerId, final.id]);
+            }
+          }
+          if (g.round === 2) {
+            await run(`UPDATE tournaments SET status = 'finished', winner_id = ? WHERE id = ?`, [
+              winnerId,
+              g.tournament_id,
+            ]);
+          }
+        }
+
+        const saved = await get(`SELECT * FROM games WHERE id = ?`, [g.id]);
+        const pRows = await all(
+          `SELECT id, username, avatar_file, score, rank FROM users WHERE id IN (?, ?)`,
+          [saved.p1_id, saved.p2_id]
+        );
+
+        return {
+          status: 'OK',
+          game: {
+            id: saved.id,
+            tournament_id: saved.tournament_id,
+            round: saved.round,
+            bracket_pos: saved.bracket_pos,
+            p1_id: saved.p1_id,
+            p2_id: saved.p2_id,
+            p1_score: saved.p1_score,
+            p2_score: saved.p2_score,
+            winner_id: saved.winner_id,
+            status: saved.status,
+          },
+          players: pRows.map(toPlayer),
+        };
+      });
+
+      reply.send(resultPayload);
+    } catch (err) {
+      const code = err.statusCode || 500;
+      fastify.log.error({ err }, 'REPORT_GAME_RESULT');
+      reply.code(code).send({ status: 'ERROR', error: err.message || 'Failed to save game result' });
+    }
+  });
 };
+
+// expose registry for WS layer
+module.exports.games = games;
+module.exports.getGame = getGame;
 
 
 
