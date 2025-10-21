@@ -61,9 +61,32 @@ fastify.setErrorHandler((err, _req, reply) => {
 const db = require('@db/initDB.js');
 const secure = require('@security');
 
-// Game endpoints (create/join/start/report)
+// Auth endpoints
 {
-  const gameRoutes = require('@Rgame'); // default export = Fastify plugin function
+  const authRoutes = require('@Rauth/auth.js');
+  const authContext = require('@Rauth/context.js');
+  fastify.register(authRoutes, authContext);
+}
+
+// Profile endpoints
+{
+  const profileRoutes = require('@Rprofile/profile.js');
+  const profileContext = require('@Rprofile/context.js');
+  fastify.register(profileRoutes, profileContext);
+}
+
+// Tournament endpoints
+{
+  const tournamentRoutes = require('@routes/tournament/tournament.js');
+  const tournamentContext = require('@routes/tournament/context.js');
+  fastify.register(tournamentRoutes, { db: tournamentContext.db, secure: tournamentContext.secure });
+}
+
+// Game endpoints (you already have this)
+{
+  const gameRoutes = require('@Rgame');
+  const db = require('@db/initDB.js');
+  const secure = require('@security');
   fastify.register(gameRoutes, { db, secure });
 }
 
