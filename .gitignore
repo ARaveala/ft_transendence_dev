@@ -27,7 +27,9 @@ pnpm-debug.log*
 .env.*
 
 # logs
-backend/logs/
+backend/logUtils/logs/*
+backend/logs
+
 
 #database
 
