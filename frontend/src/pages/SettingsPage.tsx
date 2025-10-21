@@ -38,6 +38,7 @@ const SettingsPage: React.FC = () => {
 	// Forms
 	const [language, setLanguage] = useState<"en" | "fi" | "sv">("en");
 	const [username, setUsername] = useState("");
+	const [usernameInput, setUsernameInput] = useState("");
 	const [currentPassword, setCurrentPassword] = useState("");
 	const [newPassword, setNewPassword] = useState("");
 	const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -62,7 +63,7 @@ const SettingsPage: React.FC = () => {
 
 	useEffect(() => {
 	if (user) {
-		setUsername(user.username);
+		setUsername(user.username || "");
 		const avatar = user.avatarFile || availableAvatars[0];
 		setCurrentAvatar(avatar);
 		setSelectedAvatar(avatar);
@@ -116,6 +117,7 @@ const SettingsPage: React.FC = () => {
 	// Clear forms
 	function resetUsernameForm() {
 		setUsername("");
+		setUserNameInput("");
 	}
 
 	function resetPasswordForm() {
@@ -168,13 +170,19 @@ const SettingsPage: React.FC = () => {
 			return;
 		}
 
-		if (openRow === "username") resetUsernameForm();
+		if (openRow === "username") setUsernameInput("");
 		if (openRow === "password") resetPasswordForm();
 		if (openRow === "avatar") resetAvatarForm();
 
 		if (row === "avatar") {
 			if (currentAvatar) setSelectedAvatar(currentAvatar);
 			setAvatarDirty(false);
+		}
+		if (row === "username") {
+			setUsernameInput("");
+		}
+		if (row === "password") {
+			resetPasswordForm();
 		}
 
 		setOpenRow(row);
@@ -294,6 +302,7 @@ const SettingsPage: React.FC = () => {
 
 			setMsg(t("common.usernameUpdated"));
 			resetUsernameForm();
+			setUsernameInput("");
 			setOpenRow(null);
 			await refreshSession();
 		} catch (e: any) {
@@ -318,10 +327,12 @@ const SettingsPage: React.FC = () => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
 			});
-			if (!res.ok) throw new Error("Failed to update password.");
+			//if (!res.ok) throw new Error("Failed to update password.");
 
 			const data = (await res.json()) as ChangePasswordResponse;
-			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update password.");
+			if (!res.ok || data.status !== "UPDATED") {
+				throw new Error(t("error.currentPasswordIncorrect"));
+			}
 
 			setMsg(t("common.passwordUpdated"));
 			resetPasswordForm();
@@ -487,10 +498,12 @@ const SettingsPage: React.FC = () => {
 						<label className="block mb-2 text-sm">{t("settings.usernameEnter")}</label>
 						<input
 							type="text"
-							value={username}
-							onChange={(e) => setUsername(e.target.value)}
+							name="settings-username"
+							value={usernameInput}
+							onChange={(e) => setUsernameInput(e.target.value)}
 							className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm"
 							placeholder={t("settings.usernameEnter")}
+							autoComplete="off"
 						/>
 						<div className="mt-3 flex gap-2">
 							<PrimaryTiny onClick={saveUsername} disabled={busy}>{t("common.save")}</PrimaryTiny>
@@ -509,6 +522,10 @@ const SettingsPage: React.FC = () => {
 						<label className="block mb-2 text-sm">{t("settings.passwordCurrent")}</label>
 						<input
 							type="password"
+							name="settings-current-password"
+							autoComplete="off"
+							readOnly
+							onFocus={e => (e.currentTarget.readOnly = false)}
 							value={currentPassword}
 							onChange={(e) => setCurrentPassword(e.target.value)}
 							className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm"
