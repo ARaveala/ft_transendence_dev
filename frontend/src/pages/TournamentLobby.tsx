@@ -58,7 +58,6 @@ const TournamentLobby: React.FC = () => {
 		credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-        credentials: "include", 
     });
 
     const data: CreateTournamentResponse = await res.json();

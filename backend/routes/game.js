@@ -1,3 +1,238 @@
+'use strict'
+const {API_PROTOCOL} = require('@sharedApi');
+const {log} = require('@logger');
+const { status } = require('express/lib/response');
+
+// function wrap(db) {
+// 	return {
+// 		run: (sql, params = []) =>
+// 			new Promise((res, rej) =>
+// 			db.run(sql, params, function (err) {
+// 				if (err) rej(err);
+// 				else res({lastID: this.lastID, changes: this.changes});
+// 			})
+// 		),
+// 		get: (sql, params = []) =>
+// 			new Promise((res, rej) =>
+// 				db.get(sql, params, (e, row) => (e ? rej(e): res(row)))
+// 		),
+// 		all: (sql, params = []) =>
+// 			new Promise((res, rej) =>
+// 			db.all(sql, params, (e, rows) => (e ? rej(e) : res(rows)))
+// 		),
+// 		tx: async (fn) => {
+// 			await new Promise((res, rej) => db.run('BEGIN', (e) => (e ? rej(e) : res())));
+// 			try
+// 			{
+// 				const out = await fn();
+// 				await new Promise((res, rej) => db.run('COMMIT', (e) => (e ? rej(e) : res())));
+// 				return out;
+// 			}
+// 			catch (e)
+// 			{
+// 				await new Promise((res, rej) => db.run('ROLLBACK', (er) => (er ? rej(er) : res())));
+// 				throw e;
+// 			}
+// 		},
+// 	};
+// }
+
+// function toPlayer(row)
+// {
+// 	if (!row) return null;
+// 	return {
+// 		id: row.id,
+// 		username: row.username,
+// 		avatar: row.avatar_file || null,
+// 		score: row.score ?? 0,
+// 		rank: row.rank ?? 0,
+// 	};
+// }
+
+// function validScore(n) { return Number.isInteger(n) && n <= 1000; }
+
+// module.exports = async function gameRoutes(fastify, options)
+// {
+// 	const {db, secure} = options;
+// 	const {run, get, all, tx} = wrap(db);
+// 	const requireUser = (request, reply) =>
+// 	{
+// 		const token = request.cookies?.auth_token;
+// 		if (!token)
+// 		{
+// 			reply.code(401).send({status: 'ERROR', error: 'Not authenticated'});
+// 			return null;
+// 		}
+// 		try
+// 		{
+// 			return secure.getUserIdFromToken(token);
+// 		}
+// 		catch
+// 		{
+// 			reply.code(401).send({status: 'ERROR', error: 'Invalid token'});
+// 			return null;
+// 		}
+// 	};
+// 	/**
+//    * GET /api/player?ids=1,2,3
+//    * Returns an array of players. If ids is omitted and user is logged in, returns just the current user.
+//    */
+// 	fastify.get(API_PROTOCOL.GET_PLAYER.path, async (request, reply) => {
+// 		const idsParam = request.query?.ids;
+// 		let ids = [];
+// 		if (idsParam && typeof idsParam === 'string')
+// 		{
+// 			ids = idsParam.split(',')
+// 				.map((s) => s.trim())
+// 				.filter(Boolean)
+// 				.map((s) => Number(s))
+// 				.filter((n) => Number.isInteger(n) && n > 0);
+// 			if (ids.length === 0) return reply.sen([]);
+// 		}
+// 		if (ids.length === 0)
+// 		{
+// 			const uid = requireUser(request, reply);
+// 			if (!uid) return;
+// 			ids = [uid];
+// 		}
+// 		const players = rows.map(toPlayer);
+// 		return reply.send(players);
+// 	});
+// 	/**
+// 	* POST /api/games/result
+// 	* Body:
+// 	*  - Either { game_id, p1_score, p2_score }
+// 	*  - Or { p1_id, p2_id, p1_score, p2_score } to create-and-finish a standalone game
+// 	* Rules:
+// 	*  - ties are not allowed
+// 	*  - only a participant can report a specific game_id
+// 	*/
+// 	fastify.post(API_PROTOCOL.REPORT_GAME_RESULT.path, async (request, reply) => {
+// 		const userId = requireUser(request, reply);
+// 		if (!userId) return;
+// 		const {game_id, p1_id, p2_id, p1_score, p2_score} = request.body || {};
+// 		if (!validScore(p1_score) || !validScore(p2_score))
+// 		{
+// 			return reply.code(400).send({
+// 				status: 'ERROR',
+// 				error: 'Player 1 and player 2 score must be integers 0-1000'});
+// 		}
+// 		if (p1_score === p2_score)
+// 			return reply.code(400).send({status: 'ERROR', error: 'Ties are not allowed'});
+// 		try
+// 		{
+// 			const resultPayload = await tx(async () => {
+// 				let g;
+// 				if (game_id)
+// 				{
+// 					g = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
+// 					if (!g)
+// 						throw Object.assing(new Error('Game not found'), {statusCode: 404});
+// 					if (g.status === 'finished')
+// 						throw Object.assign(new Error('Game already finished', {statusCode: 409}));
+// 					if (userId !== g.p1_id && userId !== g.p2_id)
+// 						throw Object.assign(new Error('Only a participating player can report this result'), {statusCode: 403}); 
+// 				}
+// 				else
+// 				{
+// 					if (!Number.isInteger(p1_id) || !Number.isInteger(p2_id))
+// 						throw Object.assign(new Error('Player 1 ID and player 2 ID are required when game ID is not provided'), {statusCode: 400});
+// 					if (p1_id === p2_id)
+// 						throw Object.assign(new Error('Players must different'), {statusCode: 400});
+// 					p1 = await get(`SE:ECT id FROM users WHERE id = ?`, [p1_id]);
+// 					p2 = await get(`SE:ECT id FROM users WHERE id = ?`, [p2_id]);
+// 					if (!p1 || !p2)
+// 						throw Object.assign(new Error('One or both players do not exist'), {statusCode: 404});
+// 					const winnerId = p1_score > p2_score ? p1_id : p2_id;
+// 					await run(
+// 						`INSERT INTO games (tournament_id, p1_id, p2_id, p1_score, p2_score, winner_id, round, bracket_pos, status) 
+// 						VALUES (NULL, ?, ?, ?, ?, ?, NULL, NULL, 'finished')`,
+// 						[p1_id, p2_id, p1_score, p2_score, winnerId]
+// 					);
+// 					g = await get(`SELECT * FROM games WHERE id = last_insert_rowid()`);
+// 				}
+// 				const winnerId = p1_score > p2_score ? g.p1_id : g.p2_id;
+// 				const loserId = winnerId === g.p1_id ? g.p2_id : g.p1_id;
+// 				if (game_id)
+// 				{
+// 					await run(
+// 						`UPDATE games
+// 							SET p1_score = ?, p2_score = ?, winner_id = ?, status = 'finished'
+// 						WHERE id = ?`,
+// 						[p1_score, p2_score, winnerId, g.id]
+// 					);
+// 				}
+// 				await run(
+// 					`UPDATE users SET wins = wins + 1, total_games + 1, WHERE id = ?`,
+// 					[winnerId]
+// 				);
+// 				await run(
+// 					`UPDATE users SET losses = losses + 1, total_games + 1, WHERE id = ?`,
+// 					[loserId]
+// 				);
+// 				if (g.tournament_id)
+// 				{
+// 					if (g.round === 1)
+// 					{
+// 						const final = await get(
+// 							`SELECT id p1_id, p2_id
+// 								FROM games
+// 							WHERE tournament_id =? AND round = 2 AND bracket_pos = 1`,
+// 							[g.tournament_id]
+// 						);
+// 						if (final)
+// 						{
+// 							if (!final.p1_id)
+// 								await run(`UPDATE games SET p1_id = ? WHERE id = ?`, [winnerId, final.id]);
+// 							else if (!final.p2_id)
+// 								await run(`UPDATE games SET p2_id = ? WHERE id = ?`, [winnerId, final.id]);
+// 						}
+// 					}
+// 					if (g.round === 2)
+// 					{
+// 						await run(`
+// 							UPDATE tournaments SET status = 'finished', winner_id = ? WHERE id = ?`,
+// 							[winnerId, g.tournament_id]
+// 						);
+// 					}
+// 				}
+// 				const saved = await get(`SELECT * FROM games WHERE id = ?`, [g.id]);
+// 				const pRows = await all(
+// 					`SELECT id, username, avatarfile, score, rank FROM users WHERE id IN (?, ?)`,
+// 					[saved.p1_id, saved.p2_id]
+// 				);
+// 				const players = pRows.map(toPlayer);
+// 				return {
+// 					status: 'OK',
+// 					game: {
+// 						id: saved.id,
+// 						tournament_id: saved.tournament_id,
+// 						round: saved.round,
+// 						bracket_pos: saved.bracket_pos,
+// 						p1_id: saved.p1_id,
+// 						p2_id: saved.p2_id,
+// 						p1_score: saved.p1_score,
+// 						p2_score: saved.p2_score,
+// 						winner_id: saved.winner_id,
+// 						status: saved.status,
+// 					},
+// 					players
+// 				};
+// 			});
+// 			return reply.send(resultPayload);
+// 		}
+// 		catch (err)
+// 		{
+// 			const code = err.statusCode || 500;
+// 			log('REPORT_GAME_RESULT', err.message || err);
+// 			return reply.code(code).send({
+// 				status: 'ERROR',
+// 				error: err.message || 'Failed to save game result'});
+// 		}
+// 	});
+// };
+
+
 // all these should be swapped for context files, either or
 // 2 different approaches
 const {
@@ -13,35 +248,7 @@ const {log} = require('@logger');
 const { API_PROTOCOL } = require('@sharedApi');
 
 const games = new Map(); // gameId -> { owner, players, state, loop }
-// this fucntion maybe should handle 1 user at a Time,
-// this insinuates cookie is sent, remember to include on front end
 
-/**
- *
- * @param {*} gameId the game session identifier
- * @param {*} owner user who created the game
- *
- * @map key = gameId (the game session identifier)
- * 	values = {
- * 				owner (userId who created the game)
- * 				type (vs/tournament)
- * 				mode (local/remote)
- * 				state (gamestate ) createGameState()
- * 				loop (game loop)
- * 				phase (setup/play/pause/end) need more?
- * 				players: (map of player details) key = playerId
- * 												values = {
- * 															type (guest/login/ai)
- * 														    ws (the websocket)
- * 															role (player1/player2)
- * 															alias (game nickname)
- * 															ready (boolean)
- * 															disconnectedAt (timestamp or undefined)
- * 															pauseTimeout (timeout handle or undefined)
- *
- * 														}
- * 				}
- */
 
 function generateRandomId() {
   return Math.random().toString(36).substring(2, 10);
@@ -264,7 +471,7 @@ async function gameRoutes(fastify, options) {
 
 	//await updateProfile(fastify, options);
 }
-//module.exports = gameRoutes;
+
 
 module.exports = {gameRoutes, startGame, joinGame, createGame, getGame, generateRandomId};
 

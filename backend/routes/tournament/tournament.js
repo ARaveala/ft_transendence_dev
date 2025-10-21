@@ -278,7 +278,6 @@ module.exports = async function tournamentRoutes(fastify, options) {
 		const {game_id, p1_score, p2_score} = request.body || {};
 		if (!game_id || typeof p1_score !== 'number' || typeof p2_score !== 'number')
 			return reply.code(400).send({status: 'ERROR', error: 'Game id, player 1 score and player 2 score required'});
-
 	});
 };
 

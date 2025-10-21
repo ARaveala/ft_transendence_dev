@@ -24,6 +24,10 @@ const API_PROTOCOL = {
 		path: '/api/join-game',
 		method: 'POST',
 	},
+  REPORT_GAME_RESULT: {
+  path: '/api/game/result',
+  method: 'POST',
+  },
 	GET_USER: {
 		path: '/api/user/:id',
 		method: 'GET',

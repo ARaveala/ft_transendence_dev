@@ -43,7 +43,10 @@ const API_PROTOCOL = {
     path:'/api/game/local',
     method: 'POST',
   },
-
+  REPORT_GAME_RESULT: {
+  path: '/api/game/result',
+  method: 'POST',
+  },
   CREATE_TOURNAMENT: {
     path:'/api/tournament',
     method: 'POST',

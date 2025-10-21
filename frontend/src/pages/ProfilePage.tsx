@@ -4,7 +4,6 @@ import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile, UpdateProfilePayload } from "../../shared/payloads";
 import { useAuth } from "../context/AuthContext";
 
-const availableAvatars = [avatar1, avatar2, avatar3, avatar4];
 
 const Profile: React.FC = () => {
 const { user, isLoggedIn, refreshSession } = useAuth();
@@ -79,22 +78,6 @@ return (
 		Enable 2FA via Email
 		</label>
 
-		<div className="mt-2">
-		<label>Change Avatar:</label>
-			<div className="flex gap-2 mt-1">
-			{availableAvatars.map((avatar) => (
-				<img
-				key={avatar}
-				src={avatar}
-				className={`w-12 h-12 rounded-full cursor-pointer border-2 ${
-					selectedAvatar === avatar ? "border-blue-500" : "border-transparent"
-				}`}
-				alt="Avatar"
-				onClick={() => setSelectedAvatar(avatar)}
-				/>
-			))}
-			</div>
-		</div>
 	</div>
 
 	<button
