@@ -43,11 +43,11 @@ gameState.keys = {
 
  */
 function handleMessage(ws, data) {
-
+	currentWs = ws; // this will have to be changed for remote play
 	const context = getGameContext(ws, data, playerinit);
 	const {game, gameState} = context || {};
 
-	currentWs = ws; // this will have to be changed for remote play
+	
 	switch (data.type) {
 		case 'greet':
 			handleGreet(currentWs, data);
@@ -105,7 +105,7 @@ function handleMessage(ws, data) {
 		}
 		case 'init': {
 			// if remote initgame should only happen for player1
-			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset }
+			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset, ballSpeed, paddleSpeed, powerUp }
 			currentWs.send(JSON.stringify({type: 'init_ack', message: 'game init success' }));
 		}
 			break;

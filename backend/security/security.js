@@ -2,6 +2,9 @@
 
 const jwt = require('jsonwebtoken');
 const {log} = require('@logger');
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'security.js' }); // scoped logger
+
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
 
 function generateToken(id, username) {
@@ -49,10 +52,15 @@ function getUserIdFromToken(token) {
 	log('GET USER ID FROM TOKEN', 'taking id from token');
 	try {
 		const decoded = jwt.verify(token, JWT_SECRET);
+		if (decoded === undefined) {
+			flog.warn( {function: 'getUserIdFromToken'}, 'Token verification returned undefined');
+			//return undefined;
+		}
 		log('GET USER ID FROM TOKEN', `decoded token ${JSON.stringify(decoded)}`);
 //		return JSON.stringify(decoded.id); // or whatever claim you expect
 		return decoded.id; // or whatever claim you expect
 	} catch (err) {
+		flog.error( {function: 'getUserIdFromToken', error: err}, 'Error verifying token');
 		console.error('Invalid or expired token:', err.message);
 		return undefined; // or throw a custom error if you want to handle it upstream
 	}
@@ -66,10 +74,27 @@ function getUserIdFromToken(token) {
 //Optionally confirm that the user still exists in the database this is done by returning to me id
 //  potentailly may require more returned as an object , backend sends to database verify user in db. 
 
+/* functions for creating temporary token on login with 2FA enabled
+ */
+function generateTemporaryToken(payload) {
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: '3m' });
+}
+
+function verifyTemporaryToken(token) {
+    try {
+        return jwt.verify(token, JWT_SECRET);
+    } catch (err) {
+        console.error('Invalid or expired temporary token:', err.message);
+        return null;
+    }
+}
+
 module.exports = { generateToken,
 	setAuthCookie,
 	verifyToken,
 	getUserIdFromToken,
 	generateWsToken,
-	clearAuthCookie
+	clearAuthCookie,
+	generateTemporaryToken,
+    verifyTemporaryToken
 	};

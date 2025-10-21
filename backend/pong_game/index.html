@@ -28,15 +28,24 @@
 		<div id="scoretest" style="color: white;">Score: 0 | 0</div>
 		<div id="resulttest" style="color: white;"></div>
 		<div id="resettestbutton" onClick="resettest()" style="display: none; color: white;">Click to play again</button>
-
+		<div id="test"></div>
 		<script>
-			// the other html is sending the gameId and token over
+			// the other html is sending the gameId, settings and token over
 			const urlParams = new URLSearchParams(window.location.search);
 			const gameId = urlParams.get('gameId');
 
 			const startData = JSON.parse(decodeURIComponent(urlParams.get('startData')));
 			const player1Token = urlParams.get('player1Token');
 			const player2Token = urlParams.get('player2Token'); // might be null if not provided
+			const gameSettingsRaw = urlParams.get('gameSettings');
+			let gameSettings = null;
+			if (gameSettingsRaw) {
+				try {
+					gameSettings = JSON.parse(decodeURIComponent(gameSettingsRaw));
+				} catch (e) {
+					console.error("Failed to parse gameSettings:", e);
+				}
+			}
 			// somehow this logic needs to be token isntead of players, incase of remot eplay
 			if (player2Token) {
 				console.log("Player 2 token detected:", player2Token);
@@ -56,7 +65,7 @@
 			const paddleOffset = 100; // how far are paddles from window edges in pixels
 			const fps = 60; // don't change unless change also in server
 
-			const victory_score = 2;
+			const victory_score = gameSettings.maxScore;
 
 			// key related
 			const controls = ["w", "s", "ArrowUp", "ArrowDown"];
@@ -71,10 +80,13 @@
 			paddle1.style.left = paddleOffset + "px";
 			paddle2.style.right = paddleOffset + "px";
 
-			const paddleHeight = height / 5;
+			const paddleHeight = gameSettings.paddleSize;
 			const paddleWidth = paddleHeight / 10;
-			document.querySelector('.paddle').style.height = paddleHeight + "px";
-			document.querySelector('.paddle').style.width = paddleWidth + "px";
+			document.querySelectorAll('.paddle').forEach(p => {
+				p.style.height = paddleHeight + "px";
+				p.style.width = paddleWidth + "px";
+			});
+
 
 			const ballSize = Math.min(height, width) / 20;
 			document.querySelector('.ball').style.height = ballSize + "px";
@@ -141,7 +153,10 @@
 									ballSize: ballSize,
 									paddleHeight: paddleHeight,
 									paddleWidth: paddleWidth,
-									paddleOffset: paddleOffset
+									paddleOffset: paddleOffset,
+									ballSpeed: gameSettings.ballSpeed,
+									paddleSpeed: gameSettings.paddleSpeed,
+									powerUp: gameSettings.powerUp
 								}
 							}));
 						}

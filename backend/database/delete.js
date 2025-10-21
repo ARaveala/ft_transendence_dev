@@ -1,4 +1,6 @@
 const db = require('./initDB.js');
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'insert.js' }); // scoped logger
 
 'use strict';
 // dont include db as a prameter, we include it as a require, if you must include it
@@ -31,6 +33,22 @@ function deleteUserById(id) {
   });
 }
 
+function deleteFriendById(userId, friendId) {
+  return new Promise((resolve, reject) => {
+	flog.debug({fucntion: 'deleteFreindById', user: userId, friend: friendId}, 'checking id');
+    db.run(
+      'DELETE FROM friends WHERE user_id = ? AND friend_id = ?',
+      [userId,friendId],
+      function onDone(err) {
+        if (err) return reject(err);
+        // this.changes is provided by sqlite3 and tells how many rows were affected
+        resolve(this.changes);
+      }
+    );
+  });
+}
+
+
 /**
  * Optional convenience: delete by username (unique). may be not needed
  */
@@ -50,4 +68,8 @@ function deleteUserByUsername(username) {
   });
 }
 
-module.exports = { deleteUserById, deleteUserByUsername };
+module.exports = {
+	deleteUserById,
+	deleteUserByUsername,
+	deleteFriendById,
+};

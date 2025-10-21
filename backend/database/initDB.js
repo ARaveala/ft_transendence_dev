@@ -64,7 +64,7 @@ const path = require('path');
 const fs = require('fs');
 // changed the DB_DIR to relative path for local testing from app/data to data/
 // changed the DB_FILE from app.sqlite to new.sqlite for local testing
-const DB_DIR  = process.env.DB_DIR  || 'data/';
+const DB_DIR  = process.env.DB_DIR  || 'data';
 const DB_FILE = process.env.DB_FILE || 'new.sqlite';
 const DB_PATH = process.env.DB_PATH || path.join(DB_DIR, DB_FILE);
 const INIT_SQL_PATH = process.env.INIT_SQL || path.join(__dirname, 'init.sql');

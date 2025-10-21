@@ -1,5 +1,6 @@
 const { API_PROTOCOL } = require('@sharedApi');
-//const { use } = require('react');
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'profile.js' }); // scoped logger
 /**
  * 
     const player = await db.getPlayerById(playerId);
@@ -33,12 +34,8 @@ async function getUser(fastify, options) {
 		//  reply.code(401).send({ error: "Unauthorized" });
 		//  return;
 		//}
-		console.log('Cookies in get User:', request.cookies);
 
 		const userId = secure.getUserIdFromToken(token);
-		console.log("-------- is the id valid", userId);
-		console.log("debug :: after get userid from");
-
 		const mockProfile = {
 				username: "PlayerOne",
 				avatarFile: undefined,
@@ -48,27 +45,18 @@ async function getUser(fastify, options) {
 				victories: 15,
 				losses: 7,
 				totalMatches: 22,
-				friends: [
-					{ id: "1", username: "Player2", avatar: "/avatars/avatar2.png" },
-					{ id: "2", username: "Player3", avatar: "/avatars/avatar3.png" },
-				],
+				friends: [],
 				matchHistory: [
 					{ id: "m1", opponent: "Player2", result: "win", score: 21, timestamp: "2025-08-25T12:00:00" },
 					{ id: "m2", opponent: "Player3", result: "loss", score: 18, timestamp: "2025-08-24T15:30:00" },
 				],
 			};
-
-		//const userId = request.params.id;
 		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
 		try {
-			console.log("debug :: inside try block");
-			//const test = userId.id;//parseInt(userId, 10); //base of 10, make sure its a number
-			//console.log('Checking value of test:', test, 'with type', typeof test);
-			
 			const profile = await DBget.fetchUser({userId});
-			const friends = await DBget.getFriendsForPlayer({userId});
+			const friends = await DBget.getFriendsForPlayer(userId.id);
+			flog.info({function: 'getUser', friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory({userId});
-			console.log("the user we should be returning is :", profile);
 			//const { password, ...safeUser } = profile;
 			mockProfile.username = profile.username;
 			mockProfile.avatarFile = profile.avatar_file;
@@ -82,7 +70,6 @@ async function getUser(fastify, options) {
 			mockProfile.matchHistory = matchHistory || [];
 			//mockP
 			console.log("show mock profile", mockProfile);
-			//console.log("show mock profile", safeUser);
 			
 			//reply.send(safeUser);
 			reply.send(mockProfile);

@@ -48,7 +48,7 @@ function generateRandomId() {
 }
 
 function createGameMap(owner, mode, type) {
-	const gameId = 1;// 1 for testing now //crypto.randomUUID(); // or generateRandomId()
+	const gameId = generateRandomId();// may need to stringyfy
 	games.set(gameId, {
 		owner,
 		type,
@@ -65,8 +65,8 @@ function createGameMap(owner, mode, type) {
     		paddleHeight: 1,
 			paddleWidth: 1,
     		paddleOffset: 1,
-			paddleSpeed: 10,
-			ballSpeed: 3,
+			paddleSpeed: 0,
+			ballSpeed: 0,
 			leftPaddleI: 0,
 			rightPaddleI: 1,
 			ballYI: 2,
@@ -259,12 +259,13 @@ async function gameRoutes(fastify, options) {
 	await startGame(fastify, options);
 	await joinGame(fastify, options);
 	getGame();
+	generateRandomId();
 
 	//await updateProfile(fastify, options);
 }
 //module.exports = gameRoutes;
 
-module.exports = {gameRoutes, startGame, joinGame, createGame, getGame};
+module.exports = {gameRoutes, startGame, joinGame, createGame, getGame, generateRandomId};
 
 //front end connects to websocket like so
 /**async function gameRoutes(fastify, options) {
