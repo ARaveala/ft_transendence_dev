@@ -98,6 +98,7 @@ module.exports = async function gameRoutes(fastify, options) {
 
       reply.code(201).send({
         status: 'OK',
+		gameId: created.id,
         game: { id: created.id, p1_id: created.p1_id, p2_id: created.p2_id, status: created.status },
       });
     } catch (err) {
@@ -113,10 +114,9 @@ module.exports = async function gameRoutes(fastify, options) {
     const uid = requireUser(request, reply);
     if (!uid) return;
 
-    const { game_id } = request.body || {};
-    if (!Number.isInteger(game_id)) {
-      return reply.code(400).send({ status: 'ERROR', error: 'game_id is required' });
-    }
+    const { game_id } = request.body?.game_id ?? request.body?.gameId;
+	if (!Number.isInteger(game_id)) return reply.code(400).send({ status:'ERROR', error:'game_id is required' });
+
 
     try {
       const updated = await tx(async () => {
@@ -149,7 +149,7 @@ module.exports = async function gameRoutes(fastify, options) {
     const uid = requireUser(request, reply);
     if (!uid) return;
 
-    const { game_id } = request.body || {};
+    const game_id = request.body?.game_id ?? request.body?.gameId;
     if (!Number.isInteger(game_id)) {
       return reply.code(400).send({ status: 'ERROR', error: 'game_id is required' });
     }
@@ -174,14 +174,16 @@ module.exports = async function gameRoutes(fastify, options) {
       if (!entry.payload) entry.payload = createGameState();
       games.set(game_id, entry);
 
-      // short-lived WS token scoped to this game
-      const token = secure.generateWsToken(uid, game_id);
+		const p1Token = secure.generateWsToken(started.p1_id, started.id);
+		const p2Token = secure.generateWsToken(started.p2_id, started.id);
 
-      reply.send({
-        status: 'OK',
-        game: { id: started.id, p1_id: started.p1_id, p2_id: started.p2_id, status: started.status },
-        ws: { url: '/ws', token },
-      });
+		reply.send({
+		status: 'OK',
+		gameId: started.id,
+		game: { id: started.id, p1_id: started.p1_id, p2_id: started.p2_id, status: started.status },
+		player1Token: p1Token,
+		player2Token: p2Token
+		});
     } catch (err) {
       const code = err.statusCode || 500;
       fastify.log.error({ err }, 'START_GAME');

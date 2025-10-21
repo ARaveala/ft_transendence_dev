@@ -10,6 +10,8 @@ require('dotenv').config();
 const Fastify = require('fastify');
 const cookie = require('@fastify/cookie');
 const cors = require('@fastify/cors');
+const path = require('path');
+const fastifyStatic = require('@fastify/static');
 
 const fastify = Fastify({ logger: true });
 
@@ -104,6 +106,13 @@ async function start() {
   try {
     const port = parseInt(process.env.PORT ?? '3000', 10);
     const host = process.env.HOST || '0.0.0.0';
+
+	fastify.register(fastifyStatic, {
+	root: path.join(__dirname, 'pong_game'),
+	prefix: '/pong_game/',
+	index: false,
+	decorateReply: false
+	});
 
     // DO NOT add routes after this
     await fastify.listen({ port, host });
