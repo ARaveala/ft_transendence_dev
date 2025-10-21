@@ -52,7 +52,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({
   };
 
   /* Starts the tournament:
-    - Sends tournament + player data to backend
+    - Sends tournament_id to backend
     - Builds an initial bracket with placeholder (TBD) matches
     - Notifies parent via `onTournamentUpdated`
   */
