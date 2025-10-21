@@ -29,6 +29,8 @@
 		<div id="resulttest" style="color: white;"></div>
 		<div id="resettestbutton" onClick="resettest()" style="display: none; color: white;">Click to play again</button>
 		<div id="test"></div>
+		<div id="player1test"></div>
+		<div id="player2test"></div>
 		<script>
 			// the other html is sending the gameId, settings and token over
 			const urlParams = new URLSearchParams(window.location.search);
@@ -119,24 +121,36 @@
 				} else {
 					try {
 						const data = JSON.parse(event.data);
+						if (data.type != 'update_game')
+							console.log("game index.html received message:(ignoring positions update)", data);
 						// console.log("should be doing the thingdata.data", Array.from(data.data.entries()));
 						if (data.type == 'update_game') {
 							console.log("update is activated");
 							positions = data.data;//JSON.parse(event.data);
 						} else if (data.type == 'update_score') {
 							document.getElementById("scoretest").textContent = "Score: " + data.player1_score + " | " + data.player2_score;
+
+							// Get winner. 0 means no winner yet
+							let winner = 0;
 							if (data.player1_score == victory_score)
-							{
-								document.getElementById("resulttest").textContent = "Player 1 won!";
-								document.getElementById("resettestbutton").style.display = "inline-block";
-							}
+								winner = 1;
 							else if (data.player2_score == victory_score)
-							{
-								document.getElementById("resulttest").textContent = "Player 2 won!";
-								document.getElementById("resettestbutton").style.display = "inline-block";
-							}
-							else
+								winner = 2;
+
+							if (winner == 0) // game not finished yet
 								webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["ball", "gameRunning"]}));
+							else {
+								document.getElementById("resulttest").textContent = "Player " + winner + "  won!";
+								document.getElementById("resettestbutton").style.display = "inline-block";
+								
+								// Ask messageHandler to send player aliases
+								webSocket.send(JSON.stringify({type: "getPlayerNames"}));
+							}
+						} else if (data.type == 'playerNames') {
+							const player1 = data.player1;
+							const player2 = data.player2;
+							document.getElementById("player1test").textContent = "Player 1 alias: " + player1;
+							document.getElementById("player2test").textContent = "Player 2 alias: " + player2;
 						} else if (data.type == 'welcome'){
 							console.log(data.msg);
 						} else if (data.type == 'init_ack'){
@@ -159,6 +173,8 @@
 									powerUp: gameSettings.powerUp
 								}
 							}));
+						} else {
+							console.log("Not any expected message");
 						}
 						// if reconnect we must have stored these tokens
 						//eg sessionStorage.setItem('playerToken', playerToken);
