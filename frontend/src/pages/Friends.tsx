@@ -153,7 +153,7 @@ const Friends: React.FC = () => {
 				throw new Error(data.error || "Could not remove friend.");
 			}
 
-			setFriends((prev) => prev.filter((f) => f.user_id !== friendId));
+			setFriends((prev) => prev.filter((f) => f.username !== username));
 			setRemoveConfirmId(null);
 			setMsg(t("common.friendRemoved"));
 			await refreshSession(); // Refresh user data in AuthContext to update friends list there too

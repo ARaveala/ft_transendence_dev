@@ -5,9 +5,9 @@ import { useTranslation } from "../shared/Translation";
 
 const Profile: React.FC = () => {
 	const { t } = useTranslation();
-  	const { user, isLoggedIn, refreshSession } = useAuth();
+  const { user, isLoggedIn, refreshSession } = useAuth();
 
-  	if (!isLoggedIn) return <div>{t("profile.loginRequired")}</div>;
+  if (!isLoggedIn) return <div>{t("profile.loginRequired")}</div>;
 	if (!user) return <div>{t("profile.loading")}</div>;
 
 	const avatarSrc = user.avatarFile || defaultAvatar;
