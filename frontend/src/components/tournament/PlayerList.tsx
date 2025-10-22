@@ -47,14 +47,14 @@ const PlayerList: React.FC<PlayerListProps> = ({
 
     tournament.players.forEach(p => {
       if (p.isSelf) {
-        // If editing, use the existing local state value (which was just set to "")
+        // If editing, uses the existing local state value (which was set to "")
         initialFormData[p.role] = formData[p.role] || {
           username: p.username || "",
           password: "",
           alias: p.alias || "",
         };
       } else {
-          // 2. Capture the verified alias for the self-player
+          // 2. Capture the verified alias for the logged in player
           selfAlias = p.alias || '';
       }
     });
@@ -147,7 +147,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 
       if (response.status === "OK" && response.tournament) {
         if (player.isSelf) {
-            // Exit editing mode for the self-player on success
+            // Exit editing mode for the logged in player on success
             setIsEditingAlias(false);
         }
 

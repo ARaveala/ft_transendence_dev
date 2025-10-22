@@ -203,14 +203,3 @@ const TournamentLobby: React.FC = () => {
 };
 
 export default TournamentLobby;
-
-
-
-{/*
-window.addEventListener("message", (event) => {    // to automatically close iframe when the match ends and pong game sends a message that match ended
-  if (event.data?.type === "MATCH_END") {
-    handleMatchEnd();
-  }
-});
-
-*/}
