@@ -3,7 +3,10 @@ const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'DBtournament.js' }); // scoped logger
 
 'use strict';
-
+/**
+ * 
+ * @returns tournamentId of newly created tournament utalizing db to create unique id
+ */
 function createTournament() {
 	flog.debug({ function: 'DBcreateTournament' }, 'Creating tournament');
 		return new Promise((resolve, reject) => {
@@ -19,7 +22,11 @@ function createTournament() {
 				});
 		});
 }
-
+/**
+ * 
+ * @param {*} tId tournamentId
+ * @returns tournament row with status 'waiting' | 'ready' | 'playing' | 'finished';
+ */
 function getActiveTournamentStatus(tId) {
 	flog.debug({ function: 'getActiveTournamentStatus' }, 'Fetching active tournament status');
 		return new Promise((resolve, reject) => {
@@ -38,6 +45,17 @@ function getActiveTournamentStatus(tId) {
 		});
 }
 
+/**
+ * 
+ * @param {*} tournamentId unique id for tournament
+ * @param {*} playerId current player id we are adding
+ * @param {*} alias alias is set to empty string for now
+ * @param {*} seed player 1 will get seed of 1 , others can be added later
+ * @param {*} role player1 | player2 | player3 | player4
+ * @param {*} verified if player is logged in player is verified, this could in theory be hard coded as 
+ * existing player id would verify logged in.
+ * @returns 
+ */
 function createTournamentPlayer(tournamentId, playerId, alias, seed, role, verified) {
 	flog.debug({ function: 'createTournamentPlayer' }, 'Adding player to tournament');
 		return new Promise((resolve, reject) => {
@@ -70,6 +88,14 @@ function createTournamentPlayer(tournamentId, playerId, alias, seed, role, verif
 //			);
 //		});
 //}
+/**
+ * 
+ * @param {*} tournamentId unique id for tournament
+ * fetches all players in tournament along with their usernames from users table.
+ * tp. and u. are table aliases for tournament_players and users respectively
+ * 
+ * @returns 
+ */
 function getTournamentPlayersWithUsernames(tournamentId) {
 	flog.debug({ function: 'getTournamentPlayersWithUsernames' }, 'Fetching tournament players with usernames');
 	return new Promise((resolve, reject) => {
@@ -96,6 +122,12 @@ function getTournamentPlayersWithUsernames(tournamentId) {
   });
 }
 
+/**
+ * 
+ * @param {*} userId user id we want tofind
+ * fetches tournament player rows for given user id, this may not be really needed
+ * @returns 
+ */
 function getTournamentPlayerById(userId) {
 	flog.debug({ function: 'getTournamentPlayers' }, 'Fetching tournament players');
 		return new Promise((resolve, reject) => {

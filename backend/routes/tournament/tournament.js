@@ -229,7 +229,13 @@ export interface TournamentStateResponse {
 // 	});
 // }
 //
-function buildTournamentPlayerList(players, userId, token) {
+/**
+ * 
+ * @param {*} players player object containing all existing players from db
+ * @returns all players inside db tournament player object , filling empty slots with placeholders, player
+ * object has been cleaned , so that eg, no user ids are sent to front end
+ */
+function buildTournamentPlayerList(players) {
 	const fullPlayerList = [];
 	flog.debug({function: 'buildTournamentPlayerList', players: players}, 'building full player list ');
 	for (let i = 1; i <= 4; i++) {
@@ -259,7 +265,13 @@ function buildTournamentPlayerList(players, userId, token) {
 	return fullPlayerList;
 }
 
-
+/**
+ * 
+ * @param {*} fastify fastify instance
+ * @param {*} options see context.js for available options
+ * 
+ * creates a baisc tournament object with creating user as player1.
+ */
  async function createTournament(fastify, options){
  	const {secure, game, DBtour} = options;
  	fastify.route({
