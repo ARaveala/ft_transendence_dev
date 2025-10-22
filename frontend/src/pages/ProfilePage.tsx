@@ -23,10 +23,19 @@ const Profile: React.FC = () => {
   useEffect(() => {
     const fetch2faStatus = async () => {
       try { //check if 2fa is enabled atm or not
+		console.log("fetching status of 2FA");
         const res = await fetch('/api/2fa/status', {
           credentials: "include"
         });
-        const data = await res.json();
+		///
+		console.log("fetched status of 2FA, whats in res", res);
+		if (!res.ok) {
+		  throw new Error(`HTTP error ${res.status}`);
+		}
+		///
+		const data = await res.json();
+		console.log("await data res.json()", data);
+
         setTwoFactor(data.isEnabled);
       } catch (err) {
         console.error("Failed to fetch 2FA status", err);
@@ -90,10 +99,12 @@ const Profile: React.FC = () => {
       });
       const data = await res.json();
       if (data.verified) {
+		console.log("2FA enabled successfully");
         alert("2FA enabled successfully!");
         setTwoFactor(true);
         setQrCode(null);
         setOtp("");
+		console.log("2FA enabled, before refreshSession");
         await refreshSession();
       } else {
         alert(data.error || "Invalid code, please try again.");

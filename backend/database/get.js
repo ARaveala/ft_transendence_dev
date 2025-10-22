@@ -1,6 +1,6 @@
 const db = require('./initDB.js');
 const {logger} = require('@logger');
-const flog = logger.child({ fileContext: 'insert.js' }); // scoped logger
+const flog = logger.child({ fileContext: 'get.js' }); // scoped logger
 
 // naming can be changed 
 // get each element from database , such as score, name , status
@@ -191,6 +191,44 @@ async function miniLogin(username, password) {
   });
 }
 
+async function get2FaSecret(userId) {
+	console.log('DB::Fetching 2FA secret for user ID:', userId);
+	const test = userId.id;
+		return new Promise((resolve, reject) => {
+			db.get('SELECT mfa_secret FROM users WHERE id = ?', [test], (err, row) =>{
+				if (err) {
+					console.error('DB error:', err);
+					reject({ error: 'DB error fecth' });
+				} else if (!row) {
+					console.warn('User not found for ID:', userId);
+					reject({ error: 'User not found fecth' });
+				} else {
+					console.log('2FA secret found:', row);
+					resolve(row.mfa_secret);
+				}
+
+			});
+		});
+}
+
+async function is2FaEnabled(userId) {
+	console.log('DB::Checking if 2FA is enabled for user ID:', userId);
+		return new Promise((resolve, reject) => {
+			db.get('SELECT mfa_enabled FROM users WHERE id = ?', [userId], (err, row) =>{
+				if (err) {
+					console.error('DB error:', err);
+					reject({ error: 'DB error fecth' });
+				} else if (!row) {
+					console.warn('User not found for ID:', userId);
+					reject({ error: 'User not found fecth' });
+				} else {
+					resolve(Boolean(row.mfa_enabled));
+				}
+
+			});
+		});
+}
+
 module.exports = { fetchUser, 
 	miniLogin, 
 	getFriendsForPlayer, 
@@ -198,6 +236,7 @@ module.exports = { fetchUser,
 	checkUsernameAvailable,
 	checkPasswordMatch,
 	fetchUserByUsername,
+	is2FaEnabled,
 };
 //similar logic as below may be required
 //async function userRoutes(fastify, options) {
