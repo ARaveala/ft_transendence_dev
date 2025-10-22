@@ -117,7 +117,7 @@ const SettingsPage: React.FC = () => {
 	// Clear forms
 	function resetUsernameForm() {
 		setUsername("");
-		setUserNameInput("");
+		setUsernameInput("");
 	}
 
 	function resetPasswordForm() {
@@ -287,7 +287,7 @@ const SettingsPage: React.FC = () => {
 	async function saveUsername() {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
-			const value = username.trim();
+			const value = usernameInput.trim();
 			if (value.length < 3 || value.length > 15) throw new Error(t("error.usernameLength"));
 			const payload: ChangeUsernamePayload = { username: value };
 			const res = await fetch(API_PROTOCOL.CHANGE_USERNAME.path, {
@@ -305,6 +305,7 @@ const SettingsPage: React.FC = () => {
 			setUsernameInput("");
 			setOpenRow(null);
 			await refreshSession();
+			setUsername(value);
 		} catch (e: any) {
 			setErr(e?.message || "Could not update username.");
 		} finally {
@@ -445,6 +446,7 @@ const SettingsPage: React.FC = () => {
 			if (!res.ok) throw new Error("Failed to delete profile.");
 
 			setDeleted(true);
+			await refreshSession();
 		} catch (err:any) {
 			setDeleteError(err?.message || "Deletion failed.");
 		} finally {
