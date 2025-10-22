@@ -552,11 +552,17 @@ export const handlers = [
     return HttpResponse.json(mockProfile, { status: 200 });
   }),
 
-  //Mock for leaderboard request
+    // Mock for leaderboard
   http.get(API_PROTOCOL.GET_LEADERBOARD.path, () => {
-    return HttpResponse.json(mockUsers, { status: 200 });
-}),
-
+    console.log("Mock: GET leaderboard");
+    return HttpResponse.json(
+      {
+        status: "OK",
+        leaders: mockLeaderboard,
+      },
+      { status: 200 }
+    );
+  }),
 
   // Mock for fetching a tournament by its ID
   http.get('/api/tournament/:tournamentId', async ({ params }) => {
@@ -626,17 +632,7 @@ export const handlers = [
     );
   }),
   
-  // Mock for leaderboard
-  http.get(API_PROTOCOL.GET_LEADERBOARD.path, () => {
-    console.log("Mock: GET leaderboard");
-    return HttpResponse.json(
-      {
-        status: "OK",
-        leaders: mockLeaderboard,
-      },
-      { status: 200 }
-    );
-  }),
+
 ];
 
 
