@@ -38,36 +38,66 @@ async function registerUser(fastify, options) {
 	});
 }
 
-async function loginUser(fastify, options) {
-	const {DBget, secure, API_PROTOCOL} = options;
-	fastify.route({
-		method: API_PROTOCOL.LOGIN_USER.method,
-		url: API_PROTOCOL.LOGIN_USER.path,
-		handler: async (request, reply) => {
-			const {username, password} = request.body;
-			try
-			{
-				const userId = await DBget.miniLogin(username, password);
-				const token = secure.generateToken(userId, username);
-				secure.setAuthCookie(reply, token);
-				reply.code(200).send({id: userId, username});
-			}
-			catch (err)
-			{
-				const status = err?.status || 500;
-				reply.code(status).send({error: err.error || 'Login failed'});
-			}
-		}
-	});
+
+async function loginUser(fastify, { DBget, secure, API_PROTOCOL }) {
+  fastify.route({
+    method: API_PROTOCOL.LOGIN_USER.method,
+    url: API_PROTOCOL.LOGIN_USER.path,
+    handler: async (request, reply) => {
+      const { username, password } = request.body;
+      try {
+        const userId = await DBget.miniLogin(username, password);
+        const token = secure.generateToken(userId, username);
+        secure.setAuthCookie(reply, token);
+        reply.send({ id: userId, username }); // return basic info for immediate UI update
+      } catch (err) {
+        reply.code(err?.status || 401).send({ error: err?.error || 'Invalid credentials' });
+      }
+    }
+  });
 }
 
-async function logoutUser(fastify, options) {
-	const { API_PROTOCOL, secure } = options;
-	fastify.post(API_PROTOCOL.LOGOUT_USER.path, async (request, reply) => {
-		secure.clearAuthCookie(reply);
-		reply.code(200).send({ok: true});
-	});
+async function logoutUser(fastify, { secure, API_PROTOCOL }) {
+  fastify.route({
+    method: API_PROTOCOL.LOGOUT_USER.method,
+    url: API_PROTOCOL.LOGOUT_USER.path,
+    handler: async (_req, reply) => {
+      secure.clearAuthCookie(reply);
+      reply.code(204).send();
+    }
+  });
 }
+
+// async function loginUser(fastify, options) {
+// 	const {DBget, secure, API_PROTOCOL} = options;
+// 	fastify.route({
+// 		method: API_PROTOCOL.LOGIN_USER.method,
+// 		url: API_PROTOCOL.LOGIN_USER.path,
+// 		handler: async (request, reply) => {
+// 			const {username, password} = request.body;
+// 			try
+// 			{
+// 				const userId = await DBget.miniLogin(username, password);
+// 				const token = secure.generateToken(userId, username);
+// 				secure.setAuthCookie(reply, token);
+// 				reply.code(200).send({id: userId, username});
+// 			}
+// 			catch (err)
+// 			{
+// 				const status = err?.status || 500;
+// 				reply.code(status).send({error: err.error || 'Login failed'});
+// 			}
+// 		}
+// 	});
+// }
+
+// async function logoutUser(fastify, options) {
+// 	const { API_PROTOCOL, secure } = options;
+// 	fastify.post(API_PROTOCOL.LOGOUT_USER.path, async (request, reply) => {
+// 		secure.clearAuthCookie(reply);
+// 		reply.code(200).send({ok: true});
+// 	});
+// }
 // delete user 
 async function deleteUser(fastify, options) {
 	const {DBdelete, API_PROTOCOL, secure} = options;

@@ -177,8 +177,6 @@ async function updatePassword(fastify, options) {
 	});
 }
 
-
-
 async function updateAvatar(fastify, options) {
 	const { DBupdate, secure } = options;
 	fastify.route({

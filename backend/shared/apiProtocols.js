@@ -20,7 +20,7 @@ const API_PROTOCOL = {
 		path: '/api/start-game',
 		method: 'POST',
 	},
-    JOIN_GAME:  {
+  JOIN_GAME:  {
 		path: '/api/join-game',
 		method: 'POST',
 	},

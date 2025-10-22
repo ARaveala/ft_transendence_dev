@@ -67,7 +67,7 @@ export const API_PROTOCOL = {
   },
 
   GET_ACTIVE_TOURNAMENT: {
-    path: 'api/tournament/get-active',
+    path: '/api/tournament/get-active',
     method: 'GET',
   },
   
