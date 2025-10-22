@@ -121,6 +121,14 @@ export interface Player {
   //online_status: boolean;
 }
 
+export interface LeaderboardEntry {
+  username: string;
+  avatar: string;
+  score: number;
+  rank: number;
+  //online_status: boolean;
+}
+
 export type PlayerPayload = Player[];
 
 export interface MatchHistoryResponse {
@@ -359,6 +367,12 @@ export interface UploadAvatarResponse {
 	status: 'UPLOADED' | 'ERROR';
 	url?: string;
 	error?: string;
+}
+
+export interface LeaderBoardResponse {
+  status: 'OK' | 'ERROR';
+  error?: string;
+  leaders: LeaderboardEntry[],
 }
 
 // over websocket??

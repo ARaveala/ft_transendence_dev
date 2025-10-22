@@ -9,14 +9,14 @@ import "./styles/globals.css";             // Import global CSS (Tailwind resets
 // Only for testing the frontend before the backend is ready
 // -> comment out if not needed!
 //
-//if (import.meta.env.DEV) {
-//  const { worker } = await import("./mocks/browser");
-//    worker.start({
-//    onUnhandledRequest: 'warn'
-//  }).then(() => {
-//    console.log('MSW worker started');
-//  });
-//}
+if (import.meta.env.DEV) {
+  const { worker } = await import("./mocks/browser");
+    worker.start({
+    onUnhandledRequest: 'warn'
+  }).then(() => {
+    console.log('MSW worker started');
+  });
+}
 
 // Attach the <App /> React component into the <div id="root"></div> in index.html
 // React.StrictMode = development helper that shows potential problems

@@ -1,21 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
-import type { Player, PlayerPayload } from "../../shared/payloads";
+import type { LeaderBoardResponse, LeaderboardEntry, PlayerPayload } from "../../shared/payloads";
+//import { useTranslation } from "../shared/Translation";
+//import { useAuth } from "../context/AuthContext";
 
 const Leaderboard: React.FC = () => {
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [friends, setFriends] = useState<string[]>([]); // store friend IDs
+  const [players, setPlayers] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
         const res = await fetch(API_PROTOCOL.GET_LEADERBOARD.path);
-        const data: PlayerPayload = await res.json();
-        setPlayers(data);
-        setLoading(false);
+        const data: LeaderBoardResponse = await res.json();
+        
+        if (data.status === 'OK') {
+          setPlayers(data.leaders);
+        }
+        else {
+          console.error("Leaderboard error:", data.error);
+        }
       } catch (err) {
         console.error("Failed to fetch leaderboard", err);
+      } finally {
         setLoading(false);
       }
     };
@@ -23,24 +30,7 @@ const Leaderboard: React.FC = () => {
     fetchLeaderboard();
   }, []);
 
-  const handleAddFriend = async (playerId: string) => {
-    try {
-      const res = await fetch(API_PROTOCOL.ADD_FRIEND.path, {
-        method: API_PROTOCOL.ADD_FRIEND.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ friendId: playerId }),
-      });
-
-      if (!res.ok) throw new Error("Failed to add friend");
-
-      setFriends((prev) => [...prev, playerId]);
-      alert("Friend added!");
-    } catch (err) {
-      console.error(err);
-      alert("Could not add friend");
-    }
-  };
-
+ 
   if (loading) return <div>Loading leaderboard...</div>;
 
   return (
@@ -53,7 +43,6 @@ const Leaderboard: React.FC = () => {
             <th className="border px-2 py-1">Avatar</th>
             <th className="border px-2 py-1">Username</th>
             <th className="border px-2 py-1">Score</th>
-            <th className="border px-2 py-1">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -70,16 +59,6 @@ const Leaderboard: React.FC = () => {
               <td className="border px-2 py-1">{player.username}</td>
               <td className="border px-2 py-1">{player.score}</td>
               <td className="border px-2 py-1">
-                {friends.includes(player.user_id) ? (
-                  <span className="text-gray-500">Friend</span>
-                ) : (
-                  <button
-                    className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    onClick={() => handleAddFriend(player.user_id)}
-                  >
-                    Add Friend
-                  </button>
-                )}
               </td>
             </tr>
           ))}

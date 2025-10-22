@@ -55,10 +55,9 @@ const TournamentLobby: React.FC = () => {
 	try {
       const res = await fetch(API_PROTOCOL.CREATE_TOURNAMENT.path, {
         method: API_PROTOCOL.CREATE_TOURNAMENT.method,
-		credentials: 'include',
+		    credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-        credentials: "include", 
     });
 
     const data: CreateTournamentResponse = await res.json();

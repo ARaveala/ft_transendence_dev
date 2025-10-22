@@ -5,7 +5,7 @@ import avatar3 from "../assets/avatars/avatar3.png";
 
 import { http, HttpResponse } from "msw";
 import { API_PROTOCOL } from "../../shared/api-protocols";
-import type { UserProfile, PlayerPayload } from "../../shared/payloads";
+import type { UserProfile, PlayerPayload, Player, LeaderboardEntry } from "../../shared/payloads";
 import type { RemovePlayerPayload, RemovePlayerResponse, StartTournamentPayload, StartTournamentResponse, VerifyPlayerPayload, VerifyPlayerResponse } from "../../shared/payloads";
 import type { TournamentPlayer, Match, TournamentState } from "../types/tournament";
 import { TBD_PLAYER } from "../../shared/constants";
@@ -43,6 +43,14 @@ const mockProfile: UserProfile = {
 let mockFriends: Friend[] = [
         { user_id: "1", username: "Player2", avatar: avatar2, online_status: true },
         { user_id: "2", username: "Player3", avatar: avatar3, online_status: false },
+];
+
+const mockLeaderboard: LeaderboardEntry[] = [
+  { username: "Al", avatar: avatar1, rank: 1, score: 250 },
+  { username: "Peggy", avatar: avatar2, rank: 2, score: 200 },
+  { username: "Dobby", avatar: avatar3, rank: 3, score: 180 },
+  { username: "Dixie", avatar: avatar1, rank: 4, score: 160 },
+  { username: "Carson", avatar: avatar2, rank: 5, score: 140 },
 ];
 
 let currentTournament: TournamentState | null = null;
@@ -616,7 +624,19 @@ export const handlers = [
       { status: 'OK' },
       { status: 200 }
     );
-  })
+  }),
+  
+  // Mock for leaderboard
+  http.get(API_PROTOCOL.GET_LEADERBOARD.path, () => {
+    console.log("Mock: GET leaderboard");
+    return HttpResponse.json(
+      {
+        status: "OK",
+        leaders: mockLeaderboard,
+      },
+      { status: 200 }
+    );
+  }),
 ];
 
 
