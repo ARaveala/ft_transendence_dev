@@ -21,7 +21,7 @@ const MAX_FRIENDS = 20;
 
 const Friends: React.FC = () => {
 	const { t } = useTranslation();
-	const { user, refreshSession } = useAuth(); //now using AuthContext to get user info
+	const {isLoggedIn, user, loading, refreshSession } = useAuth(); //now using AuthContext to get user info
 
 	// Inline status
 	const [msg, setMsg] = useState<string | null>(null);
@@ -164,8 +164,8 @@ const Friends: React.FC = () => {
 		}
 	}
 
-	//if (loading) return <div className="p-6">{t("common.loading")}</div>;
-	if (!user) {
+	if (loading) return <div className="p-6">{t("common.loading")}</div>;
+	if (!isLoggedIn) { //changed from !user to !isLoggedIn
 	return (
 		<div className="p-6 text-center text-gray-300">
 		Please log in to view your friends.
