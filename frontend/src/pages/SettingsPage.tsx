@@ -25,7 +25,7 @@ type Row = "language" | "username" | "password" | "avatar" | "twofa" | null;
 
 const SettingsPage: React.FC = () => {
 	const { t, setLang } = useTranslation();
-	const { user, loading, refreshSession } = useAuth();
+	const {isLoggedIn, user, loading, refreshSession } = useAuth();
 
 	// Which row is open state
 	const [openRow, setOpenRow] = useState<Row>(null);
@@ -74,7 +74,7 @@ const SettingsPage: React.FC = () => {
 	if (loading) {
 		return <div className="p-6 text-center text-gray-300">Loading...</div>;
 	}
-	if (!user) {
+	if (!isLoggedIn) { //changed from !user to !isLoggedIn
 	return (
 		<div className="p-6 text-center text-gray-300">
 		Please log in to access settings.
