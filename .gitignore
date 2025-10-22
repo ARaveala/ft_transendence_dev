@@ -1,7 +1,6 @@
 # dependencies
-backend/node_modules/
 frontend/node_modules/
-
+backend/node_modules
 
 # build output
 dist/
@@ -28,10 +27,13 @@ pnpm-debug.log*
 .env.*
 
 # logs
-backend/logUtils/logs/
+backend/logUtils/logs/*
+backend/logs
 
-# nodemodules
 
-# database
+#database
+
+backend/data/database.sqlite-shm
+backend/data/database.sqlite-wal
 backend/data/new.sqlite-shm
 backend/data/new.sqlite-wal
