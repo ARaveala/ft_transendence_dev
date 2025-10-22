@@ -162,8 +162,27 @@ REPORT_GAME_RESULT:{
 	method: 'POST',
   },
 
-};
+  CANCEL_TOURNAMENT: {
+    path: '/api/tournament/:id/cancel',
+    method: 'DELETE',
+  },
 
+  GET_ACTIVE_TOURNAMENT: {
+    path: '/api/tournament/get-active',
+    method: 'GET',
+  },
+
+  REMOVE_PLAYER_FROM_TOURNAMENT: {
+    path: '/api/tournament/remove-player',
+    method: 'POST',
+  },
+
+  UPDATE_2FA: {
+    path: '/api/profile/update2FA',
+    method: 'POST',
+  },
+
+};
 
 
 module.exports = { API_PROTOCOL };

@@ -2137,3 +2137,359 @@
 [GET USER ID FROM TOKEN] decoded token {"id":{"id":2},"username":"dev11","iat":1761129921,"exp":1761133521}
 [GET USER ID FROM TOKEN] taking id from token
 [GET USER ID FROM TOKEN] decoded token {"id":{"id":2},"username":"dev11","iat":1761129921,"exp":1761133521}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"dev1","iat":1761139143,"exp":1761142743}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"dev1","iat":1761139143,"exp":1761142743}
+[LOGINUSER] Incoming user data: {"username":"dev1","password":"password"}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[STARTING SERVER] ---------------------------------------------
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761141520,"exp":1761145120}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] taking id from token
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] taking id from token
+[LOGINUSER] Incoming user data: {"username":"dev1","password":"password"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6M30sInVzZXJuYW1lIjoiZGV2MSIsImlhdCI6MTc2MTE0Mzk1MCwiZXhwIjoxNzYxMTQ3NTUwfQ.iw9Obhk_q2Oa32gsyNOIbCsRHTMVfOHw102NpLbMk4A
+[LOGINUSER] User registration result:{"id":3}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761143950,"exp":1761147550}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] taking id from token
+[LOGINUSER] Incoming user data: {"username":"devi1","password":"password"}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":4},"username":"devi1","iat":1761147576,"exp":1761151176}
+[GET USER ID FROM TOKEN] taking id from token
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] taking id from token
+[LOGINUSER] Incoming user data: {"username":"dev1","password":"password"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6M30sInVzZXJuYW1lIjoiZGV2MSIsImlhdCI6MTc2MTE1MTIzMCwiZXhwIjoxNzYxMTU0ODMwfQ.v2s_1B9T6cwdy3agneIYOA0hI0T6zq9NltXDwf6pgT8
+[LOGINUSER] User registration result:{"id":3}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761151230,"exp":1761154830}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761151230,"exp":1761154830}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761151230,"exp":1761154830}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":3},"username":"dev1","iat":1761151230,"exp":1761154830}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761151290,"exp":1761154890}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761152380,"exp":1761155980}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761152380,"exp":1761155980}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761152380,"exp":1761155980}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761152380,"exp":1761155980}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":{"id":1},"username":"dev1","iat":1761152380,"exp":1761155980}
