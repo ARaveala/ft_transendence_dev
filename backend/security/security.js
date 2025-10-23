@@ -13,25 +13,7 @@
 //   catch { return null; }
 // }
 
-// function setAuthCookie(reply, token) {
-//   const isProd = process.env.NODE_ENV === 'production';
-//   reply.setCookie(COOKIE, token, {
-//     httpOnly: true,
-//     sameSite: isProd ? 'none' : 'lax',  // dev: lax, prod: none
-//     secure: isProd,                      // dev: false, prod: true
-//     path: '/',                           // critical: works across pages
-//     maxAge: 60 * 60                      // 1 hour
-//   });
-// }
 
-// function clearAuthCookie(reply) {
-//   const isProd = process.env.NODE_ENV === 'production';
-//   reply.clearCookie(COOKIE, {
-//     path: '/',
-//     sameSite: isProd ? 'none' : 'lax',
-//     secure: isProd
-//   });
-// }
 
 // function getUserFromRequest(request) {
 //   const token = request.cookies?.[COOKIE];
@@ -56,6 +38,26 @@ const jwt = require('jsonwebtoken');
 
 const COOKIE = 'auth_token';
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
+
+function setAuthCookie(reply, token) {
+  const isProd = process.env.NODE_ENV === 'production';
+  reply.setCookie(COOKIE, token, {
+    httpOnly: true,
+    sameSite: isProd ? 'none' : 'lax',  // dev: lax, prod: none
+    secure: isProd,                      // dev: false, prod: true
+    path: '/',                           // critical: works across pages
+    maxAge: 60 * 60                      // 1 hour
+  });
+}
+
+// function clearAuthCookie(reply) {
+//   const isProd = process.env.NODE_ENV === 'production';
+//   reply.clearCookie(COOKIE, {
+//     path: '/',
+//     sameSite: isProd ? 'none' : 'lax',
+//     secure: isProd
+//   });
+// }
 
 // Session token for HTTP auth
 function generateToken(id, username) {
@@ -117,7 +119,6 @@ module.exports = { generateToken,
 	verifyToken,
 	getUserIdFromToken,
 	generateWsToken,
-	clearAuthCookie,
 	generateTemporaryToken,
     verifyTemporaryToken
 	};

@@ -2149,3 +2149,26 @@
 [GET USER ID FROM TOKEN] taking id from token
 [GET USER ID FROM TOKEN] decoded token {"id":{"id":2},"username":"dev11","iat":1761129921,"exp":1761133521}
 >>>>>>> DEV1
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"nikolai2","password":"pasword2"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NH0sInVzZXJuYW1lIjoibmlrb2xhaTIiLCJpYXQiOjE3NjEyMDc2OTUsImV4cCI6MTc2MTIxMTI5NX0.pjWRNNd7x7x_6SqEP4qozK90U3dxJuMuLotXlr9s1Es
+[LOGINUSER] User registration result:{"id":4}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"nikolai2","password":"pasword2"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NH0sInVzZXJuYW1lIjoibmlrb2xhaTIiLCJpYXQiOjE3NjEyMDgwMjAsImV4cCI6MTc2MTIxMTYyMH0.rfuojMa_Hsg6gnxxsKNTGPglYavlTGET9Zl7NiqG7x8
+[LOGINUSER] User registration result:{"id":4}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"nikolai2","password":"password2"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NH0sInVzZXJuYW1lIjoibmlrb2xhaTIiLCJpYXQiOjE3NjEyMDgxMjQsImV4cCI6MTc2MTIxMTcyNH0.02nqg166FjleH4ZV9dNfspNAmUnIG6WskYH-D6Y4EGA
+[LOGINUSER] Incoming user data: {"username":"nikolai2","password":"password2"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NH0sInVzZXJuYW1lIjoibmlrb2xhaTIiLCJpYXQiOjE3NjEyMDgxMjcsImV4cCI6MTc2MTIxMTcyN30.tC4jPYtA4niWRgrnL6fVSun1zy7pYGFDyA1t47B_ox0
+[LOGINUSER] Incoming user data: {"username":"nikolai2","password":"password2"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NH0sInVzZXJuYW1lIjoibmlrb2xhaTIiLCJpYXQiOjE3NjEyMDgxOTgsImV4cCI6MTc2MTIxMTc5OH0.8zCW4IMC-W3jR2bjY9MKXkiFK0Burjg8_3v554n5Pgc
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"nikolai2","password":"password2"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6NH0sInVzZXJuYW1lIjoibmlrb2xhaTIiLCJpYXQiOjE3NjEyMDg0MjMsImV4cCI6MTc2MTIxMjAyM30.kmROqkhD8eGpxlYX6sccUfqqsiTYs9bl-SVjVmpDmw8
+[LOGINUSER] User registration result:{"id":4}

@@ -240,6 +240,7 @@ module.exports = { fetchUser,
 	checkPasswordMatch,
 	fetchUserByUsername,
 	is2FaEnabled,
+	get2FaSecret,
 };
 //similar logic as below may be required
 //async function userRoutes(fastify, options) {
