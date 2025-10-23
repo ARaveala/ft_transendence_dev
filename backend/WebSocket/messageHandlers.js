@@ -14,6 +14,10 @@ const {
 } = require('./handlers.js');
 
 const {
+	updatePlayerGameStats,
+} = require('@db/update.js');
+
+const {
 	getGame,
 } = require("@Rgame");
 // we should rename this to message deligation?
@@ -130,6 +134,23 @@ function handleMessage(ws, data) {
 			console.log("winner:", winner);
 			console.log("scores:", player1.score, player2.score);
 			console.log("gameID:", data.gameId);
+			
+			if (winner === 1){
+				updatePlayerGameStats(true, id1, player1.score)
+				 .catch(err => console.error('Failed to update player1 stats', err));
+				//if (typeof id2 === 'string' && !id2.includes('Guest')) {
+				//	updatePlayerGameStats(false, id2, player2.score)
+				//	 .catch(err => console.error('Failed to update player2 stats', err));
+				//}
+			}
+			else {
+				//if (typeof id2 === 'string' && !id2.includes('Guest')) {
+				//	updatePlayerGameStats(true, id2, player2.score)
+				//	 .catch(err => console.error('Failed to update player2 stats', err));
+				//}
+				updatePlayerGameStats(false === 0, id1, player1.score)
+				 .catch(err => console.error('Failed to update player1 stats', err));
+			}
 			break;
 		}
 		case 'init': {
