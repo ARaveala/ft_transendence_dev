@@ -41,22 +41,22 @@ const Leaderboard: React.FC = () => {
 
 return (
   <div className="p-6 max-w-4xl mx-auto">
-    <h1 className="text-3xl font-bold mb-4">{("Leaderboard")}</h1>
+    <h1 className="text-3xl font-bold mb-10">{("Leaderboard")}</h1>
 
     {/* Leaderboard section */}
     <section className="mt-6 bg-gray-800/50 rounded-lg border border-gray-700 p-4">
-      <h2 className="font-semibold mb-3">{("Players")}</h2>
+      <h2 className="text-xl font-semibold mb-3 ml-2">{("Rank")}</h2>
         <div className="space-y-3">
           {players.map((p) => (
             <div
               key={p.username}
-              className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50 border border-gray-700"
+              className="flex items-center p-1 rounded-lg bg-gray-800/50 border border-gray-700"
             >
               {/* Left side: Rank + Avatar + Username + Status */}
               <div className="flex items-center gap-4">
                 {/* Rank */}
-                <div className="w-10 h-10 flex items-center justify-center
-                                font-bold text-white-900"
+                <div className="w-12 h-12 flex items-center justify-center
+                                font-extrabold text-xl text-indigo-400"
                                 > {p.rank}
                 </div>
                 {/* Avatar */}
@@ -89,9 +89,10 @@ return (
                 </div>
               </div>
 
+              <div className="flex-grow max-w-sm mr-28"></div>
               {/* Right side: Score */}
-              <div className="text-right">
-                <span className="text-lg font-semibold text-gray-200">
+              <div className="text-right pl-16">
+                <span className="text-xl font-bold text-indigo-200">
                   {p.score}
                 </span>
               </div>
