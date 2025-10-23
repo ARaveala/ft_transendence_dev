@@ -102,9 +102,14 @@ webSocket.onmessage = (event) => {
             } else if (data.type == 'update_score') { // Receive this whenever score changes
                 // Get winner. 0 means no winner yet
                 let winner = 0;
-                if (data.player1_score == victory_score) winner = 1;
-                else if (data.player2_score == victory_score) winner = 2;
-
+                if (data.player1_score == victory_score) {
+					winner = 1;
+					webSocket.send(JSON.stringify({ type: "gameOver", gameId: gameId }));
+				}
+                else if (data.player2_score == victory_score) {
+					winner = 2;
+					webSocket.send(JSON.stringify({ type: "gameOver", gameId: gameId }));			
+				}
                 if (winner == 0) // game not finished yet
                     webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["ball", "gameRunning"]}));
                 else {
