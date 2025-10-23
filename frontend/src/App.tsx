@@ -44,34 +44,36 @@ const { isLoggedIn } = useAuth(); // get login status
 const showNavbar = isLoggedIn || location.pathname !== "/";
 
 return (
-	<div className="relative min-h-screen">
-	{/* Background */}
-	<div
-		className="absolute inset-0 bg-black/50"
-		style={{
-		backgroundImage: `url(${background})`,
-		backgroundSize: "cover",
-		backgroundPosition: "center",
-		}}
-	/>
+        <div className="relative h-full"> {/* CHANGE MIN-H-SCREEN TO H-FULL */}
+            {/* Background (unchanged) */}
+            <div
+                className="fixed inset-0 bg-black/50"
+                style={{
+                    backgroundImage: `url(${background})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundAttachment: "fixed",
+                }}
+            />
 
-	{/* Foreground content */}
-	<div className="relative z-10 flex flex-col min-h-screen">
-		{showNavbar && (
-		<div className="mx-6 mt-4">
-			<div className="rounded-xl overflow-hidden shadow-lg">
-			<Navbar />
-			</div>
-		</div>
-		)}
+            {/* Foreground content: h-full is now 100% of viewport height */}
+            <div className="relative z-10 flex flex-col h-full p-6"> {/* CHANGE MIN-H-SCREEN TO H-FULL */}
 
-		{/* Scrollable main area */}
-		<main className="flex-1 overflow-y-auto px-6 pt-6">
-		{children}
-		</main>
-	</div>
-	</div>
-);
+                {showNavbar && (
+                    <div className="mb-6">
+                        <div className="rounded-xl overflow-hidden shadow-lg">
+                            <Navbar />
+                        </div>
+                    </div>
+                )}
+                
+                {/* Main area: MUST GROW to push the remaining space to the content */}
+                <main className="flex-grow py-0"> 
+                    {children}
+                </main>
+            </div>
+        </div>
+    );
 };
 
 const protectedRoutes = [
