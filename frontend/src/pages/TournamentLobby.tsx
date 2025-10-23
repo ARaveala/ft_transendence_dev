@@ -23,39 +23,39 @@ const TournamentLobby: React.FC = () => {
    * - Stores tournament state in React
    */
 
-    const loadTournament = async () => { 
-      try {
-        const res = await fetch(API_PROTOCOL.GET_ACTIVE_TOURNAMENT.path, {
-          method: API_PROTOCOL.GET_ACTIVE_TOURNAMENT.method,
-          credentials: "include",
-        }); 
-        
-        if (res.ok) { 
-          const data: GetActiveTournamentResponse = await res.json();
-          if (data.status === "OK" && data.tournament) {
-            setTournament(data.tournament);
-            setShowSetup(data.tournament.status === "waiting");
-          } else {
-              setTournament(null);
-              setShowSetup(false);
-        }
-        }
-      } catch (err) { 
-        console.error("Error loading existing tournament:", err);
-        setTournament(null);
-        setShowSetup(false);
-      }
-    };
-    
-	//Load tournament only after auth finishes and user is logged in
-	useEffect(() => {
-		if (isLoggedIn) {
-			loadTournament();
-		} else {
-			setTournament(null);
-			setShowSetup(false);
-		}
-	}, [isLoggedIn]);
+    //const loadTournament = async () => { 
+    //  try {
+    //    const res = await fetch(API_PROTOCOL.GET_ACTIVE_TOURNAMENT.path, {
+    //      method: API_PROTOCOL.GET_ACTIVE_TOURNAMENT.method,
+    //      credentials: "include",
+    //    }); 
+    //    
+    //    if (res.ok) { 
+    //      const data: GetActiveTournamentResponse = await res.json();
+    //      if (data.status === "OK" && data.tournament) {
+    //        setTournament(data.tournament);
+    //        setShowSetup(data.tournament.status === "waiting");
+    //      } else {
+    //          setTournament(null);
+    //          setShowSetup(false);
+    //    }
+    //    }
+    //  } catch (err) { 
+    //    console.error("Error loading existing tournament:", err);
+    //    setTournament(null);
+    //    setShowSetup(false);
+    //  }
+    //};
+    //
+	////Load tournament only after auth finishes and user is logged in
+	//useEffect(() => {
+	//	if (isLoggedIn) {
+	//		loadTournament();
+	//	} else {
+	//		setTournament(null);
+	//		setShowSetup(false);
+	//	}
+	//}, [isLoggedIn]);
 
 
   const handleCreateTournament = async () => {

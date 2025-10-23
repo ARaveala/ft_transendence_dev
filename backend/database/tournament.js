@@ -171,6 +171,33 @@ function getTournamentPlayerById(userId) {
 		});
 }
 
+
+function getTournamentPlayers(tid) {
+	flog.debug({ function: 'fffffffffffffffffffffgetTournamentPlayersALL', tournamnetId: tid }, 'Fetching tournament players');
+		return new Promise((resolve, reject) => {
+			db.all('SELECT * FROM tournament_players WHERE tournament_id = ?',[tid], (err, rows) =>{
+				if (err) {
+					flog.error({ function: 'getTournamentPlayersALL', err}, 'DB error fetching tournament players:');
+					return reject({ error: 'DB error fetch' });
+				} else if (!rows) {
+					flog.error({ function: 'getTournamentPlayersALL', tid}, 'No players found for tournament');
+					return reject({ error: 'No players found' });
+				} else {
+					flog.info({ function: 'getTournamentPlayers', players: rows }, 'Tournament players found');
+				if (rows.length === 4) {
+					flog.info({ function: 'getTournamentPlayersALL', tid: tid }, '4 players found for tournament');
+					return resolve({full: true});
+
+				}
+				else {
+					return resolve({full: false});
+				}
+				}
+			}
+			);
+		});
+}
+
 function getTournamentById(tournamentId) {
 	flog.debug({ function: 'getTournamentById' }, 'Fetching tournament by ID');
 		return new Promise((resolve, reject) => {
@@ -189,6 +216,56 @@ function getTournamentById(tournamentId) {
 		});
 }
 
+function updateAlias(tournamentId, playerId, newAlias) {
+	flog.debug({ function: 'updateAlias', playerId: playerId }, 'Updating player alias in tournament');
+		return new Promise((resolve, reject) => {
+			db.run('UPDATE tournament_players SET alias = ? WHERE tournament_id = ? AND user_id = ?', 
+				[newAlias, tournamentId, playerId], function onDone(err) {
+				if (err) {
+					flog.error({ function: 'updateAlias', err}, 'DB error updating alias:');
+					return reject(err);
+				}
+				flog.info({ function: 'updateAlias', tournamentId, playerId, newAlias }, 'Player alias updated in tournament');
+				resolve(this.changes);
+				}
+			);
+		});
+}
+
+
+function updatePlayerReadyStatus(tournamentId, playerId, newStatus) {
+	flog.debug({ function: 'playerReadyStatus', playerId: playerId }, 'Updating playerReadyStatus in tournament');
+		return new Promise((resolve, reject) => {
+			db.run('UPDATE tournament_players SET player_status = ? WHERE tournament_id = ? AND user_id = ?', 
+				[newStatus, tournamentId, playerId], function onDone(err) {
+				if (err) {
+					flog.error({ function: 'playerReadyStatus', err}, 'DB error updating playerReadyStatus:');
+					return reject(err);
+				}
+//				flog.info({ function: 'playerReadyStatus', tournamentId, playerId, newAlias }, 'playerReadyStatus updated in tournament');
+				resolve(this.changes);
+				}
+			);
+		});
+}
+
+function updateTournamentStatus(tournamentId, newStatus) {
+	flog.debug({ function: 'updateTournamnetStatus',}, 'Updating tournamnetStatus in tournament');
+		return new Promise((resolve, reject) => {
+			db.run('UPDATE tournaments SET status = ? WHERE id = ?', 
+				[newStatus, tournamentId], function onDone(err) {
+				if (err) {
+					flog.error({ function: 'updatetournamnetStatus', err}, 'DB error updating tournamnetStatus:');
+					return reject(err);
+				}
+//				flog.info({ function: 'playerReadyStatus', tournamentId, playerId, newAlias }, 'playerReadyStatus updated in tournament');
+				resolve(this.changes);
+				}
+			);
+		});
+}
+
+
 module.exports = {
 	createTournament,
 	getActiveTournamentStatus,
@@ -196,4 +273,9 @@ module.exports = {
 	getTournamentPlayerById,
 	getTournamentPlayersWithUsernames,
 	getTournamentById,
+	updateAlias,
+	updatePlayerReadyStatus,
+	getTournamentPlayers,
+	updateTournamentStatus,
+	
 };

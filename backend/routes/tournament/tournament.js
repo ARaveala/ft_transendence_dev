@@ -245,9 +245,9 @@ let currentTournamentId = null; // global variable to track current tournament i
  * @returns all players inside db tournament player object , filling empty slots with placeholders, player
  * object has been cleaned , so that eg, no user ids are sent to front end
  */
-function buildTournamentPlayerList(players) {
+function buildTournamentPlayerList(players, isOwner) {
 	const fullPlayerList = [];
-	flog.debug({function: 'buildTournamentPlayerList', players: players}, 'building full player list ');
+//	flog.debug({function: 'buildTournamentPlayerList', players: players}, 'building full player list ');
 	for (let i = 1; i <= 4; i++) {
 		const player = players.find(p => p.player_role === `player${i}`);
     if (player) {
@@ -257,7 +257,7 @@ function buildTournamentPlayerList(players) {
 			role: player.player_role,
 			status: player.player_status,
 			score: player.player_score,
-			//isSelf: player.user_id === userId.id,
+			isSelf: isOwner,
 			isVerified: player.verified
 	});
 	} else {
@@ -271,15 +271,15 @@ function buildTournamentPlayerList(players) {
 		});
 	 }
 	}
-	flog.debug({function: 'buildTournamentPlayerList', fullPlayerList: fullPlayerList}, 'full player list built ');
+//	flog.debug({function: 'buildTournamentPlayerList', fullPlayerList: fullPlayerList}, 'full player list built ');
 	return fullPlayerList;
 }
 
 
-async function getTournamentState(players, tournamentId, tournamentStatus) {
+async function getTournamentState(players, tournamentId, tournamentStatus, isOwner) {
 
-	  const full_list = buildTournamentPlayerList(players);
-	flog.debug({function: 'getTournamentState', full_list: full_list}, 'tournament state data fetched ');
+	  const full_list = buildTournamentPlayerList(players, isOwner);
+//	flog.debug({function: 'getTournamentState', full_list: full_list}, 'tournament state data fetched ');
 
   const tournamentState = {
     tournament_id: tournamentId,
@@ -291,7 +291,7 @@ async function getTournamentState(players, tournamentId, tournamentStatus) {
     createdAt: undefined,
     lastUpdated: undefined
   };
-
+//  flog.debug({function: 'getTournamentState', tournamentState: tournamentState}, 'tournament state built +++++++++');
   return tournamentState;
 }
 /**
@@ -330,8 +330,8 @@ async function createTournament(fastify, options){
 				flog.debug({function: 'createTournament', tournamentId: tournamentId, userId: userId.id}, 'tournament player created ');
 				
 				const players = await DBtour.getTournamentPlayersWithUsernames(tournamentId)
-				flog.debug({function: 'createTournament', players: players}, 'tournament players ');
-				const tournamentState = await getTournamentState(players, tournamentId, tournamentStatus);
+				//flog.debug({function: 'createTournament', players: players}, 'tournament players ');
+				const tournamentState = await getTournamentState(players, tournamentId, tournamentStatus, true);
 				
  				reply.code(200).send({status: 'OK', tournament: tournamentState});
  			}
@@ -353,16 +353,39 @@ async function verifyPlayer(fastify, options){
 			try{
  				const token = request.cookies.auth_token;
  				const userId = secure.getUserIdFromToken(token)
-				const otherUserId = await DBget.miniLogin(username, password);
-				flog.debug({function: 'verifyPlayer', tid: currentTournamentId}, 'showing we have tournamnetid ');
-				if (otherUserId){
-					// is this the right way to handle role swap ?
-					flog.debug({function: 'verifyPlayer', otherUserId: otherUserId.id, role: role}, 'verified player id and role ');
-					await DBtour.createTournamentPlayer(currentTournamentId, otherUserId.id, alias, Number(role.replace('player','')), role, true);
-					flog.debug({function: 'verifyPlayer'}, '!!!!!!player verified and added to tournament ');
-					
+				let tournamentState = undefined;
+				if (role === 'player1'){
+					flog.debug({function: 'verifyPlayer', tid: currentTournamentId, userId: userId.id, alias: alias}, 'updating alias for player 1 ');
+					await DBtour.updateAlias(currentTournamentId, userId.id, alias);
+					await DBtour.updatePlayerReadyStatus(currentTournamentId, userId.id, true);
+					tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(currentTournamentId),
+						currentTournamentId, await DBtour.getActiveTournamentStatus(currentTournamentId));
+					flog.debug({function: 'verifyPlayer', tournamnetState: tournamentState}, '!!!!!!player 1 alias updated ');
+				} else {
+					const otherUserId = await DBget.miniLogin(username, password);
+					flog.debug({function: 'verifyPlayer', tid: currentTournamentId}, 'showing we have tournamnetid ');
+					if (otherUserId){
+						// is this the right way to handle role swap ?
+						flog.debug({function: 'verifyPlayer', otherUserId: otherUserId.id, role: role}, 'verified player id and role ');
+						await DBtour.createTournamentPlayer(currentTournamentId, otherUserId.id, alias, Number(role.replace('player','')), role, true);
+						await DBtour.updatePlayerReadyStatus(currentTournamentId, otherUserId, true);
+
+						flog.debug({function: 'verifyPlayer'}, '!!!!!!player verified and added to tournament ');
+						const checkFull = await DBtour.getTournamentPlayers(currentTournamentId);
+						flog.debug({function: 'verifyPlayer', checkFull: checkFull}, '!!!!!!checking if tournament full ');
+						if (checkFull.full === true){
+							flog.debug({function: 'verifyPlayer'}, '!!!!!!all players verified setting tournament to ready ');
+							await DBtour.updateTournamentStatus(currentTournamentId, 'ready');
+						}
+						tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(currentTournamentId), 
+						currentTournamentId, await DBtour.getActiveTournamentStatus(currentTournamentId), false);
+
+					}
+
+
 				}
-				const tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(currentTournamentId), currentTournamentId, await DBtour.getActiveTournamentStatus(currentTournamentId));
+				
+				flog.debug({function: 'verifyPlayer', tournamentState: tournamentState}, '!!!!!!final tournamnet state ');
 				// check verified user
  				reply.code(200).send({status: 'OK', tournament: tournamentState}); //wrong
  			}

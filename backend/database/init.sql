@@ -48,7 +48,7 @@ CREATE INDEX IF NOT EXISTS idx_friend_friend_id ON friends(friend_id);
 CREATE TABLE IF NOT EXISTS tournaments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     status TEXT NOT NULL DEFAULT 'waiting'
-        CHECK (status IN ('waiting','ongoing','finished')),
+        CHECK (status IN ('waiting','ready','ongoing','finished')),
     winner_id INTEGER,
     FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
 );
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS bracket
     round INTEGER,
     bracket_pos INTEGER,
     status TEXT NOT NULL DEFAULT 'waiting'
-        CHECK (status IN ('waiting', 'ongoing', 'finished')),
+        CHECK (status IN ('waiting', 'ready', 'ongoing', 'finished')),
     FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
     FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
