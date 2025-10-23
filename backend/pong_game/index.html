@@ -18,8 +18,9 @@
   <!-- Ball -->
   <div id="ball" class="bg-green-500 rounded-full absolute"></div>
 
+  <div id="powerup-container" class="relative w-full h-full"></div>
   <!-- Game End Prompt -->
-  <div id="endPrompt" class="hidden flex flex-col items-center justify-center min-h-screen">
+  <div id="endPrompt" class="hidden fixed inset-0 flex flex-col items-center justify-center min-h-screen">
     <div id="endPromptText" class="text-red-500"></div>
     <div id="endPromptButton" class="text-blue-500" onclick="endFunction()">OK</div>
   </div>

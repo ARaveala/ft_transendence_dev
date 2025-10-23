@@ -1,4 +1,4 @@
-
+const PowerUp = require('./powerup.js');
 function createGameState() {
   return {
 	// dont change unless change also in frontend
@@ -32,7 +32,6 @@ function createGameState() {
 	lastUpdate: Date.now()
   };
 }
-
 function initGame(state, settings) {
 	// get settings from frontend
 	state.height = settings.height;
@@ -68,15 +67,19 @@ function updateGame(state, player1, player2) {
 	if (state.keysDown[3]) state.positions[state.rightPaddleI] += state.paddleSpeed;
 
 	// keep paddles inside bounds by clamping
-	state.positions[state.leftPaddleI] = Math.max(0, Math.min(state.height - state.paddleHeight, state.positions[state.leftPaddleI]));
-	state.positions[state.rightPaddleI] = Math.max(0, Math.min(state.height - state.paddleHeight, state.positions[state.rightPaddleI]));
+	state.positions[state.leftPaddleI] =    Math.max(0, 
+                                            Math.min(state.height - state.paddleHeight, 
+                                            state.positions[state.leftPaddleI]));
+	state.positions[state.rightPaddleI] =   Math.max(0, 
+                                            Math.min(state.height - state.paddleHeight, 
+                                            state.positions[state.rightPaddleI]));
 
 	// moving paddles is always possible
 	if (!state.gameRunning) return;
 	
-	// move ball
-	state.positions[state.ballYI] += state.ball.dy * state.ballSpeed;
-	state.positions[state.ballXI] += state.ball.dx * state.ballSpeed;
+	// Moving ball. state.speedUp is updated when a powerup starts and ends. Default is 1.
+	state.positions[state.ballYI] += state.ball.dy * (state.ballSpeed * state.ballSpeedUp);
+	state.positions[state.ballXI] += state.ball.dx * (state.ballSpeed * state.ballSpeedUp);
 
 	// check bounds and make it bounce
 	if (state.positions[state.ballYI] <= 0 // is top of ball hitting top wall
@@ -94,12 +97,18 @@ function updateGame(state, player1, player2) {
 	{
 		player2.score++;
 		state.gameRunning = false;
+        state.activePowerups.length = 0;
+        state.visiblePowerups.length = 0;
+        state.ballSpeedUp = 1;
 		return 1;
 	}
 	if (state.positions[state.ballXI] + state.ballSize >= state.width) // is right side of ball (left side + size) hitting left wall
 	{
 		player1.score++;
 		state.gameRunning = false;
+        state.activePowerups.length = 0;
+        state.visiblePowerups.length = 0;
+        state.ballSpeedUp = 1;
 		return 1;
 	}
 
@@ -124,14 +133,40 @@ function updateGame(state, player1, player2) {
 		if (state.ball.dx > 0)
 			state.ball.dx = -state.ball.dx;
 	}
-/*
+
+    if (!state.powerups)
+        return 0;
+
+    // Spawn a powerup
+    const powerUpPerSec = 0.2; // on average
+    if (Math.random() < powerUpPerSec / 60)
+    {
+        state.visiblePowerups.push(new PowerUp(
+            "speed", // when activated, speed gains +1 to multiplier (change multiplier in powerup class)
+            2, // seconds until temporary speed multiplier decrements
+            Math.random() * state.height,
+            state.paddleOffset * 2 + Math.random() * (state.width - state.paddleOffset * 4), // Doesnt spawn behind paddles
+            state.ballSize / 2 // use some relative size like this
+        )); 
+    }
+
 	// Check powerup collisions
-	for (powerup : powerups)
+	for (let powerup of state.visiblePowerups)
 	{
-		if (ballHitsPowerup(state, powerup))
-			powerup.effect(state);
+		if (powerup.collision(state))
+        {
+            console.log("Powerup collision.", powerup);
+			powerup.enable(state);
+        }
 	}
-*/
+
+    // Check powerup expiration
+    for (let powerup of state.activePowerups)
+    {
+        if (powerup.isExpired())
+            powerup.disable(state);
+    }
+
 	return 0;
 }
 
