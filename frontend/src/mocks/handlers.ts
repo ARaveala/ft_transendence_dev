@@ -46,11 +46,11 @@ let mockFriends: Friend[] = [
 ];
 
 const mockLeaderboard: LeaderboardEntry[] = [
-  { username: "Al", avatar: avatar1, rank: 1, score: 250 },
-  { username: "Peggy", avatar: avatar2, rank: 2, score: 200 },
-  { username: "Dobby", avatar: avatar3, rank: 3, score: 180 },
-  { username: "Dixie", avatar: avatar1, rank: 4, score: 160 },
-  { username: "Carson", avatar: avatar2, rank: 5, score: 140 },
+  { username: "Al", avatar: avatar1, rank: 1, score: 250, online_status: true },
+  { username: "Peggy", avatar: avatar2, rank: 2, score: 200, online_status: true },
+  { username: "Dobby", avatar: avatar3, rank: 3, score: 180, online_status: false },
+  { username: "Dixie", avatar: avatar1, rank: 4, score: 160, online_status: true },
+  { username: "Carson", avatar: avatar2, rank: 5, score: 140, online_status: false },
 ];
 
 let currentTournament: TournamentState | null = null;

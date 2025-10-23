@@ -126,7 +126,7 @@ export interface LeaderboardEntry {
   avatar: string;
   score: number;
   rank: number;
-  //online_status: boolean;
+  online_status: boolean;
 }
 
 export type PlayerPayload = Player[];
