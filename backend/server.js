@@ -9,6 +9,8 @@
 	'use strict';
 	const { logger, log } = require('@logger');
 	const fastify = require('fastify')({ logger });
+	const path = require('path');
+	
 
 	const app = fastify;
 
@@ -30,10 +32,42 @@
 	fastify.register(tournamentRoutes, tournamentContext)
 	fastify.register(friendRoutes, context);
 
+	// Register the multipart plugin (Mandatory for request.file() to work)
+	fastify.register(require('@fastify/multipart'), {
+		limits: {
+			fileSize: 1024 * 1024 * 2, // Example limit: 2MB
+		}
+	});
+
+	const fastifyStatic = require('@fastify/static'); 
+
+	// We are pointing the root directly to the physical 'avatars' folder inside 'public'.
+	const AVATAR_DIR = path.join(__dirname, 'public', 'avatars'); 
+
+	// --- Static File Registration for Avatars ---
+	// This configuration specifically maps the URL prefix '/api/avatars' 
+	// to the physical directory where the files are stored.
+	fastify.register(fastifyStatic, {
+		// 1. The physical directory on disk: .../backend/public/avatars
+		root: AVATAR_DIR,
+		
+		// 2. The URL prefix: Requests starting with /api/avatars/ will now look inside AVATAR_DIR.
+		// Request URL: /api/avatars/6_...png 
+		// -> Maps to: AVATAR_DIR/6_...png 
+		prefix: '/api/avatars', 
+		
+		// Enable serving files
+		serve: true,
+		
+		// Disable decorating reply if not needed, simpler setup
+		decorateReply: false 
+	});
+
 	// set up auth routes with context
 	const authRoutes = require('@Rauth/auth.js');
 	const authcontext = require('@Rauth/context.js');
 	fastify.register(authRoutes, authcontext);
+	
 
 	const profileRoutes = require('@Rprofile/profile.js');
 	const profilecontext = require('@Rprofile/context.js');
@@ -49,7 +83,7 @@
 	const {gameRoutes} = require('@Rgame');
 	fastify.register(gameRoutes, context);
 
-	const path = require('path');
+	
 
 	// websocket handlers
 	//const WBhandlers = require ('Webscoket/');
@@ -74,20 +108,6 @@
 	});
 
 
-	const fastifyStatic = require('@fastify/static');
-
-	fastify.register(fastifyStatic, {
-	root: path.join(__dirname, 'test_harness'), // or wherever your HTML lives
-	prefix: '/test_harness/', // serve files from root
-	index: false // disables auto-redirect to index.html
-	});
-
-	fastify.register(fastifyStatic, {
-	root: path.join(__dirname, 'pong_game'),
-	prefix: '/pong_game/',
-	index: false,
-	decorateReply: false // prevents re-adding sendFile
-	});
 
 	// TEST:: docker does not seem to need this 
 	//fastify.register(require('@fastify/cors'), {
