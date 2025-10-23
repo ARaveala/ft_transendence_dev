@@ -6,6 +6,7 @@ const flog = logger.child({ fileContext: 'auth' }); // scoped logger
 
 const speakeasy = require('speakeasy'); // for creating 2FA secrets
 const qrcode = require('qrcode');      // creating qrcodes
+const { DBget } = require('./context');
 const tempTwoFactorSecrets = new Map(); // TMP fix for not having database secrets yet, DELETE
 
 /**
@@ -219,7 +220,7 @@ async function setupTwoFactor(fastify, options) {
 /* Verify the OTP token and enable 2FA for the user
  */
 async function verifyTwoFactor(fastify, options) {
-    const { secure } = options;
+    const { secure, DBupdate } = options;
     fastify.post('/api/2fa/verify', {}, async (request, reply) => {
         const { otp } = request.body; // 6 Digit code form the user
         try {
@@ -240,10 +241,12 @@ async function verifyTwoFactor(fastify, options) {
 
             if (isVerified) {
                 log('2FA_VERIFY', `Successfully verified 2FA for user ${userId.id}`);
+				const enabled = await DBget.is2FaEnabled(userId.id);
+				const check = await DBupdate.update2fa(enabled, userId.id, secret);
                 // in the real database version - ->
                 // 1.save the secret to the users row
                 // 2.set 2FA boolen true
-
+				flog.debug({ function: 'verifyTwoFactor', check: check.message }, '2FA enabled for user in DB update');
                 //tempTwoFactorSecrets.delete(userId.id);
                 reply.code(200).send({ verified: true });
             } else {
@@ -289,15 +292,19 @@ async function disableTwoFactor(fastify, options) {
  * on profile pages
  */
 async function getTwoFactorStatus(fastify, options) {
-    const { secure } = options;
+    const { secure, DBget} = options;
     fastify.get('/api/2fa/status', {}, async (request, reply) => {
         try {
+			flog.debug({ function: 'getTwoFactorStatus' }, 'Fetching 2FA status for user');
             const token = request.cookies.auth_token;
             const userId = secure.getUserIdFromToken(token);
-            const isEnabled = tempTwoFactorSecrets.has(userId.id);
+			const isEnabled = await DBget.is2FaEnabled(userId.id);// this get from db with id
+            //const isEnabled = tempTwoFactorSecrets.has(userId.id);
             reply.code(200).send({ isEnabled });
         } catch (err) {
-            reply.code(200).send({ isEnabled: false });
+			flog.error( {function: 'getTwoFactorStatus', error: err}, 'Error fetching 2FA status::', err);
+        	reply.code(500).send({ error: 'An error occurred while fetching 2FA status.' });
+			// reply.code(200).send({ isEnabled: false });
         }
     });
 }

@@ -67,12 +67,11 @@ function updateGame(state, player1, player2) {
 	if (state.keysDown[2]) state.positions[state.rightPaddleI] -= state.paddleSpeed;
 	if (state.keysDown[3]) state.positions[state.rightPaddleI] += state.paddleSpeed;
 
-	// keep inside bounds by clamping
-	// subtract paddleHeight to keep the bottom inside window
+	// keep paddles inside bounds by clamping
 	state.positions[state.leftPaddleI] = Math.max(0, Math.min(state.height - state.paddleHeight, state.positions[state.leftPaddleI]));
 	state.positions[state.rightPaddleI] = Math.max(0, Math.min(state.height - state.paddleHeight, state.positions[state.rightPaddleI]));
 
-	// moving paddles would be always possible
+	// moving paddles is always possible
 	if (!state.gameRunning) return;
 	
 	// move ball
@@ -80,8 +79,8 @@ function updateGame(state, player1, player2) {
 	state.positions[state.ballXI] += state.ball.dx * state.ballSpeed;
 
 	// check bounds and make it bounce
-	// add ballSize to get the balls right side
-	if (state.positions[state.ballYI] <= 0 || state.positions[state.ballYI] + state.ballSize >= state.height)
+	if (state.positions[state.ballYI] <= 0 // is top of ball hitting top wall
+        || state.positions[state.ballYI] + state.ballSize >= state.height) // is bottom of ball (top + size) hitting bottom wall
 	{
 		// bounce
 		state.ball.dy = -state.ball.dy;
@@ -91,13 +90,13 @@ function updateGame(state, player1, player2) {
 	}
 
 	// Check win conditions
-	if (state.positions[state.ballXI] <= 0)
+	if (state.positions[state.ballXI] <= 0) // is left side of ball hitting left wall
 	{
 		player2.score++;
 		state.gameRunning = false;
 		return 1;
 	}
-	if (state.positions[state.ballXI] + state.ballSize >= state.width)
+	if (state.positions[state.ballXI] + state.ballSize >= state.width) // is right side of ball (left side + size) hitting left wall
 	{
 		player1.score++;
 		state.gameRunning = false;
@@ -144,8 +143,8 @@ function ballHitsPaddle(state, paddleIndex) {
 
 	const paddleY = positions[paddleIndex];
 	const paddleX = paddleIndex === state.leftPaddleI
-					? paddleOffset
-					: width - paddleOffset - paddleWidth;
+					? paddleOffset // left paddles right side
+					: width - paddleOffset - paddleWidth; // right paddles left side
 
 	// clamp ball coordinates with paddle coordinates to find closest point
 	const closestY = Math.max(paddleY, Math.min(ballCenterY, paddleY + paddleHeight));

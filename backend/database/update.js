@@ -1,5 +1,7 @@
 const db = require('./initDB');
 // const updateScoreSchema = require('@schemas/updateScore.js');
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'DB/update.js' }); // scoped logger
 
 function updateUserScore({userId, score}) {
 	console.log('updating score for user:', { userId, score });
@@ -100,9 +102,32 @@ function changeLanguage(language, userId) {
 		);
 	});
 }
+
+async function update2fa(enabled, userId, secret) {
+	flog.debug({ function: 'update2fa', userId: userId, enabled: enabled }, 'Updating 2FA settings for user');
+
+	return new Promise((resolve, reject) => {
+		db.run(
+			'UPDATE users SET mfa_enabled = ?, mfa_secret = ? WHERE id = ?',
+			[enabled ? 1 : 0, secret || null, userId],
+			function (err) {
+				if (err) {
+					reject({ error: 'Failed to update 2fa', details: err});
+				} else if (this.changes === 0) {
+					reject({ error: 'User not found , no changes made' });
+				} else {
+					resolve({ message: '2fa updated', userId: userId, enabled: enabled});
+				}
+			}
+		);
+	});
+	
+}
+
 module.exports = { updateUserScore,
 	updateUsername,
 	updatePassword,
 	changeAvatar,
 	changeLanguage,
+	update2fa,
 };
