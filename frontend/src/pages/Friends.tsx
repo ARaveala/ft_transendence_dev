@@ -21,7 +21,7 @@ const MAX_FRIENDS = 20;
 
 const Friends: React.FC = () => {
 	const { t } = useTranslation();
-	const { user, refreshSession } = useAuth(); //now using AuthContext to get user info
+	const {isLoggedIn, user, loading, refreshSession } = useAuth(); //now using AuthContext to get user info
 
 	// Inline status
 	const [msg, setMsg] = useState<string | null>(null);
@@ -153,7 +153,7 @@ const Friends: React.FC = () => {
 				throw new Error(data.error || "Could not remove friend.");
 			}
 
-			setFriends((prev) => prev.filter((f) => f.user_id !== friendId));
+			setFriends((prev) => prev.filter((f) => f.username !== username));
 			setRemoveConfirmId(null);
 			setMsg(t("common.friendRemoved"));
 			await refreshSession(); // Refresh user data in AuthContext to update friends list there too
@@ -164,8 +164,8 @@ const Friends: React.FC = () => {
 		}
 	}
 
-	//if (loading) return <div className="p-6">{t("common.loading")}</div>;
-	if (!user) {
+	if (loading) return <div className="p-6">{t("common.loading")}</div>;
+	if (!isLoggedIn) { //changed from !user to !isLoggedIn
 	return (
 		<div className="p-6 text-center text-gray-300">
 		Please log in to view your friends.

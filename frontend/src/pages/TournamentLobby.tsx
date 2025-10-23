@@ -5,7 +5,9 @@ import TournamentSetup from "../components/tournament/TournamentSetup";
 import type { TournamentState, Match } from "../types/tournament";
 import Button from "../components/ui/Button";
 import { API_PROTOCOL } from "../../shared/api-protocols";
+import { useAuth } from "../context/AuthContext";
 import { CreateTournamentPayload, CreateTournamentResponse, GetActiveTournamentResponse, StartTournamentMatchPayload, StartTournamentMatchResponse } from "../../shared/payloads";
+
 
 const TournamentLobby: React.FC = () => {
   const [tournament, setTournament] = useState<TournamentState | null>(null);      // Main tournament state (null means there is no tournament yet)
@@ -14,6 +16,7 @@ const TournamentLobby: React.FC = () => {
   const [currentGameMatch, setCurrentGameMatch] = useState<Match | null>(null);
   const [gameResult, setGameResult] = useState<{
     gameId: string; winner: string; loser: string; score: [number, number]; } | null>(null);
+  const { user, isLoggedIn, loading, refreshSession } = useAuth();
 
     useEffect(() => {
       function handleMessage(event: MessageEvent) {
@@ -53,9 +56,15 @@ const TournamentLobby: React.FC = () => {
       }
     };
     
-    useEffect(() => {
-      loadTournament();
-    }, []);
+	//Load tournament only after auth finishes and user is logged in
+	useEffect(() => {
+		if (isLoggedIn) {
+			loadTournament();
+		} else {
+			setTournament(null);
+			setShowSetup(false);
+		}
+	}, [isLoggedIn]);
 
   /*
    * Creates a new tournament
@@ -80,6 +89,7 @@ const TournamentLobby: React.FC = () => {
     if (data.status === "OK") {
         setTournament(data.tournament);
         setShowSetup(true);
+		await refreshSession(); // Refresh session to update user tournament status
       } else {
         console.error("Error creating tournament:", data.error);
       }
@@ -113,6 +123,7 @@ const TournamentLobby: React.FC = () => {
 
       setTournament(null);
       setShowSetup(false);
+	  await refreshSession(); // Refresh session to update user tournament status
     } catch (err) {
       console.error("Error cancelling tournament:", err);
     }
@@ -155,6 +166,23 @@ const TournamentLobby: React.FC = () => {
     setCurrentGameMatch(null);
     setActiveGameId(null);
   };
+
+	//  Handle AuthContext states first
+	if (loading) {
+		return (
+		<div className="p-6 text-center text-gray-300">
+			Loading tournament info...
+		</div>
+		);
+	}
+
+	if (!isLoggedIn) {
+		return (
+		<div className="p-6 text-center text-gray-300">
+			Please log in to view tournaments.
+		</div>
+		);
+	}
 
   return (
     <>

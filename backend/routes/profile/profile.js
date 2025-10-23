@@ -236,11 +236,49 @@ async function updateLanguage(fastify, options) {
 	});
 }
 
+async function updateTwoFactor(fastify, options) {
+	const { DBupdate, secure } = options;
+	fastify.route({
+		method: API_PROTOCOL.CHANGE_2FA.method,
+		url: API_PROTOCOL.CHANGE_2FA.path,
+		handler: async (request, reply) => {
+		//schema: { body: schemas.updateTwoFactor }, dosnt exist yet 
+		const { twoFactor } = request.body;
+		flog.debug({ function: 'updateTwoFactor', body: request.body }, 'Toggling Two Factor Authentication , inc body');
+		try {
+			
+			const token = request.cookies.auth_token;
+			const userId = secure.getUserIdFromToken(token);	
+			if (userId){
+				const check = await DBupdate.update2fa(userId.id);
+				console.log('checking check Two Factor', check)
+				//might need more in depth error handling
+				if (check.error) {
+					//update the username
+					reply.code(400).send({
+						status: 'ERROR',
+						error: 'not valid Two Factor?'// other errors?
+					})
+				}
+			}
+			reply.code(200).send({
+				status: 'UPDATED',
+			});
+		}
+		catch (err) {
+			console.log(('Error during Two Factor change:', err));
+			reply.code(500).send(err);
+		}
+	}
+	});
+}	
+
 async function profileRoutes(fastify, options) {
 	await getUser(fastify, options);
 	await updateUsername(fastify, options);
 	await updatePassword(fastify, options);
 	await updateAvatar(fastify, options);
 	await updateLanguage(fastify, options);
+	await updateTwoFactor(fastify, options);
 }
 module.exports = profileRoutes

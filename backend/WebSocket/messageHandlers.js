@@ -47,6 +47,8 @@ function handleMessage(ws, data) {
 	const context = getGameContext(ws, data, playerinit);
 	const {game, gameState} = context || {};
 
+	if (data.type != "keys")
+		console.log("Message received: (Ignoring keypresses)", data);
 	
 	switch (data.type) {
 		case 'greet':
@@ -81,6 +83,16 @@ function handleMessage(ws, data) {
 			playerinit = true;
 			console.log("finnished player init");
 			currentWs.send(JSON.stringify({type: 'playerInit_ack', message: 'player init success' }));
+			break;
+		}
+		case 'getPlayerNames': {
+			const player1 = [...game.players.values()].find(player => player.role === "player1");
+			const player2 = [...game.players.values()].find(player => player.role === "player2");
+			currentWs.send(JSON.stringify({
+				type: 'playerNames',
+				player1: (player1.alias ? player1.alias : "Player 1"),
+				player2: (player2.alias ? player2.alias : "Player 2")
+			}));
 			break;
 		}
 		case 'resetPositions': {
