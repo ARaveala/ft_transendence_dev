@@ -575,6 +575,22 @@ export const handlers = [
     return HttpResponse.json({ status: 'OK', tournament: currentTournament }, { status: 200 });
   }),
 
+  // Mock for getting token from cookie
+  http.get('/api/get-session-token', () => {
+    console.log("Mock: GET session token");
+    
+    const mockSessionToken = "MOCK_SESSION_PLAYER_A_1234567890";
+
+    return HttpResponse.json(
+      {
+        status: "OK" },
+      { status: 200,
+      headers: {
+            'Set-Cookie': `session_token=${mockSessionToken}; Path=/; HttpOnly; SameSite=Lax`,
+        }
+      }
+    );
+  }),
 
   // Mock for starting a tournament match
   http.post('/api/tournament/:tournamentId/start-match', async ({ params, request }) => {
@@ -583,9 +599,9 @@ export const handlers = [
   
   console.log('Mock: Starting match', match_id, 'in tournament', tournamentId);
 
-  if (!currentTournament) {
+  if (!currentTournament || !currentTournament.bracket) {
       return HttpResponse.json(
-        { error: 'No tournament found' },
+        { error: 'No tournament or bracket data found' },
         { status: 404 }
       );
     }
@@ -614,7 +630,7 @@ export const handlers = [
   return HttpResponse.json({
     status: "OK",
     tournament: currentTournament,
-    playerTokens: { player1: "p1", player2: "p2"},
+    playerTokens: { player1: "mockPlayer1Token"},
     });
   }),
 

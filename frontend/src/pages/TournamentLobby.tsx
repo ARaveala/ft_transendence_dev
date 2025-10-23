@@ -137,6 +137,12 @@ const TournamentLobby: React.FC = () => {
     }
   };
 
+  //const getPlayer1TokenFromCookie = (): string | null => {
+  //  const match = document.cookie.match(/(^|;) ?session_token=([^;]*)/);
+  //  return match ? match[2] : null;
+  //};
+
+
 const startTournamentGame = async (match: Match, settings: typeof gameSettings) => {
     const payload: StartTournamentMatchPayload = { match_id: match.match_id };
     try {
@@ -146,14 +152,15 @@ const startTournamentGame = async (match: Match, settings: typeof gameSettings) 
         body: JSON.stringify(payload),
       });
 
-      const data: StartTournamentMatchResponse = await res.json();
+      const data = await res.json() as StartTournamentMatchResponse & { playerTokens?: { player1: string } };
       if (data.status === "OK") {
         setTournament(data.tournament);
         setCurrentGameMatch(match);
         setActiveGameId(match.match_id);
-        // Assuming API returns tokens for each player
+        // Extracts player1 token from cookie
         setPlayer1Token(data.playerTokens?.player1 ?? null);
-        setPlayer2Token(data.playerTokens?.player2 ?? null);
+        // player2Token is null in tournament
+        setPlayer2Token(null);
       } else {
         console.error("Error starting match:", data.error);
       }
@@ -234,7 +241,7 @@ const startTournamentGame = async (match: Match, settings: typeof gameSettings) 
       )}
     
       {/* Pong Game Iframe  -- this needs to be fixed*/}
-      {currentGameMatch && activeGameId && player1Token && player2Token && gameSettings &&(
+      {currentGameMatch && activeGameId && player1Token && gameSettings &&(
         <div
           style={{
           position: "fixed",
