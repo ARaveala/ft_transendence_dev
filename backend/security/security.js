@@ -1,72 +1,47 @@
-// 'use strict';
-// const jwt = require('jsonwebtoken');
-
-// const COOKIE = 'auth_token';
-// const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
-
-// function generateToken(id, username) {
-//   return jwt.sign({ id, username }, JWT_SECRET, { expiresIn: '1h' });
-// }
-
-// function verifyToken(token) {
-//   try { return jwt.verify(token, JWT_SECRET); }
-//   catch { return null; }
-// }
-
-
-
-// function getUserFromRequest(request) {
-//   const token = request.cookies?.[COOKIE];
-//   return token ? verifyToken(token) : null;
-// }
-
-// module.exports = {
-//   COOKIE,
-//   generateToken,
-//   verifyToken,
-//   setAuthCookie,
-//   clearAuthCookie,
-//   getUserFromRequest
-// };
-
-
-
-
-'use strict';
+// this file is just for dev testing , package.json points to this file specifically
 
 const jwt = require('jsonwebtoken');
+const {log} = require('@logger');
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'security.js' }); // scoped logger
 
-const COOKIE = 'auth_token';
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
 
+function generateToken(id, username) {
+	console.log("checking id and name before tokenization", id, username);
+	return jwt.sign(
+    { id: id, username: username },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+}
+
+function generateWsToken(playerId, gameId) {
+  return jwt.sign(
+    { id: playerId, gameId},
+    JWT_SECRET,
+    { expiresIn: '15m' } // short-lived
+  );
+}
+//: 24, user: 'testuser3' 
+// right now we are using http , this MUST be https in production
 function setAuthCookie(reply, token) {
-  const isProd = process.env.NODE_ENV === 'production';
-  reply.setCookie(COOKIE, token, {
-    httpOnly: true,
-    sameSite: isProd ? 'none' : 'lax',  // dev: lax, prod: none
-    secure: isProd,                      // dev: false, prod: true
-    path: '/',                           // critical: works across pages
-    maxAge: 60 * 60                      // 1 hour
+  reply.setCookie('auth_token', token, {
+    httpOnly: true, //this must be https eventually
+    path: '/',
+    sameSite: 'lax', // change to strict 
+    secure: false // set to true in production
   });
 }
 
-// function clearAuthCookie(reply) {
-//   const isProd = process.env.NODE_ENV === 'production';
-//   reply.clearCookie(COOKIE, {
-//     path: '/',
-//     sameSite: isProd ? 'none' : 'lax',
-//     secure: isProd
-//   });
-// }
-
-// Session token for HTTP auth
-function generateToken(id, username) {
-  return jwt.sign({ id, username }, JWT_SECRET, { expiresIn: '1h' });
-}
-
-// Short-lived token for WebSockets, scoped to a single game
-function generateWsToken(playerId, gameId) {
-  return jwt.sign({ id: playerId, gameId }, JWT_SECRET, { expiresIn: '15m' });
+function clearAuthCookie(reply, token) {
+  reply.clearCookie('auth_token', token,{
+	expires: new Date(0),
+	httpOnly: true,
+	path:'/',
+	sameSite: 'lax',
+	secure: false
+,	});
 }
 
 function verifyToken(token) {
@@ -119,6 +94,7 @@ module.exports = { generateToken,
 	verifyToken,
 	getUserIdFromToken,
 	generateWsToken,
+	clearAuthCookie,
 	generateTemporaryToken,
     verifyTemporaryToken
-	};
+	}
