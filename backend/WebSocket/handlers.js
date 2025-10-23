@@ -17,11 +17,23 @@ function handleGreet(ws, data){
 }
 
 function startLoop(ws, gameState, player1, player2) {
-	ws.send(JSON.stringify({type: "update_game", data: gameState.positions}));
+	ws.send(JSON.stringify({
+        type: "update_game", 
+        positions: gameState.positions,
+        visiblePowerups: gameState.visiblePowerups
+    }));
 	gameState.loop = setInterval(() => {
-		if (updateGame(gameState, player1, player2) == 1)
-			ws.send(JSON.stringify({type: "update_score", player1_score: player1.score, player2_score: player2.score}));
-		ws.send(JSON.stringify({type: "update_game", data: gameState.positions}));
+		if (updateGame(gameState, player1, player2) == 1) {
+			ws.send(JSON.stringify({
+                type: "update_score", 
+                player1_score: player1.score, 
+                player2_score: player2.score}));
+        }
+		ws.send(JSON.stringify({
+            type: "update_game", 
+            positions: gameState.positions,
+            visiblePowerups: gameState.visiblePowerups
+        }));
 	}, 1000 / gameState.fps);
 
 }
