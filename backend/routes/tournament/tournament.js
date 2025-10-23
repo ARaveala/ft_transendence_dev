@@ -229,6 +229,16 @@ export interface TournamentStateResponse {
 // 	});
 // }
 //
+const currentTournamentId = null; // global variable to track current tournament id
+/**
+ * consideration bank 
+ * 
+ * for when we need tournamnet id , now we use global variable to track current tournamnet id
+ * function getCurrentTournamentId(req) {
+  return req.session.tournamentId || null;
+}
+
+ */
 /**
  * 
  * @param {*} players player object containing all existing players from db
@@ -272,7 +282,7 @@ function buildTournamentPlayerList(players) {
  * 
  * creates a baisc tournament object with creating user as player1.
  */
- async function createTournament(fastify, options){
+async function createTournament(fastify, options){
  	const {secure, game, DBtour} = options;
  	fastify.route({
  		method: API_PROTOCOL.CREATE_TOURNAMENT.method,
@@ -288,6 +298,8 @@ function buildTournamentPlayerList(players) {
  				//flog.debug({function: 'createTournament', userId}, 'user id is ');
  				//useridcheck
 				const tournamentId = await DBtour.createTournament();
+				currentTournamentId = tournamentId; // set global variable to current tournament id
+
 				//flog.debug({function: 'createTournament', tournamentId}, 'tournament id created ');
 				// check id valid didnt fail, catch will also catch
 				const tournamentStatus = await DBtour.getActiveTournamentStatus(tournamentId);
@@ -320,6 +332,32 @@ function buildTournamentPlayerList(players) {
  		}
  	});
  }
+
+async function verifyPlayer(fastify, options){
+ 	const {secure, DBget, DBtour} = options;
+ 	fastify.route({
+		method: API_PROTOCOL.VERIFY_PLAYER.method,
+		url: API_PROTOCOL.VERIFY_PLAYER.path,
+ 		handler: async (request, reply) => {
+ 			flog.debug({ function: 'verifyPlayer', body: request.body }, 'request body:');
+ 			const {role, username, password, alias} = request.body;
+			try{
+ 				const token = request.cookies.auth_token;
+ 				const userId = secure.getUserIdFromToken(token)
+				const otherUserId = await DBget.miniLogin(username, password);
+				if (otherUserId){
+					// is this the right way to handle role swap ? 
+					DBtour.createTournamentPlayer(currentTournamentId, otherUserId.id, alias, Number(role.replace('player','')), role, true);
+				}
+				// check verified user
+ 				reply.code(200).send({status: 'OK', tournament: tournamentState}); //wrong
+ 			}
+ 			catch (err){
+ 				flog.error({fucntion: 'createTournament'}, "error ::", err); //wrong
+ 			}
+ 		}
+ 	});
+}
 
 /**
  * 2. maybe request all registered players
@@ -428,6 +466,7 @@ function buildTournamentPlayerList(players) {
 
 async function tournamentRoutes(fastify, options) {
 	await createTournament(fastify, options);
+	await verifyPlayer(fastify, options);
 }
 
 
