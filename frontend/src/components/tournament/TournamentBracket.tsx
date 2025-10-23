@@ -9,7 +9,7 @@ interface TournamentBracketProps {
   onStartMatch?: (match: Match) => void;    // callback when a match start is requested
   onCancel?: () => void                    // callback to cancel tournament
   lastMatchResult?: {
-    match_id: string;
+    gameId: string;
     winner: string;
     loser: string;
     score: [number, number]
@@ -26,7 +26,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
   const firstRound = tournament.bracket?.[0] ?? [];// 2 matches with 2 players each
 
   const firstRoundUpdated = firstRound.map((match) => {
-  if (lastMatchResult?.match_id === match.match_id) {
+  if (lastMatchResult?.gameId === match.match_id) {
     return {
       ...match,
       winner: {
