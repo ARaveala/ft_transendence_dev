@@ -63,6 +63,14 @@
 		decorateReply: false 
 	});
 
+
+	fastify.register(fastifyStatic, {
+		root: path.join(__dirname, 'pong_game'),
+		prefix: '/pong_game/',
+		index: false,
+		decorateReply: false // prevents re-adding sendFile
+	});
+
 	// set up auth routes with context
 	const authRoutes = require('@Rauth/auth.js');
 	const authcontext = require('@Rauth/context.js');
