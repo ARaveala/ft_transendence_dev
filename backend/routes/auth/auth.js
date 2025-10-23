@@ -57,16 +57,21 @@ async function registerUser(fastify, options) {
 //   });
 // }
 
-async function logoutUser(fastify, { secure, API_PROTOCOL }) {
-  fastify.route({
-    method: API_PROTOCOL.LOGOUT_USER.method,
-    url: API_PROTOCOL.LOGOUT_USER.path,
-    handler: async (_req, reply) => {
-      secure.clearAuthCookie(reply);
-      reply.code(204).send();
-    }
-  });
-}
+// async function logoutUser(fastify, { secure, API_PROTOCOL }) {
+//   fastify.route({API_PROTOCOL.LOGOUT_USER.path,
+//     handler: async (_req, reply) => {
+// 		secure.clearAuthCookie(reply);
+// 		const username = db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) =>{
+// 			if (err || !row) {
+// 				resolve({ error: 'Username available' });
+// 			}else {
+// 				reject({error: 'Username not available'});
+// 			}
+// 		run(`UPDATE users SET status = 'offline' WHERE username = ?`, [username]);});
+//       reply.code(204).send();
+//     }
+//   });
+// }
 
 async function loginUser(fastify, options) {
 	const {DBget, secure, API_PROTOCOL} = options;
@@ -92,13 +97,20 @@ async function loginUser(fastify, options) {
 	});
 }
 
-// async function logoutUser(fastify, options) {
-// 	const { API_PROTOCOL, secure } = options;
-// 	fastify.post(API_PROTOCOL.LOGOUT_USER.path, async (request, reply) => {
-// 		secure.clearAuthCookie(reply);
-// 		reply.code(200).send({ok: true});
-// 	});
-// }
+async function logoutUser(fastify, options) {
+	const { API_PROTOCOL, secure } = options;
+	fastify.post(API_PROTOCOL.LOGOUT_USER.path, async (request, reply) => {
+		const username = db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) =>{
+		if (err || !row) {
+			resolve({ error: 'Username available' });
+		}else {
+			reject({error: 'Username not available'});
+		}
+		run(`UPDATE users SET status = 'offline' WHERE username = ?`, [username]);});
+		secure.clearAuthCookie(reply);
+		reply.code(200).send({ok: true});
+	});
+}
 // delete user 
 async function deleteUser(fastify, options) {
 	const {DBdelete, API_PROTOCOL, secure} = options;

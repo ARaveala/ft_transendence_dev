@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS games
     p2_id INTEGER,
     p1_score INTEGER NOT NULL DEFAULT 0,
     p2_score INTEGER NOT NULL DEFAULT 0,
+    opponent_type TEXT,
     winner_id INTEGER,
     round INTEGER,
     bracket_pos INTEGER,

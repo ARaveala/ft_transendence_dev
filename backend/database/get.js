@@ -85,17 +85,17 @@ async function getMatchHistory({ userId }) {
 	return new Promise((resolve, reject) => {
 		db.all(
 			` 	SELECT 
-				    matches.user_id AS matchID,
-				    matches.result AS result,
-				    matches.score AS score,
-				    matches.timestamp AS timestamp, 
+				    games.user_id AS matchID,
+				    games.result AS result,
+				    games.score AS score,
+				    games.timestamp AS timestamp, 
 				    CASE 
-				        WHEN matches.opponent_type = 'human' THEN users.username
-				        WHEN matches.opponent_type = 'guest' THEN 'Guest'
-				        WHEN matches.opponent_type = 'AI' THEN 'AI Bot'
+				        WHEN gamess.opponent_type = 'human' THEN users.username
+				        WHEN gamess.opponent_type = 'guest' THEN 'Guest'
+				        WHEN gamess.opponent_type = 'AI' THEN 'AI Bot'
 				    END AS opponentName
 				FROM matches
-				LEFT JOIN users ON matches.opponent_id = users.id
+				LEFT JOIN users ON games.opponent_id = users.id
 				WHERE matches.user_id = ?;
 			`
 			,[test],
