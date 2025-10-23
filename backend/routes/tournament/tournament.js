@@ -229,7 +229,7 @@ export interface TournamentStateResponse {
 // 	});
 // }
 //
-const currentTournamentId = null; // global variable to track current tournament id
+let currentTournamentId = null; // global variable to track current tournament id
 /**
  * consideration bank 
  * 
@@ -353,7 +353,7 @@ async function verifyPlayer(fastify, options){
  				reply.code(200).send({status: 'OK', tournament: tournamentState}); //wrong
  			}
  			catch (err){
- 				flog.error({fucntion: 'createTournament'}, "error ::", err); //wrong
+ 				flog.error({fucntion: 'createTournament'}, "error :: in verify player", err); //wrong
  			}
  		}
  	});

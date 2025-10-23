@@ -3,6 +3,13 @@ const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'DBtournament.js' }); // scoped logger
 
 'use strict';
+
+/**
+ * info bank SELECT id FROM bracket WHERE tournament_id = ?;
+this is how u access bracket info for given tournament
+*/
+
+
 /**
  * 
  * @returns tournamentId of newly created tournament utalizing db to create unique id
