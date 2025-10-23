@@ -123,11 +123,62 @@ async function update2fa(enabled, userId, secret) {
 	});
 	
 }
+/**
+ * 
+ * @param {*} winner bool if winner or not 
+ * @param {*} id player id
+ * @param {*} score score to update
+ */
+async function updatePlayerGameStats(winner, id, score) {
+	flog.debug({ function: 'updateGameStats', userId: id, winner: winner, score: score }, 'Updating game stats for user');
 
+	return new Promise((resolve, reject) => {
+		db.run(
+			'UPDATE users SET  wins = wins + ?, losses = losses + ?, score = score + ?, total_games = total_games + 1 WHERE id = ?',
+			[winner ? 1 : 0, winner ? 0 : 1, score, id],
+			function (err) {
+				if (err) {
+					flog.error({ function: 'updateGameStats', error: err }, 'Error updating player game stats');
+					reject({ error: 'Failed to update player game stats ', details: err});
+				} else if (this.changes === 0) {
+					flog.error({ function: 'updateGameStats' }, 'No changes made, user not found');
+					reject({ error: 'User not found , no changes made' });
+				} else {
+					resolve({ message: 'player game stats updated', userId: id, winner: winner, score: score});
+				}
+			}
+		);
+	});
+}
+
+//
+//async function updateMatchHistory(userId, matchData) {
+//	flog.debug({ function: 'updateMatchHistory', userId: userId, matchData: matchData }, 'Updating match history for user');
+//
+//	return new Promise((resolve, reject) => {
+//		// Assuming match_history is stored as a JSON string in the database
+//		db.run(
+//			'UPDATE users SET match_history = ? WHERE id = ?',
+//			[JSON.stringify(matchData), userId],
+//			function (err) {
+//				if (err) {
+//					reject({ error: 'Failed to update match history', details: err});
+//				} else if (this.changes === 0) {
+//					reject({ error: 'User not found , no changes made' });
+//				} else {
+//					resolve({ message: 'match history updated', userId: userId});
+//				}
+//			}
+//		);
+//	});
+//}	
+//	
 module.exports = { updateUserScore,
 	updateUsername,
 	updatePassword,
 	changeAvatar,
 	changeLanguage,
 	update2fa,
+	updatePlayerGameStats,
+//	updateMatchHistory
 };

@@ -138,7 +138,6 @@ webSocket.onmessage = (event) => {
                 document.getElementById('p2Score').textContent = p2Score;
                 if (p1Score == victory_score) winner = 1;
                 else if (p2Score == victory_score) winner = 2;
-
                 if (winner == 0) // game not finished yet
                     webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["ball", "gameRunning"]}));
                 else {
@@ -149,6 +148,7 @@ webSocket.onmessage = (event) => {
                     endPromptText.textContent = text;
                     endPromptText.classList.add("text-" + (winner == 1 ? "blue" : "red") + "-500");
                     endPrompt.classList.remove("hidden");
+                    webSocket.send(JSON.stringify({ type: "gameOver", gameId: gameId }));			
                 }
             } else if (data.type == 'playerNames') { // Receive this when asked for player aliases
                 p1Alias = data.player1;

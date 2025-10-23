@@ -18,6 +18,18 @@ CREATE TABLE IF NOT EXISTS users
     total_games INTEGER NOT NULL DEFAULT 0
 );
 
+CREATE tABLE IF NOT EXISTS match_history
+(
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id INTEGER NOT NULL,
+	opponent_id INTEGER NOT NULL,
+	user_score INTEGER NOT NULL,
+	opponent_score INTEGER NOT NULL,
+	result TEXT NOT NULL CHECK (result IN ('win', 'loss')),
+	match_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+	FOREIGN KEY (opponent_id) REFERENCES users(id) ON DELETE CASCADE
+);
 -- multidirectional friendship table, allows for sigle directional requests
 -- status can be 'pending', 'accepted', 'blocked'
 -- cap at 20?
