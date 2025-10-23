@@ -10,10 +10,10 @@ interface ButtonProps {
 const Button: React.FC<ButtonProps> = ({ children, onClick, disabled, className }) => {
   return (
     <button
-      className={`inline-flex items-center justify-center px-3 py-1 rounded text-white 
+      className={`inline-flex items-center justify-center px-3 py-1 rounded text-white transition-colors
         ${disabled
-          ? "bg-gray-600 cursor-not-allowed"
-          : "bg-blue-700 hover:bg-blue-800"}
+          ? "border border-gray-500 cursor-not-allowed opacity-50"
+          : "border border-indigo-500 bg-black hover:bg-indigo-500 hover:border-indigo-500"}
         ${className}
         `}
       onClick={onClick}

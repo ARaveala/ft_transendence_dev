@@ -1,5 +1,5 @@
 import React from "react";
-import type { TournamentState, Match } from "../../types/tournament";
+import type { TournamentState, Match, BracketPlayer, BracketMatchResult } from "../../types/tournament";
 import { TBD_PLAYER } from "../../../shared/constants";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
 import Button from "../ui/Button";
@@ -8,21 +8,41 @@ interface TournamentBracketProps {
   tournament: TournamentState;
   onStartMatch?: (match: Match) => void;    // callback when a match start is requested
   onCancel?: () => void                    // callback to cancel tournament
+  lastMatchResult?: {
+    match_id: string;
+    winner: string;
+    loser: string;
+    score: [number, number];
+  }
 }
 
 const TournamentBracket: React.FC<TournamentBracketProps> = ({
   tournament,
   onStartMatch,
-  onCancel
+  onCancel,
+  lastMatchResult
 }) => {
 
   const firstRound = tournament.bracket?.[0] ?? [];// 2 matches with 2 players each
 
+  const firstRoundUpdated = firstRound.map((match) => {
+  if (lastMatchResult?.match_id === match.match_id) {
+    return {
+      ...match,
+      winner: lastMatchResult.winner,
+      loser: lastMatchResult.loser,
+      score: lastMatchResult.score,
+      status: "finished",
+    };
+  }
+  return match;
+  });
+
   // Final match placeholder (between the 2 winners of round 1)
   const finalMatch: Match = {
     match_id: "final",
-    player1: firstRound[0]?.winner ?? { ...TBD_PLAYER },
-    player2: firstRound[1]?.winner ?? { ...TBD_PLAYER },
+    player1: firstRoundUpdated[0]?.winner ?? { ...TBD_PLAYER },
+    player2: firstRoundUpdated[1]?.winner ?? { ...TBD_PLAYER },
     winner: { ...TBD_PLAYER },
     status: "pending",
   };
@@ -32,6 +52,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
     - Final: both winners must be known and status "pending"
    */
   const isMatchPlayable = (match: Match, round: number): boolean => {
+    if (match.status === "finished") return false;
     if (round === 1) return match.status === "pending";
     // final match only playable if both winners exist
     return (
@@ -46,7 +67,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
     {/* Winner */}
     <div className="flex flex-col items-center">
       <h3 className="font-bold text-lg mb-2">Winner</h3>
-      <div className="p-3 bg-yellow-500 text-black font-semibold rounded-xl w-40 text-center">
+      <div className="p-3 bg-indigo-600 text-white font-semibold rounded-xl w-40 text-center">
         {finalMatch.winner?.alias ?? "TBD"}
       </div>
     </div>
@@ -79,18 +100,18 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
       
         {/* Vertical line down from final player1 center */}
         <svg width="2" height="50" className="absolute top-12 left-20">
-          <line x1="1" y1="0" x2="1" y2="26" stroke="#374151" strokeWidth="2" />
+          <line x1="1" y1="0" x2="1" y2="34" stroke="#374151" strokeWidth="2" />
         </svg>
         {/* Vertical line down from final player2 center */}
         <svg width="2" height="50" className="absolute top-12 right-20">
-          <line x1="1" y1="0" x2="1" y2="26" stroke="#374151" strokeWidth="2" />
+          <line x1="1" y1="0" x2="1" y2="34" stroke="#374151" strokeWidth="2" />
         </svg>
     </div>
 
       <Button
         onClick={() => onStartMatch?.(finalMatch)}
         disabled={!isMatchPlayable(finalMatch, 2)}
-        className="-mt-6"
+        className="-mt-4"
       >
         Play final
       </Button>
@@ -138,7 +159,6 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
           <div className="mt-8">
             <Button 
               onClick={onCancel}
-              className="bg-red-600 hover:bg-red-700"
               >
                 Cancel Tournament
           </Button>

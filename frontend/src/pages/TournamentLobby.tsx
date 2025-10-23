@@ -12,13 +12,22 @@ const TournamentLobby: React.FC = () => {
   const [showSetup, setShowSetup] = useState(false);                               // Indicates whether we are in tournament setup mode (adding players etc.)
   const [activeGameId, setActiveGameId] = useState<string | null>(null);           // Game state: which match is currently active
   const [currentGameMatch, setCurrentGameMatch] = useState<Match | null>(null);
+  const [gameResult, setGameResult] = useState<{
+    gameId: string; winner: string; loser: string; score: [number, number]; } | null>(null);
 
-   /*
-   * Creates a new tournament
-   *  Triggered when user clicks "Start a new tournament"
-   * - Sends a request to backend
-   * - Stores tournament state in React
-   */
+    useEffect(() => {
+      function handleMessage(event: MessageEvent) {
+        if (event.origin !== "http://localhost:3000") return;
+
+        if (event.data?.type === "GAME RESULT") {
+          console.log("Received game result from iframe:", event.data.payload);
+          setGameResult(event.data.payload);
+          handleMatchEnd(); // closes iframe
+        }
+      }
+      window.addEventListener("message", handleMessage);
+        return () => window.removeEventListener("message", handleMessage);
+    }, []);
 
     const loadTournament = async () => { 
       try {
@@ -48,6 +57,12 @@ const TournamentLobby: React.FC = () => {
       loadTournament();
     }, []);
 
+  /*
+   * Creates a new tournament
+   *  Triggered when user clicks "Start a new tournament"
+   * - Sends a request to backend
+   * - Stores tournament state in React
+   */
 
   const handleCreateTournament = async () => {
     const payload: CreateTournamentPayload = { max_players: 4 };
@@ -171,6 +186,7 @@ const TournamentLobby: React.FC = () => {
           tournament={tournament}
           onStartMatch={handleStartMatch}
           onCancel={handleCancelTournament}
+          lastMatchResult={gameResult}
         />
       )}
     </div>

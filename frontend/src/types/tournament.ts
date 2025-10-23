@@ -36,3 +36,15 @@ export interface TournamentState {
   can_start?: boolean;
   pending_players?: number;
 }
+
+export interface BracketPlayer {
+  alias: string;
+  score: number;
+}
+
+export interface BracketMatchResult {
+  match_id: string;
+  winner: BracketPlayer;
+  loser: BracketPlayer;
+  score: [number, number]; // [player1Score, player2Score]
+}
