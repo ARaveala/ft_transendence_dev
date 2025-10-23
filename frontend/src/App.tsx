@@ -20,6 +20,9 @@ import Leaderboard from "./pages/Leaderboard";
 import Friends from "./pages/Friends";
 import Profile from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
+import background from "./assets/background.png";
+
 
 // Import shared layout components
 import Navbar from "./components/layout/Navbar";
@@ -34,19 +37,52 @@ import { useAuth } from "./context/AuthContext";
 // - Shows the Navbar unless user is on the LandingPage ("/")
 // - Wraps page content inside <main>
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const location = useLocation();
-  const { isLoggedIn } = useAuth(); // get login status
+const location = useLocation();
+const { isLoggedIn } = useAuth(); // get login status
 
-  // Show navbar if user is logged in OR if not on landing page
-  const showNavbar = isLoggedIn || location.pathname !== "/";
+// Show navbar if user is logged in OR if not on landing page
+const showNavbar = isLoggedIn || location.pathname !== "/";
 
-  return (
-    <>
-      {showNavbar && <Navbar />}
-      <main className="p-6">{children}</main>
-    </>
-  );
+return (
+	<div className="relative min-h-screen">
+	{/* Background */}
+	<div
+		className="absolute inset-0 bg-black/50"
+		style={{
+		backgroundImage: `url(${background})`,
+		backgroundSize: "cover",
+		backgroundPosition: "center",
+		}}
+	/>
+
+	{/* Foreground content */}
+	<div className="relative z-10 flex flex-col min-h-screen">
+		{showNavbar && (
+		<div className="mx-6 mt-4">
+			<div className="rounded-xl overflow-hidden shadow-lg">
+			<Navbar />
+			</div>
+		</div>
+		)}
+
+		{/* Scrollable main area */}
+		<main className="flex-1 overflow-y-auto px-6 pt-6">
+		{children}
+		</main>
+	</div>
+	</div>
+);
 };
+
+const protectedRoutes = [
+  { path: "/home", element: <HomePage /> },
+  { path: "/game", element: <Game /> },
+  { path: "/tournament", element: <Tournament /> },
+  { path: "/leaderboard", element: <Leaderboard /> },
+  { path: "/friends", element: <Friends /> },
+  { path: "/profile", element: <Profile /> },
+  { path: "/settings", element: <SettingsPage /> },
+];
 
 // App component
 // - Wraps everything in <Router> to enable client-side routing
@@ -59,13 +95,13 @@ export default function App() {
 		<Layout>
 			<Routes>
 			<Route path="/" element={<LandingPage />} />
-			<Route path="/home" element={<HomePage />} />
-			<Route path="/game" element={<Game />} />
-			<Route path="/tournament" element={<Tournament />} />
-			<Route path="/leaderboard" element={<Leaderboard />} />
-			<Route path="/friends" element={<Friends />} />
-			<Route path="/profile" element={<Profile />} />
-			<Route path="/settings" element={<SettingsPage />} />
+			{protectedRoutes.map(({ path, element }) => (
+				<Route
+				key={path}
+				path={path}
+				element={<ProtectedRoute>{element}</ProtectedRoute>}
+				/>
+			))}
 			</Routes>
 			</Layout>
 			</TranslationProvider>

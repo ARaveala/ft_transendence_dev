@@ -21,7 +21,7 @@ const MAX_FRIENDS = 20;
 
 const Friends: React.FC = () => {
 	const { t } = useTranslation();
-	const { user, refreshSession } = useAuth(); //now using AuthContext to get user info
+	const {isLoggedIn, user, loading, refreshSession } = useAuth(); //now using AuthContext to get user info
 
 	// Inline status
 	const [msg, setMsg] = useState<string | null>(null);
@@ -164,17 +164,18 @@ const Friends: React.FC = () => {
 		}
 	}
 
-	//if (loading) return <div className="p-6">{t("common.loading")}</div>;
-	if (!user) {
+	if (loading) return <div className="p-6">{t("common.loading")}</div>;
+	if (!isLoggedIn) { //changed from !user to !isLoggedIn
 	return (
 		<div className="p-6 text-center text-gray-300">
 		Please log in to view your friends.
 		</div>
 	);
 	}
-
 	return (
-		<div className="p-6 max-w-4xl mx-auto">
+  	<div className="flex justify-center px-6 py-6">
+    {/* Semi-transparent card for content */}
+    <div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
 			<h1 className="text-3xl font-bold mb-4">{t("friends.title")}</h1>
 
 			{/* Inline status */}
@@ -297,6 +298,7 @@ const Friends: React.FC = () => {
 				)}
 			</section>
 		</div>
+	  </div>
 	);
 };
 
@@ -312,7 +314,8 @@ function SettingButton({
 			<button
 				type="button"
 				onClick={onClick}
-				className="px-3 py-1.5 text-sm rounded-md text-white bg-gray-800 hover:bg-gray-600"
+				className="px-3 py-1.5 text-sm rounded-md text-white bg-blue-600 hover:bg-blue-700"
+
 			>
 				{label}
 			</button>

@@ -124,7 +124,7 @@ const handle2faVerifySubmit = async () => {
     };
 
 return (
-	<div className="flex flex-col items-center justify-center min-h-screen gap-6">
+	<div className="flex-1 flex flex-col justify-center items-center min-h-screen gap-6">
 	<h1 className="text-5xl font-bold">Pong</h1>
 
 	{!isLoggedIn && (
