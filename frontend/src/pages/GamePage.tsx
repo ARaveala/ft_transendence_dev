@@ -6,10 +6,11 @@
 //5. Start game
 //6. Launch iframe with both tokens
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import ChooseGameMode from "../components/game/ChooseGameMode";
 import GameSettings from "../components/game/GameSettings";
+import CenteredContainer from "../components/layout/CenteredContainer";
 
 type GameMode = "guest" | "login" | "ai";
 
@@ -43,6 +44,22 @@ const [gameSettings, setGameSettings] = useState<{
 
 // 	checkAuth();
 // }, [isLoggedIn, refreshSession]); //run once on mount
+
+
+//  Initialize useRef for the iframe
+const iframeRef = useRef<HTMLIFrameElement>(null);
+
+// Function to safely focus the iframe after it loads
+const handleIframeLoad = () => {
+	if (iframeRef.current) {
+		// Use a minimal delay (50ms) to ensure the browser finishes processing the 'load' event
+		// before we call focus(). This is necessary for some browsers.
+		const timer = setTimeout(() => {
+			iframeRef.current?.focus();
+		}, 50); 
+		return () => clearTimeout(timer);
+	}
+};
 
 	// Start game depending on selected mode
 const startGame = async (settings?: typeof gameSettings) => {
@@ -96,26 +113,35 @@ const startGame = async (settings?: typeof gameSettings) => {
 	}
 };
 
+
 if (loading) return <div>Checking login status...</div>;
 if (!isLoggedIn) return <div>Please log in to access the game.</div>;
 
 return (
-	<div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
-	{!selectedMode && (
+	// Use the CenteredContainer
+	<CenteredContainer>
+		{/* Remove all sizing classes from this div */}
+	
+		{!selectedMode && (
+		<div className="w-full max-w-lg bg-gray-900/90 rounded-xl p-8 text-white shadow-2xl">
 		<ChooseGameMode
 		onSelectMode={(playerType) => setSelectedMode(playerType)}
 		/>
+		</div>
 	)}
 
 	{selectedMode && !gameSettings && !gameStarted && (
+				<div className="w-full max-w-lg bg-gray-900/90 rounded-xl p-8 text-white shadow-2xl">
+
 		<GameSettings
 		onConfirm={(settings) => setGameSettings(settings)}
 		onBack={() => setSelectedMode(null)}
 		/>
+		</div>
 	)}
 
 	{selectedMode && gameSettings && !gameStarted && (
-	<div className="flex flex-col items-center space-y-4">
+	<div className="w-full max-w-lg bg-gray-900/90 rounded-xl p-8 text-white shadow-2xl flex flex-col items-center space-y-4">
 				<button
 		onClick={() => startGame(gameSettings)} // pass settings to startGame
 		className="px-10 py-4 text-xl font-bold text-white bg-indigo-600 rounded-lg shadow-lg hover:bg-indigo-700 transition-colors"
@@ -123,21 +149,37 @@ return (
 		Start Game
 		</button>
 		<button
-		onClick={() => setSelectedMode(null)}
+		onClick={() => {
+			setSelectedMode(null); // Go back to mode selection
+			setGameSettings(null); // Reset settings so the settings screen is prompted next time
+		}}
 		className="px-6 py-2 text-sm font-medium text-gray-800 bg-gray-300 rounded-lg hover:bg-gray-400 transition-colors"
 		>
 		Back
 		</button>
 	</div>
 	)}
-
 	{gameStarted && player1Token && player2Token && gameId && (
-		<iframe
-		src={`http://localhost:3000/pong_game/index.html?gameId=${gameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}`}
-		className="w-full h-screen border-none"
-		/>
-	)}
-	</div>
+			// Switching to responsive, aspect-ratio scaling to eliminate scrollbars and fit the viewport.
+			// max-w-5xl ensures it doesn't get too wide on giant screens.
+			<div className="w-full max-w-5xl bg-gray-900 p-4 rounded-xl shadow-2xl shadow-gray-700/80"> 
+				{/* Responsive container with 16:9 aspect ratio */}
+				<div className="relative w-full overflow-hidden" style={{ paddingTop: '56.25%' }}> 
+					<iframe
+					ref={iframeRef}
+						// Attach the focus handler to the iframe's onLoad event
+						onLoad={handleIframeLoad} 
+						src={`http://localhost:3000/pong_game/index.html?gameId=${gameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}`}
+						// The iframe is absolutely positioned to fill the responsive container
+						className="absolute inset-0 w-full h-full border-none rounded-lg"
+						scrolling="no"
+					/>
+				</div>
+			</div>
+		)}
+
+
+	</CenteredContainer>
 );
 };
 

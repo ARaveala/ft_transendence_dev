@@ -1,3 +1,4 @@
+
 // Get data from URL params
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
@@ -75,7 +76,7 @@ webSocket.onopen = (event) => {
     console.log('Sending init message game id:', gameId);
     webSocket.send(JSON.stringify({gameId: gameId, type: 'initPlayer', token: player1Token}));
     
-    // Update player aliases here or somewhere before if needed
+    // Update player aliases here or somewhere
     webSocket.send(JSON.stringify({ type: "getPlayerNames" }));
 };
 
@@ -97,8 +98,30 @@ webSocket.onmessage = (event) => {
                 console.log("game index.html received message:(ignoring positions update)", data);
 
             if (data.type == 'update_game') { // Receive updated positions
-                console.log("update is activated");
-                positions = data.data;
+                // Set new positions
+                positions = data.positions;
+
+                // Update powerups
+                if (gameSettings.powerUp) {
+                    const container = document.getElementById('powerup-container');
+                    console.log(container);
+                    console.log(container.getBoundingClientRect());
+                    container.innerHTML = '';  // Clear old powerups
+
+                    for (const powerup of data.visiblePowerups) {
+                        const div = document.createElement('div');
+
+                        div.className = 'rounded-full bg-purple-500 shadow-lg';
+
+                        div.style.position = 'absolute';
+                        div.style.top = `${powerup.y}px`;
+                        div.style.left = `${powerup.x}px`;
+                        div.style.width = `${powerup.radius}px`;
+                        div.style.height = `${powerup.radius}px`;
+
+                        container.appendChild(div);
+                    }
+                }
             } else if (data.type == 'update_score') { // Receive this whenever score changes
                 // Get winner. 0 means no winner yet
                 let winner = 0;
@@ -142,7 +165,7 @@ webSocket.onmessage = (event) => {
                         paddleOffset: paddleOffset,
                         ballSpeed: gameSettings.ballSpeed,
                         paddleSpeed: gameSettings.paddleSpeed,
-                        powerUp: gameSettings.powerUp
+                        powerups: gameSettings.powerUp
                     }
                 }));
             } else {
@@ -174,12 +197,14 @@ document.addEventListener("keyup", (e) => {
 // is maybe as simple as it sounds. The following
 // code is what updates the positions
 function render() {
-    // set <div> elements' positions that came from server
     if (!positions) return requestAnimationFrame(render);
+
+    // Update static objects positions
     paddle1.style.top = positions[0] + "px";
     paddle2.style.top = positions[1] + "px";
     ball.style.top = positions[2] + "px";
     ball.style.left = positions[3] + "px";
+
     requestAnimationFrame(render);
 }
 requestAnimationFrame(render);
