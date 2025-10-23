@@ -6,7 +6,7 @@ const Navbar: React.FC = () => {
 const { t } = useTranslation();
 
 return (
-	<nav className="p-4 bg-gray-800 bg-opacity-90 backdrop-blur-md rounded-xl shadow-md flex items-center gap-4 mx-4 mt-4">
+	<nav className="p-4 bg-gray-800 bg-opacity-90 backdrop-blur-md shadow-md flex items-center gap-4">
 	<Link
 		to="/"
 		className="px-3 py-1 rounded hover:bg-gray-700 transition-colors"
