@@ -6,18 +6,25 @@ import type { TournamentState, Match } from "../types/tournament";
 import Button from "../components/ui/Button";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useAuth } from "../context/AuthContext";
-import { CreateTournamentPayload, CreateTournamentResponse, GetActiveTournamentResponse, StartTournamentMatchPayload, StartTournamentMatchResponse } from "../../shared/payloads";
-
+import { CreateTournamentPayload,
+        CreateTournamentResponse,
+        GetActiveTournamentResponse,
+        StartTournamentMatchPayload,
+        StartTournamentMatchResponse
+      } from "../../shared/payloads";
 
 const TournamentLobby: React.FC = () => {
-  const [tournament, setTournament] = useState<TournamentState | null>(null);      // Main tournament state (null means there is no tournament yet)
+  const { user, isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
   const [showSetup, setShowSetup] = useState(false);                               // Indicates whether we are in tournament setup mode (adding players etc.)
   const [activeGameId, setActiveGameId] = useState<string | null>(null);           // Game state: which match is currently active
   const [currentGameMatch, setCurrentGameMatch] = useState<Match | null>(null);
   const [gameResult, setGameResult] = useState<{
-    gameId: string; winner: string; loser: string; score: [number, number]; } | null>(null);
-  const { user, isLoggedIn, loading, refreshSession } = useAuth();
-
+      gameId: string;
+      winner: string;
+      loser: string;
+      score: [number, number];
+    } | null>(null);
+  
     useEffect(() => {
       function handleMessage(event: MessageEvent) {
         if (event.origin !== "http://localhost:3000") return;
@@ -31,40 +38,6 @@ const TournamentLobby: React.FC = () => {
       window.addEventListener("message", handleMessage);
         return () => window.removeEventListener("message", handleMessage);
     }, []);
-
-    const loadTournament = async () => { 
-      try {
-        const res = await fetch(API_PROTOCOL.GET_ACTIVE_TOURNAMENT.path, {
-          method: API_PROTOCOL.GET_ACTIVE_TOURNAMENT.method,
-          credentials: "include",
-        }); 
-        
-        if (res.ok) { 
-          const data: GetActiveTournamentResponse = await res.json();
-          if (data.status === "OK" && data.tournament) {
-            setTournament(data.tournament);
-            setShowSetup(data.tournament.status === "waiting");
-          } else {
-              setTournament(null);
-              setShowSetup(false);
-        }
-        }
-      } catch (err) { 
-        console.error("Error loading existing tournament:", err);
-        setTournament(null);
-        setShowSetup(false);
-      }
-    };
-    
-	//Load tournament only after auth finishes and user is logged in
-	useEffect(() => {
-		if (isLoggedIn) {
-			loadTournament();
-		} else {
-			setTournament(null);
-			setShowSetup(false);
-		}
-	}, [isLoggedIn]);
 
   /*
    * Creates a new tournament
