@@ -1,5 +1,5 @@
 import React from "react";
-import type { TournamentState, Match, BracketPlayer, BracketMatchResult } from "../../types/tournament";
+import type { TournamentState, TournamentPlayer, Match } from "../../types/tournament";
 import { TBD_PLAYER } from "../../../shared/constants";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
 import Button from "../ui/Button";
@@ -12,8 +12,8 @@ interface TournamentBracketProps {
     match_id: string;
     winner: string;
     loser: string;
-    score: [number, number];
-  }
+    score: [number, number]
+  } | null;
 }
 
 const TournamentBracket: React.FC<TournamentBracketProps> = ({
@@ -29,8 +29,20 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
   if (lastMatchResult?.match_id === match.match_id) {
     return {
       ...match,
-      winner: lastMatchResult.winner,
-      loser: lastMatchResult.loser,
+      winner: {
+        username: lastMatchResult.winner,
+        alias: lastMatchResult.winner,
+        status: "finished",
+        role: "player",
+        isVerified: true,
+      } as TournamentPlayer,
+      loser: {
+        username: lastMatchResult.loser,
+        alias: lastMatchResult.loser,
+        status: "finished",
+        role: "player",
+        isVerified: true,
+      } as TournamentPlayer,
       score: lastMatchResult.score,
       status: "finished",
     };
