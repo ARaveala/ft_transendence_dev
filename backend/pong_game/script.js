@@ -70,6 +70,7 @@ const webSocket = new WebSocket("ws://localhost:3000/ws");
 
 // Aliases of players. Ask for these through websocket with "getPlayerNames"
 let p1Alias, p2Alias;
+let p1Score, p2Score;
 
 webSocket.onopen = (event) => {
     console.log("WebSocket connection opened.");
@@ -82,7 +83,15 @@ webSocket.onopen = (event) => {
 
 // This ends this script and returns to game page
 function endFunction() {
-    console.log("Clicked the button");
+    const winner = p1Score > p2Score ? p1Alias : p2Alias;
+    const loser = p1Score > p2Score ? p2Alias : p1Alias;
+    const data = {
+        gameId: gameId,
+        winner: winner,
+        loser: loser ,
+        score: [p1Score, p2Score]
+    };
+    window.parent.postMessage(data, '*');
 }
 
 webSocket.onmessage = (event) => {
@@ -125,8 +134,10 @@ webSocket.onmessage = (event) => {
             } else if (data.type == 'update_score') { // Receive this whenever score changes
                 // Get winner. 0 means no winner yet
                 let winner = 0;
-                if (data.player1_score == victory_score) winner = 1;
-                else if (data.player2_score == victory_score) winner = 2;
+                p1Score = data.player1_score;
+                p2Score = data.player2_score;
+                if (p1Score == victory_score) winner = 1;
+                else if (p2Score == victory_score) winner = 2;
 
                 if (winner == 0) // game not finished yet
                     webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["ball", "gameRunning"]}));
