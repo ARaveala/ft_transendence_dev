@@ -1,6 +1,8 @@
 'use strict'
 const { generateWsToken } = require('../security/security.js');
 const db = require('./initDB.js');
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'get.js' }); // scoped logger
 const bcrypt = require('bcryptjs');
 
 // function getUserByUsername(username) {
@@ -49,19 +51,43 @@ async function fetchUser({ userId }) {
 		});
 }
 
-async function getFriendsForPlayer({ userId }) {
-	console.log('DB::Fetching friends for user ID:', userId);
-	const test = userId.id;
+// get user by username , ie when adding friend
+async function fetchUserByUsername(username) {
+	if (username === undefined) {flog.warn({ function: 'fetUserByUsername'}, 'username undefined')}
+	flog.info({ function: 'fetUserByUsername', username: username}, 'username: ');
+		return new Promise((resolve, reject) => {
+			db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) =>{
+				if (err) {
+					flog.error({ function: 'fetUserByUsername', err}, 'DB error:');
+					reject({ error: 'DB error fecth' });
+				} else if (!row) {
+					flog.warn({ function: 'fetUserByUsername', username: username}, 'User not found :');
+					reject({ error: 'User not found fecth' });
+				} else {
+					flog.info({ function: 'fetUserByUsername', row}, 'User found:');
+					resolve(row.id);
+				}
+
+			});
+		});
+}
+// get friends list for userId, take information from users table , as usenames may change
+// rename provided results to make data access clearer
+// status is pending, accepted, blocked etc. attatched which can be used in front end if wished
+async function getFriendsForPlayer( userId ) {
+	flog.info({ function: 'getFriendsForPlayer', username: userId}, 'checking id matches  ');
+	//const test = userId.id;
 	return new Promise((resolve, reject) => {
 		db.all(
 			`SELECT users.id AS friendID,
-				users.username AS friendName,
-				users.avatar_file AS friendAvatar,
+				users.username AS username,
+				users.avatar_file AS avatar,
+				users.status AS status,
 				friends.status AS friendshipstatus
 			FROM friends
 			JOIN users ON friends.friend_id = users.id
 			WHERE friends.user_id = ?`,
-			[test],
+			[userId],
 			(err, rows) => {
 				if (err) {
 					if (!rows) {	
@@ -80,7 +106,7 @@ async function getFriendsForPlayer({ userId }) {
 }
 // can we have a schema that checks if table empty first?
 async function getMatchHistory({ userId }) {
-	console			.log('DB::Fetching match history for user ID:', userId);
+	//console			.log('DB::Fetching match history for user ID:', userId);
 	const test = userId.id;
 	return new Promise((resolve, reject) => {
 		db.all(
@@ -168,10 +194,57 @@ async function miniLogin(username, password) {
   });
 }
 
+async function get2FaSecret(userId) {
+	console.log('DB::Fetching 2FA secret for user ID:', userId);
+	const test = userId.id;
+		return new Promise((resolve, reject) => {
+			db.get('SELECT mfa_secret FROM users WHERE id = ?', [test], (err, row) =>{
+				if (err) {
+					console.error('DB error:', err);
+					reject({ error: 'DB error fecth' });
+				} else if (!row) {
+					console.warn('User not found for ID:', userId);
+					reject({ error: 'User not found fecth' });
+				} else {
+					console.log('2FA secret found:', row);
+					resolve(row.mfa_secret);
+				}
+
+			});
+		});
+}
+
+async function is2FaEnabled(userId) {
+	console.log('DB::Checking if 2FA is enabled for user ID:', userId);
+		return new Promise((resolve, reject) => {
+			db.get('SELECT mfa_enabled FROM users WHERE id = ?', [userId], (err, row) =>{
+				if (err) {
+					console.error('DB error:', err);
+					reject({ error: 'DB error fecth' });
+				} else if (!row) {
+					console.warn('User not found for ID:', userId);
+					reject({ error: 'User not found fecth' });
+				} else {
+					resolve(Boolean(row.mfa_enabled));
+				}
+
+			});
+		});
+}
+
 module.exports = { fetchUser, 
 	miniLogin, 
 	getFriendsForPlayer, 
 	getMatchHistory,
 	checkUsernameAvailable,
 	checkPasswordMatch,
+	fetchUserByUsername,
+	is2FaEnabled,
 };
+//similar logic as below may be required
+//async function userRoutes(fastify, options) {
+//  await registerUser(fastify, options);
+//  await getUser(fastify, options);
+//}
+//
+//module.exports = userRoutes;

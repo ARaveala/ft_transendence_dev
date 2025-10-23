@@ -25,7 +25,7 @@ type Row = "language" | "username" | "password" | "avatar" | "twofa" | null;
 
 const SettingsPage: React.FC = () => {
 	const { t, setLang } = useTranslation();
-	const { user, loading, refreshSession } = useAuth();
+	const {isLoggedIn, user, loading, refreshSession } = useAuth();
 
 	// Which row is open state
 	const [openRow, setOpenRow] = useState<Row>(null);
@@ -74,7 +74,7 @@ const SettingsPage: React.FC = () => {
 	if (loading) {
 		return <div className="p-6 text-center text-gray-300">Loading...</div>;
 	}
-	if (!user) {
+	if (!isLoggedIn) { //changed from !user to !isLoggedIn
 	return (
 		<div className="p-6 text-center text-gray-300">
 		Please log in to access settings.
@@ -117,7 +117,7 @@ const SettingsPage: React.FC = () => {
 	// Clear forms
 	function resetUsernameForm() {
 		setUsername("");
-		setUserNameInput("");
+		setUsernameInput("");
 	}
 
 	function resetPasswordForm() {
@@ -287,7 +287,7 @@ const SettingsPage: React.FC = () => {
 	async function saveUsername() {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
-			const value = username.trim();
+			const value = usernameInput.trim();
 			if (value.length < 3 || value.length > 15) throw new Error(t("error.usernameLength"));
 			const payload: ChangeUsernamePayload = { username: value };
 			const res = await fetch(API_PROTOCOL.CHANGE_USERNAME.path, {
@@ -305,6 +305,7 @@ const SettingsPage: React.FC = () => {
 			setUsernameInput("");
 			setOpenRow(null);
 			await refreshSession();
+			setUsername(value);
 		} catch (e: any) {
 			setErr(e?.message || "Could not update username.");
 		} finally {
@@ -445,6 +446,7 @@ const SettingsPage: React.FC = () => {
 			if (!res.ok) throw new Error("Failed to delete profile.");
 
 			setDeleted(true);
+			await refreshSession();
 		} catch (err:any) {
 			setDeleteError(err?.message || "Deletion failed.");
 		} finally {

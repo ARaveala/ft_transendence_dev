@@ -9,8 +9,12 @@ const HomePage: React.FC = () => {
 const [isModalOpen, setIsModalOpen] = useState(false); // Tracks if modal is open
 const [modalMode, setModalMode] = useState<"login" | "register">("register"); // Mode of modal
 const navigate = useNavigate();
-
 const { isLoggedIn, user, logoutUser, refreshSession } = useAuth(); // Access authentication state and functions
+
+//2FA states
+const [is2faStep, setIs2faStep] = useState(false);
+const [tempAuthToken, setTempAuthToken] = useState<string | null>(null);
+const [otp, setOtp] = useState("");
 
 // Generic form submit handler for registration or login
 const handleSubmit = async (data: RegisterUserPayload) => {
@@ -24,6 +28,15 @@ const handleSubmit = async (data: RegisterUserPayload) => {
 		body: JSON.stringify(data),
 		credentials: "include", // include cookies in request
 	});
+
+	if (res.status === 202) {
+                // if 2FA is required we get 202
+                const responseData = await res.json();
+                setTempAuthToken(responseData.tempAuthToken);
+                setIsModalOpen(false); // close login modal
+                setIs2faStep(true);   // show 2FA modal
+                return;
+    }
 
 	if (!res.ok) {
 		const error = await res.json();
@@ -81,6 +94,35 @@ const handleSubmit = async (data: RegisterUserPayload) => {
 	}
 };
 
+const handle2faVerifySubmit = async () => {
+        if (!tempAuthToken || otp.length !== 6) {
+            alert("Please enter a valid 6-digit code.");
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/2fa/login-verify', { // new endpoint for 2FA login
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ otp, tempAuthToken }),
+            });
+
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error?.error || "2FA verification failed.");
+            }
+
+            await refreshSession();
+            alert("Login successful!");
+            setIs2faStep(false); // hide 2FA modal
+            setOtp("");
+            setTempAuthToken(null);
+
+        } catch (err) {
+            alert(err);
+        }
+    };
+
 return (
 	<div className="flex flex-col items-center justify-center min-h-screen gap-6">
 	<h1 className="text-5xl font-bold">Pong</h1>
@@ -111,7 +153,7 @@ return (
 
 	{isLoggedIn && (
 		<div className="flex flex-col items-center gap-2">
-		<p>Welcome, {user?.username}!</p>
+		<p id="welcome">Welcome, {user?.username}!</p>
 		<button
 			className="px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition"
 			onClick={logoutUser}
@@ -127,6 +169,28 @@ return (
 		onFormSubmit={handleSubmit}
 		mode={modalMode}
 	/>
+	{is2faStep && (
+		<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+			<div className="bg-white p-6 rounded-lg shadow-xl">
+				<h2 className="text-xl font-bold mb-4">Enter Verification Code</h2>
+					<p className="mb-4">Open your authenticator app and enter the 6-digit code.</p>
+						<input
+                            type="text"
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                            className="w-full p-2 border rounded-md text-center text-2xl tracking-widest text-black"
+                            maxLength={6}
+                            placeholder="123456"
+                        />
+						<button
+                            onClick={handle2faVerifySubmit}
+                            className="w-full mt-4 px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                        >
+						Verify
+                        </button>
+			</div>
+		</div>
+	)}
 	</div>
 );
 };

@@ -1,213 +1,31 @@
 <html>
-	<head>
-		<style>
-			body {
+<head>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body class="bg-gray-800">
 
-			}
-			.paddle {
-				width: 25px;
-				height: 250px;
-				position: absolute;
-				background: rgb(57, 63, 82);
-			}
-			.ball {
-				width: 50px;
-				height: 50px;
-				border-radius: 50%;
-				position: absolute;
-				background: rgb(70, 140, 163);
-			}
-		</style>
-	</head>
-	<body>
-		<div id="paddle1" class="paddle" style="left: 75px"></div>
-		<div id="paddle2" class="paddle" style="right: 75px"></div>
-		<div id="ball" class="ball" style="top: 500px; left: 500px"></div>
+  <!-- Paddles. The sizes can be anything, they will be set to users settings -->
+  <div id="paddle1" class="bg-blue-500 absolute"></div>
+  <div id="paddle2" class="bg-red-500 absolute"></div>
 
-		<!-- for testing -->
-		<div id="scoretest" style="color: white;">Score: 0 | 0</div>
-		<div id="resulttest" style="color: white;"></div>
-		<div id="resettestbutton" onClick="resettest()" style="display: none; color: white;">Click to play again</button>
+  <!-- Ball -->
+  <div id="ball" class="bg-green-500 rounded-full absolute"></div>
 
-		<script>
-			// the other html is sending the gameId and token over
-			const urlParams = new URLSearchParams(window.location.search);
-			const gameId = urlParams.get('gameId');
+  <!-- Game End Prompt -->
+  <div id="endPrompt" class="hidden flex flex-col items-center justify-center min-h-screen">
+    <div id="endPromptText" class="text-red-500"></div>
+    <div id="endPromptButton" class="text-blue-500" onclick="endFunction()">OK</div>
+  </div>
 
-			const startData = JSON.parse(decodeURIComponent(urlParams.get('startData')));
-			const player1Token = urlParams.get('player1Token');
-			const player2Token = urlParams.get('player2Token'); // might be null if not provided
-			// somehow this logic needs to be token isntead of players, incase of remot eplay
-			if (player2Token) {
-				console.log("Player 2 token detected:", player2Token);
-				// Proceed with local multiplayer logic
-			} else {
-				console.log("No Player 2 token — assuming remote or single-player mode");
-				// Proceed with single-player or remote logic
-			}
-//			const token = urlParams.get('token');
+  <script src="script.js"></script>
 
-			console.log('game ID:', gameId);
-			console.log('token:', player1Token);
-
-			// window sizes and framerate etc
-			const height = window.innerHeight;
-			const width = window.innerWidth;
-			const paddleOffset = 100; // how far are paddles from window edges in pixels
-			const fps = 60; // don't change unless change also in server
-
-			const victory_score = 2;
-
-			// key related
-			const controls = ["w", "s", "ArrowUp", "ArrowDown"];
-			const keysDown = [false, false, false, false];
-
-			// elements
-			const paddle1 = document.getElementById("paddle1");
-			const paddle2 = document.getElementById("paddle2");
-			const ball = document.getElementById("ball");
-
-			// init paddle size and offset, and ball size in css
-			paddle1.style.left = paddleOffset + "px";
-			paddle2.style.right = paddleOffset + "px";
-
-			const paddleHeight = height / 5;
-			const paddleWidth = paddleHeight / 10;
-			document.querySelector('.paddle').style.height = paddleHeight + "px";
-			document.querySelector('.paddle').style.width = paddleWidth + "px";
-
-			const ballSize = Math.min(height, width) / 20;
-			document.querySelector('.ball').style.height = ballSize + "px";
-			document.querySelector('.ball').style.width = ballSize + "px";
-
-			let positions;
-			let gameReady = false;
-			// web
-			const webSocket = new WebSocket("ws://localhost:3000/ws");
-
-			webSocket.onopen = (event) => {
-				console.log("WebSocket connection opened.");
-				console.log('Sending init message game id:', gameId);
-				webSocket.send(JSON.stringify({gameId: gameId, type: 'initPlayer', token: player1Token}));
-			};
-
-			/* This is a test function */
-			function resettest() {
-				webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["ball", "gameRunning"]}));
-				webSocket.send(JSON.stringify({type: "resetScore"}));
-				document.getElementById("scoretest").textContent = "Score: 0 | 0";
-				document.getElementById("resulttest").textContent = "";
-				document.getElementById("resettestbutton").style.display = "none";
-			}
-
-			webSocket.onmessage = (event) => {
-				if (typeof event.data !== 'string') {
-					console.warn('Unexpected non-string WebSocket message:', event.data);
-					return;
-				} else {
-					try {
-						const data = JSON.parse(event.data);
-						// console.log("should be doing the thingdata.data", Array.from(data.data.entries()));
-						if (data.type == 'update_game') {
-							console.log("update is activated");
-							positions = data.data;//JSON.parse(event.data);
-						} else if (data.type == 'update_score') {
-							document.getElementById("scoretest").textContent = "Score: " + data.player1_score + " | " + data.player2_score;
-							if (data.player1_score == victory_score)
-							{
-								document.getElementById("resulttest").textContent = "Player 1 won!";
-								document.getElementById("resettestbutton").style.display = "inline-block";
-							}
-							else if (data.player2_score == victory_score)
-							{
-								document.getElementById("resulttest").textContent = "Player 2 won!";
-								document.getElementById("resettestbutton").style.display = "inline-block";
-							}
-							else
-								webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["ball", "gameRunning"]}));
-						} else if (data.type == 'welcome'){
-							console.log(data.msg);
-						} else if (data.type == 'init_ack'){
-							 webSocket.send(JSON.stringify({gameId: gameId, type: 'start_loop', token: player1Token}));
-							 gameReady = true;
-						} else if (data.type == 'playerInit_ack') {
-							webSocket.send(JSON.stringify({
-								type: "init",
-								gameId: gameId,
-								token: player1Token,
-								payload: {
-									height: height,
-									width: width,
-									ballSize: ballSize,
-									paddleHeight: paddleHeight,
-									paddleWidth: paddleWidth,
-									paddleOffset: paddleOffset
-								}
-							}));
-						}
-						// if reconnect we must have stored these tokens
-						//eg sessionStorage.setItem('playerToken', playerToken);
-						//	sessionStorage.setItem('gameId', gameId);
-						// then resend the tokens for verification.
-
-					} catch (err) {
-					  console.error('Invalid JSON from server:', event.data);
-					}
-
-				//const data = JSON.parse(event.data);
-				//if (data.type == 'update_game'){
-				//	positions = data.data;//JSON.parse(event.data);
-				//}
-				//if (data.type == 'init_ack') {
-				//	console.log(data.message); // logs "Init succeeded"
-				//	positions =
-				//	// Or show it on the page:
-				//	document.body.insertAdjacentHTML('beforeend', `<p>${data.message}</p>`);
-				//	//webSocket.send(JSON.stringify({
-				//	//	type: "initPlayer",
-				//	//	player1: player1Token,
-				//	//	player2: player2Token
-				//	//}))
-				//}
-				}
-			};
-
-			webSocket.onclose = (event) => {
-				console.log("WebSocket connection closed.");
-			};
-
-			document.addEventListener("keydown", (e) => {
-				for (let i = 0; i < 4; ++i) {
-					if (e.key == controls[i]) keysDown[i] = true;
-				}
-			});
-
-			document.addEventListener("keyup", (e) => {
-				for (let i = 0; i < 4; ++i) {
-					if (e.key == controls[i]) keysDown[i] = false;
-				}
-			});
-
-			function render() {
-				// set <div> elements' positions that came from server
-				if (!positions) return requestAnimationFrame(render);
-				paddle1.style.top = positions[0] + "px";
-				paddle2.style.top = positions[1] + "px";
-				ball.style.top = positions[2] + "px";
-				ball.style.left = positions[3] + "px";
-				requestAnimationFrame(render);
-			}
-			requestAnimationFrame(render);
-
-			setInterval(() => {
-				// send which keys are pressed down as json with payload
-				if (webSocket.readyState === WebSocket.OPEN && gameReady) {
-					webSocket.send(JSON.stringify({gameId: gameId, type: 'keys', payload: keysDown }));
-				}
-
-				//webSocket.send(JSON.stringify(keysDown));
-			}, 1000 / fps);
-		</script>
-	</body>
+</body>
 </html>
 

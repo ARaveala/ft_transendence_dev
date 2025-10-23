@@ -1,111 +1,79 @@
 
-'use strict';
+	'use strict';
+	const { logger, log } = require('@logger');
+	const fastify = require('fastify')({ logger });
 
-/*----------------
-  Bootstrapping
-------------------*/
-require('module-alias/register');
-require('dotenv').config();
+	const app = fastify;
 
-const Fastify = require('fastify');
-const cookie = require('@fastify/cookie');
-const cors = require('@fastify/cors');
-const path = require('path');
-const fastifyStatic = require('@fastify/static');
+	// set up fucntion userRoutes , require from user.js
+	//this will be split later into multiple files we can use this now as the tetsing ground
+	const userRoutes = require('@routes/user.js');
+	const friendRoutes = require('@routes/friends.js');
+	const friendContext = require('@routes/context.js');
+	
+	
+	const tournamentRoutes = require('@routes/tournament/tournament.js');
+	const tournamentContext = require('@routes/tournament/context.js');
+	// set up context, require from context.js 
+	// there will be multiple index or context.txt for each file ....
+	const context = require('@context');
+	const {db, secure} = context;
+	// attatch context to fucntion options 
+	fastify.register(userRoutes, context);
+	fastify.register(tournamentRoutes, tournamentContext)
+	fastify.register(friendRoutes, context);
 
-const fastify = Fastify({ logger: true });
+	// set up auth routes with context
+	const authRoutes = require('@Rauth/auth.js');
+	const authcontext = require('@Rauth/context.js');
+	fastify.register(authRoutes, authcontext);
 
-/*-------------
-  Plugins
----------------*/
-fastify.register(cookie, {
-  secret: process.env.COOKIE_SECRET || 'dev-only',
-});
-fastify.register(cors, {
-  origin: true,
-  credentials: true,
-});
+	const profileRoutes = require('@Rprofile/profile.js');
+	const profilecontext = require('@Rprofile/context.js');
+	fastify.register(profileRoutes, profilecontext);
 
-/*----------------
-  Error handling
-------------------*/
-const formatError = require('./utils/errorFormatter.js');
 
-fastify.setNotFoundHandler((req, reply) => {
-  reply.code(404).send({ error: 'NOT_FOUND', path: req.url });
-});
+	// Attach WebSocket server to Fastify's internal server
+	const setUpWebSockets = require('@Wbs/startUp.js');
 
-fastify.setErrorHandler((err, _req, reply) => {
-  try {
-    if (err && err.validation) {
-      const body = formatError.formatValidationError(err, 'validation');
-      reply.code(400).send(body);
-      return;
-    }
-  } catch (e) {
-    fastify.log.error({ err: e }, 'validation formatter exploded');
-  }
+	const errorCodes = require('@sharedEcode');
+	const formatError = require("@errors");
 
-  const body = formatError.formatServerError(err);
-  const status = Number.isInteger(err?.status)
-    ? err.status
-    : Number.isInteger(err?.statusCode)
-    ? err.statusCode
-    : 500;
+	const {gameRoutes} = require('@Rgame');
+	fastify.register(gameRoutes, context);
 
-  fastify.log.error({ err }, 'Server error');
-  reply.code(status).send(body);
-});
+	const path = require('path');
 
-/*----------------
-  Routes wiring
-------------------*/
-const db = require('@db/initDB.js');
-const secure = require('@security');
+	// websocket handlers
+	//const WBhandlers = require ('Webscoket/');
+	const cookie = require('@fastify/cookie');
+	// utalizes api routing from  routes/user.js
 
-// Auth endpoints
-{
-  const authRoutes = require('@Rauth/auth.js');
-  const authContext = require('@Rauth/context.js');
-  fastify.register(authRoutes, authContext);
-}
+//	const tournamentRoutes = require('./routes/tournament/tournament');
+//	fastify.register(tournamentRoutes, { db, secure });
 
-// Profile endpoints
-{
-  const profileRoutes = require('@Rprofile/profile.js');
-  const profileContext = require('@Rprofile/context.js');
-  fastify.register(profileRoutes, profileContext);
-}
+	fastify.register(cookie);
+	// no i need to register all of above? not just user routes
 
-// Tournament endpoints
-{
-  const tournamentRoutes = require('@routes/tournament/tournament.js');
-  const tournamentContext = require('@routes/tournament/context.js');
-  fastify.register(tournamentRoutes, { db: tournamentContext.db, secure: tournamentContext.secure });
-}
 
-// Game endpoints (you already have this)
-{
-  const gameRoutes = require('@Rgame');
-  const db = require('@db/initDB.js');
-  const secure = require('@security');
-  fastify.register(gameRoutes, { db, secure });
-}
+	// These are for easy testing
+	fastify.get('/', async (request, reply) => {
+	return { hello: 'world' };
+	});
+	fastify.get('/status', async (request, reply) => {
+		const status = {"status": "API is online!"};
+		return status;
 
-/*----------------
-  WebSockets
-------------------*/
-const setUpWebSockets = require('@Wbs/startUp.js');
+	});
 
-/*-------------------
-  Start the engine
----------------------*/
-fastify.get('/health', async () => ({ ok: true }));  // <-- move this up
 
-async function start() {
-  try {
-    const port = parseInt(process.env.PORT ?? '3000', 10);
-    const host = process.env.HOST || '0.0.0.0';
+	const fastifyStatic = require('@fastify/static');
+
+	fastify.register(fastifyStatic, {
+	root: path.join(__dirname, 'test_harness'), // or wherever your HTML lives
+	prefix: '/test_harness/', // serve files from root
+	index: false // disables auto-redirect to index.html
+	});
 
 	fastify.register(fastifyStatic, {
 	root: path.join(__dirname, 'pong_game'),

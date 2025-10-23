@@ -5,13 +5,16 @@ import TournamentSetup from "../components/tournament/TournamentSetup";
 import type { TournamentState, Match } from "../types/tournament";
 import Button from "../components/ui/Button";
 import { API_PROTOCOL } from "../../shared/api-protocols";
+import { useAuth } from "../context/AuthContext";
 import { CreateTournamentPayload, CreateTournamentResponse, GetActiveTournamentResponse, StartTournamentMatchPayload, StartTournamentMatchResponse } from "../../shared/payloads";
+
 
 const TournamentLobby: React.FC = () => {
   const [tournament, setTournament] = useState<TournamentState | null>(null);      // Main tournament state (null means there is no tournament yet)
   const [showSetup, setShowSetup] = useState(false);                               // Indicates whether we are in tournament setup mode (adding players etc.)
   const [activeGameId, setActiveGameId] = useState<string | null>(null);           // Game state: which match is currently active
   const [currentGameMatch, setCurrentGameMatch] = useState<Match | null>(null);
+  const { user, isLoggedIn, loading, refreshSession } = useAuth();
 
    /*
    * Creates a new tournament
@@ -44,9 +47,15 @@ const TournamentLobby: React.FC = () => {
       }
     };
     
-    useEffect(() => {
-      loadTournament();
-    }, []);
+	//Load tournament only after auth finishes and user is logged in
+	useEffect(() => {
+		if (isLoggedIn) {
+			loadTournament();
+		} else {
+			setTournament(null);
+			setShowSetup(false);
+		}
+	}, [isLoggedIn]);
 
 
   const handleCreateTournament = async () => {
@@ -65,6 +74,7 @@ const TournamentLobby: React.FC = () => {
     if (data.status === "OK") {
         setTournament(data.tournament);
         setShowSetup(true);
+		await refreshSession(); // Refresh session to update user tournament status
       } else {
         console.error("Error creating tournament:", data.error);
       }
@@ -98,6 +108,7 @@ const TournamentLobby: React.FC = () => {
 
       setTournament(null);
       setShowSetup(false);
+	  await refreshSession(); // Refresh session to update user tournament status
     } catch (err) {
       console.error("Error cancelling tournament:", err);
     }
@@ -140,6 +151,23 @@ const TournamentLobby: React.FC = () => {
     setCurrentGameMatch(null);
     setActiveGameId(null);
   };
+
+	//  Handle AuthContext states first
+	if (loading) {
+		return (
+		<div className="p-6 text-center text-gray-300">
+			Loading tournament info...
+		</div>
+		);
+	}
+
+	if (!isLoggedIn) {
+		return (
+		<div className="p-6 text-center text-gray-300">
+			Please log in to view tournaments.
+		</div>
+		);
+	}
 
   return (
     <>
@@ -203,14 +231,3 @@ const TournamentLobby: React.FC = () => {
 };
 
 export default TournamentLobby;
-
-
-
-{/*
-window.addEventListener("message", (event) => {    // to automatically close iframe when the match ends and pong game sends a message that match ended
-  if (event.data?.type === "MATCH_END") {
-    handleMatchEnd();
-  }
-});
-
-*/}

@@ -130,7 +130,7 @@ export const handlers = [
             if (!newAvatar) {
                     return HttpResponse.json(
                             { status: "ERROR", error: "no avatar" } satisfies UpdateProfileResponse,
-                            { status: 400 }, 
+                            { status: 400 },
                     );
             }
             mockProfile.avatarFile = newAvatar;
