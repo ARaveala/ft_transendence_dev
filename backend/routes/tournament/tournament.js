@@ -275,6 +275,25 @@ function buildTournamentPlayerList(players) {
 	return fullPlayerList;
 }
 
+
+async function getTournamentState(players, tournamentId, tournamentStatus) {
+
+	  const full_list = buildTournamentPlayerList(players);
+	flog.debug({function: 'getTournamentState', full_list: full_list}, 'tournament state data fetched ');
+
+  const tournamentState = {
+    tournament_id: tournamentId,
+    status: tournamentStatus,
+    players: full_list,
+    currentMatch: undefined,
+    bracket: [],
+    winner: undefined,
+    createdAt: undefined,
+    lastUpdated: undefined
+  };
+
+  return tournamentState;
+}
 /**
  * 
  * @param {*} fastify fastify instance
@@ -303,27 +322,17 @@ async function createTournament(fastify, options){
 				//flog.debug({function: 'createTournament', tournamentId}, 'tournament id created ');
 				// check id valid didnt fail, catch will also catch
 				const tournamentStatus = await DBtour.getActiveTournamentStatus(tournamentId);
+
+
 				// check status valid didnt fail, catch will also catch
 				//flog.debug({function: 'createTournament', tournamentId: tournamentId, status: tournamentStatus}, 'tournament id created ');
 				await DBtour.createTournamentPlayer(tournamentId, userId.id, "", 1, "player1", true);
 				flog.debug({function: 'createTournament', tournamentId: tournamentId, userId: userId.id}, 'tournament player created ');
+				
 				const players = await DBtour.getTournamentPlayersWithUsernames(tournamentId)
 				flog.debug({function: 'createTournament', players: players}, 'tournament players ');
-				const full_list = buildTournamentPlayerList(players, userId, token);
-				flog.debug({function: 'createTournament', players: full_list}, 'tournament players list ');
-				//const player = getTournamentPlayerById(userId.id);
-				let tournamentState = {
- 					tournament_id: tournamentId,//game.generateRandomId(),
- 					status: tournamentStatus.status,
- 					players: [
-						...full_list						
-					],
- 					currentMatch: [],//,undefined, //Match,
- 					bracket: [], //Match[][]
- 					winner: undefined,
- 					createdAt: undefined,
- 					lastUpdated: undefined
- 				}
+				const tournamentState = await getTournamentState(players, tournamentId, tournamentStatus);
+				
  				reply.code(200).send({status: 'OK', tournament: tournamentState});
  			}
  			catch (err){
@@ -345,16 +354,22 @@ async function verifyPlayer(fastify, options){
  				const token = request.cookies.auth_token;
  				const userId = secure.getUserIdFromToken(token)
 				const otherUserId = await DBget.miniLogin(username, password);
+				flog.debug({function: 'verifyPlayer', tid: currentTournamentId}, 'showing we have tournamnetid ');
 				if (otherUserId){
-					// is this the right way to handle role swap ? 
-					DBtour.createTournamentPlayer(currentTournamentId, otherUserId.id, alias, Number(role.replace('player','')), role, true);
+					// is this the right way to handle role swap ?
+					flog.debug({function: 'verifyPlayer', otherUserId: otherUserId.id, role: role}, 'verified player id and role ');
+					await DBtour.createTournamentPlayer(currentTournamentId, otherUserId.id, alias, Number(role.replace('player','')), role, true);
+					flog.debug({function: 'verifyPlayer'}, '!!!!!!player verified and added to tournament ');
+					
 				}
+				const tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(currentTournamentId), currentTournamentId, await DBtour.getActiveTournamentStatus(currentTournamentId));
 				// check verified user
  				reply.code(200).send({status: 'OK', tournament: tournamentState}); //wrong
  			}
  			catch (err){
  				flog.error({fucntion: 'createTournament'}, "error :: in verify player", err); //wrong
- 			}
+				reply.code(500).send({ status: 'ERROR', error: 'Verification failed?' });
+			}
  		}
  	});
 }
@@ -467,6 +482,7 @@ async function verifyPlayer(fastify, options){
 async function tournamentRoutes(fastify, options) {
 	await createTournament(fastify, options);
 	await verifyPlayer(fastify, options);
+	//await getTournamentState(tournamentId, userId, token);
 }
 
 

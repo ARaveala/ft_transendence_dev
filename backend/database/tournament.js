@@ -63,9 +63,28 @@ function getActiveTournamentStatus(tId) {
  * existing player id would verify logged in.
  * @returns 
  */
+
+
+
 function createTournamentPlayer(tournamentId, playerId, alias, seed, role, verified) {
-	flog.debug({ function: 'createTournamentPlayer' }, 'Adding player to tournament');
+	flog.debug({ function: 'createTournamentPlayer', playerid: playerId }, 'Adding player to tournament');
 		return new Promise((resolve, reject) => {
+			// db.get('SELECT id FROM tournaments WHERE id = ?', [tournamentId], (err, tournamentRow) => {
+			//      if (err) return reject(err);
+			//      if (!tournamentRow) {
+			//		flog.error({ function: 'createTournamentPlayer', tournamentId}, 'Tournament does not exist');
+			//        return reject(new Error(`Tournament ${tournamentId} does not exist`));
+			//      }
+			//  
+			//      // Then check that the user exists
+			//      db.get('SELECT id FROM users WHERE id = ?', [playerId], (err, userRow) => {
+			//        if (err) return reject(err);
+			//        if (!userRow) {
+			//			flog.error({ function: 'createTournamentPlayer', playerId}, 'User does not exist');
+			//          return reject(new Error(`User ${playerId} does not exist`));
+			//        }
+			// });
+			//})			
 			db.run('INSERT INTO tournament_players (tournament_id, user_id, alias, seed, player_role, verified) VALUES (?, ?, ?, ?, ?, ?)', 
 				[tournamentId, playerId, alias, seed, role, verified], function onDone(err) {
 				if (err) {
@@ -152,6 +171,23 @@ function getTournamentPlayerById(userId) {
 		});
 }
 
+function getTournamentById(tournamentId) {
+	flog.debug({ function: 'getTournamentById' }, 'Fetching tournament by ID');
+		return new Promise((resolve, reject) => {
+			db.get('SELECT * FROM tournaments WHERE id = ?',[tournamentId], (err, row) =>{
+				if (err) {
+					console.error('DB error:', err);
+					reject({ error: 'DB error fetch' });
+				} else if (!row) {
+					console.warn('No tournament found with given ID');
+					reject({ error: 'No tournament found' });
+				} else {
+					flog.info({ function: 'getTournamentById', tournament: row }, 'Tournament found by ID');
+					resolve(row);
+				}
+			});
+		});
+}
 
 module.exports = {
 	createTournament,
@@ -159,4 +195,5 @@ module.exports = {
 	createTournamentPlayer,
 	getTournamentPlayerById,
 	getTournamentPlayersWithUsernames,
+	getTournamentById,
 };

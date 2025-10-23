@@ -186,6 +186,7 @@ async function miniLogin(username, password) {
         return reject({ error: 'Invalid password' });
       }
       // Return minimal info — no profile data
+	  flog.info({ function: 'miniLogin', userId: row.id}, 'mini login success ');
       resolve({ id: row.id});
     });
   });
