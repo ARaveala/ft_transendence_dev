@@ -187,11 +187,11 @@ function getTournamentPlayers(tid) {
 					flog.info({ function: 'getTournamentPlayers', players: rows }, 'Tournament players found');
 				if (rows.length === 4) {
 					flog.info({ function: 'getTournamentPlayersALL', tid: tid }, '4 players found for tournament');
-					return resolve({full: true});
+					return resolve(rows);
 
 				}
 				else {
-					return resolve({full: false});
+					return resolve(rows);
 				}
 				}
 			}
@@ -276,7 +276,7 @@ CREATE TABLE IF NOT EXISTS brackets
 
 //status pending
 function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status){
-	const bracket_pos = 0;
+	let bracket_pos = 0;
 	if (round === 1 || 3)
 	{
 		bracket_pos = 1;
@@ -284,18 +284,27 @@ function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status)
 	else {
 		bracket_pos = 2;
 	}
-	db.run('INSERT INTO brackets (tournament_id, p1_id, p2_id, game_uid, round, status, bracket_pos) VALUES (?, ?, ?, ?, ?, ?)', 
+	return new Promise((resolve, reject) => {
+	db.run('INSERT INTO brackets (tournament_id, p1_id, p2_id, game_uid, round, status, bracket_pos) VALUES (?, ?, ?, ?, ?, ?, ?)', 
 		[tournamentId, player1Id, player2Id, gameid, round, status, bracket_pos], function onDone(err) {
-		if (err || !row) {
+		if (err) {
 			flog.error({ function: 'DBbuild bracket', err}, 'DB error adding player to tournament:');
 			return reject(err);
 		}
 		flog.info({ function: 'DBbuild bracket', tournamentId, player1Id, player2Id}, 'Players added to bracket');
-		resolve(row);
-		}
-	);
+		 const insertedId = this.lastID;
+	    db.get(
+	      'SELECT * FROM brackets WHERE id = ?',
+	      [insertedId],
+	      (err2, row) => {
+	        if (err2) return reject(err2);
+	        resolve(row); // now you have the full row object
+          }
+        );
+      }
+    );
+  });
 }
-
 
 function updateTournamentStatus(tournamentId, newStatus) {
 	flog.debug({ function: 'updateTournamnetStatus',}, 'Updating tournamnetStatus in tournament');

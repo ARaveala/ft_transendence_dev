@@ -112,21 +112,25 @@ function addPlayer(gameId, playerId, playerData) {
 	game.players.set(playerId, playerData);
 	console.log('After adding:', Array.from(game.players.entries()));
 }
-
+//player role also send
 function createGameCore(userId, type, mode, alias) {
 	try{
 		//if (userId === undefined)
 		//{
 		//	if undefined no owner 
 		//}
-		const gameId = createGameMap(user1, type, mode);
-		addPlayer(gameId, user1.id, {type: "login", ws: undefined, role: "player1", alias: alias, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
-		log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
+		//flog.debug({function: 'createGameCore', id: userId, type: type, mode: mode, alias: alias}, "entering the fucntion now ");
+		const gameId = createGameMap(userId, type, mode);
+		//flog.debug({function: 'createGameCore', gameId}, 'game id should be created')
+		addPlayer(gameId, userId, {type: "login", ws: undefined, role: "player1", alias: alias, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+		//flog.debug({function: 'createGameCore'}, 'player added ');
+		//log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
+		return gameId;
+
 	} catch {
 		flog.error({ function: 'createGameCore', userId: userId, type: type, mode: mode }, 'Error creating game core');
 		throw new Error('Game initialization failed');
 	}
-	return gameId;
 }
 
 async function createGame(fastify, options) {

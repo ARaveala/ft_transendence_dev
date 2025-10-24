@@ -280,10 +280,13 @@ function buildTournamentPlayerList(players) {
 
 
 async function getTournamentState(players, tournamentId, tournamentStatus) {
-
+	//flog.debug({function: 'getTournamentState', players: players, tid: tournamentId, status: tournamentStatus}, 'creating the tournamnet state ');
 	const full_list = buildTournamentPlayerList(players);
-//	flog.debug({function: 'getTournamentState', full_list: full_list}, 'tournament state data fetched ');
-
+	//flog.debug({function: 'getTournamentState', full_list: full_list}, 'tournament state data fetched ');
+//	let status = tournamentStatus;
+//	if (typeof tournamentStatus === 'object') {
+//		status = tournamentStatus.status;
+//	}
   const tournamentState = {
     tournament_id: tournamentId,
     status: tournamentStatus,
@@ -294,7 +297,7 @@ async function getTournamentState(players, tournamentId, tournamentStatus) {
     createdAt: undefined,
     lastUpdated: undefined
   };
-//  flog.debug({function: 'getTournamentState', tournamentState: tournamentState}, 'tournament state built +++++++++');
+ // flog.debug({function: 'getTournamentState', tournamentState: tournamentState}, 'tournament state built +++++++++');
   return tournamentState;
 }
 /**
@@ -378,14 +381,15 @@ async function verifyPlayer(fastify, options){
 						flog.debug({function: 'verifyPlayer'}, '!!!!!!player verified and added to tournament ');
 						const checkFull = await DBtour.getTournamentPlayers(currentTournamentId);
 						flog.debug({function: 'verifyPlayer', checkFull: checkFull}, '!!!!!!checking if tournament full ');
-						if (checkFull.full === true){
+//						if (checkFull.full === true){
+						if (checkFull && checkFull.length === 4) {
 							flog.debug({function: 'verifyPlayer'}, '!!!!!!all players verified setting tournament to ready ');
 							await DBtour.updateTournamentStatus(currentTournamentId, 'ongoing');
 
 						}
 						tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(currentTournamentId), 
 						currentTournamentId, await DBtour.getActiveTournamentStatus(currentTournamentId), false);
-						if (checkFull.full === true){
+						if (checkFull && checkFull.length  === 4){
 							tournamentState.can_start = true;
 						}
 
@@ -404,19 +408,55 @@ async function verifyPlayer(fastify, options){
  		}
  	});
 }
+/**
+ * 
+ * id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tournament_id INTEGER,
+    p1_id INTEGER,
+    p2_id INTEGER,
+    p1_score INTEGER NOT NULL DEFAULT 0,
+    p2_score INTEGER NOT NULL DEFAULT 0,
+    winner_id INTEGER,
+    round INTEGER,
+    bracket_pos INTEGER,
+	game_uid TEXT UNIQUE,
+    status TEXT NOT NULL DEFAULT 'waiting'
+        CHECK (status IN ('waiting', 'pending', 'ongoing', 'finished')),
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+    FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
+);
+ */
+async function createMatches(player1, player2, bracket){
+//same is logic as buildfulllist? 
+flog.warn({function: 'createMatches'}, 'entering create matches');
+flog.warn({function: 'createMatches', bracket: bracket}, 'entering create matches');
+	if (player1 === null && player2 === null) {
 
-async function createMatches(players, match_id){
-//same is logic as buildfulllist?
-	/**
-	 *       {
-        match_id: "round1match1",
-        player1: fullPlayers[0],
-        player2: fullPlayers[1],
-        winner: TBD_PLAYER,
+		player1 = {
+			username: "TBD",
+			alias: "TBD",
+			status: "waiting",
+			score: 0,
+			isSelf: false,
+		}
+		player2 = {
+			username: "TBD",
+			alias: "TBD",
+			status: "waiting",
+			score: 0,
+			isSelf: false,
+		}
+	}
+const ret = {
+        match_id: bracket.tournament_id,
+        player1: player1,
+        player2: player2,
         status: "pending",
-        score: { player1: 0, player2: 0 },
-      },
-	 */
+        score: { player1: player1.score, player2: player2.score },
+	}
+	return ret;
 }
 
 /**
@@ -448,13 +488,21 @@ async function startTournament(fastify, options){
 	 			const token = request.cookies.auth_token;
 	 			const userId = secure.getUserIdFromToken(token);
 
-				const players = DBtour.getTournamentPlayers(currentTournamentId);
-				//this will sort into order highest to lowest 
-				players.sort((a, b) => a.seed - b.seed);
+				const players = await DBtour.getTournamentPlayers(currentTournamentId);
+				flog.debug({function : 'startTournament'}, 'players fetched');
+				//this will sort into order highest to lowest ERROR here 
+				//players.sort((a, b) => a.seed - b.seed);
+				//memeba to do this 
+
+
 //addPlayer(gameId, userId, {type: type, ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+				//flog.debug({function : 'startTournament', players: players}, 'players sorted by seed');
+				flog.debug({function : 'startTournament', player: players[0]}, 'players sorted by seed');
 
 				// Round 1: seed 1 vs seed 4
-				const gameId1 = game.createGamecore(players[0].user_id, 'tournament', 'local');
+				const gameId1 = game.createGameCore(players[0].user_id, 'tournament', 'local', players[0].alias);
+				flog.debug({function : 'startTournament'}, 'heloooooooooooooooooooooo    game 1 is created');
+
 				game.addPlayer(gameId1, players[3].user_id, {
 					type: 'login',
 					ws: undefined,
@@ -465,17 +513,22 @@ async function startTournament(fastify, options){
 					pauseTimeout: undefined,
 					score: players.score
 				})
-				const match1 = await DBtour.buildBracket(
-				  tournamentId,
+				let matchSetup = await DBtour.buildBracket(
+				  currentTournamentId,
 				  players[0].user_id,
 				  players[3].user_id,
 				  gameId1,
 				  1, // round
 				  'pending'
 				);
+				
+				const match1 = await createMatches(players[0], players[3], matchSetup);
+				flog.debug({function :'startTournament', match1: match1}, '!!!!!!!!!!!!!!!!!!!!!show me if match was creaqted for gods sake im gonna shoot someone"""""""""""');
 				// Round 2
-				const gameId2 = game.createGamecore(players[1].user_id, 'tournament', 'local');
-				game.addPlayer(gameId1, players[2].user_id, {
+				const gameId2 = game.createGameCore(players[1].user_id, 'tournament', 'local', players[1].alias);
+				flog.debug({function : 'startTournament'}, 'game 2 is created');
+
+				game.addPlayer(gameId2, players[2].user_id, {
 					type: 'login',
 					ws: undefined,
 					role: players.player_role,
@@ -485,36 +538,43 @@ async function startTournament(fastify, options){
 					pauseTimeout: undefined,
 					score: players.score
 				})
-				const match2 = await DBtour.buildBracket(
-				  tournamentId,
+				matchSetup = await DBtour.buildBracket(
+				  currentTournamentId,
 				  players[1].user_id,
 				  players[2].user_id,
 				  gameId2,
 				  2, // round
 				  'pending'
 				);
-				
-				const gameId3 = game.createGamecore(undefined, 'tournament', 'local');
-				const match3 = await DBtour.buildBracket(
-				  tournamentId,
+				const match2 = await createMatches(players[1], players[2], matchSetup);
+				const gameId3 = game.createGameCore(undefined, 'tournament', 'local');
+				flog.debug({function : 'startTournament'}, 'game 3 is created');
+
+				matchSetup = await DBtour.buildBracket(
+				  currentTournamentId,
 				  null,
 				  null,
 				  //players[0].user_id,
 				  //players[3].user_id,
-				  gameId1,
+				  gameId3,
 				  3, // round
 				  'pending'
 				);
+				flog.debug({function: 'startTournament', matchSetup: matchSetup}, 'on 3-------------------------show me the bakcet before sending ');
 
+				const match3 = await createMatches(null, null, matchSetup);
+				const status = await DBtour.getActiveTournamentStatus(currentTournamentId);
+				let tournamentState = await getTournamentState(players, currentTournamentId, status.status);
+				flog.debug({function: 'startTournament', tournamentState: tournamentState}, "showing state before adding extra bits");
+				tournamentState.currentMatch = match1;
+				tournamentState.bracket = [[match1, match2], [match3]];
 
-				const tournamentState = getTournamentState(players, currentTournamentId, tournamentStatus);
-				tournamentState.match = [match1, match2, match3];
-//				const gameId = game.createGamecore(userId.id, 'tournament', 'local');
-//				const match = DBtour.buildBracket(tournamentId, player1Id, player2Id, gameid, round, 'pending');
 				flog.debug({function: 'startTournament', tid: currentTournamentId, userId: userId.id}, 'starting tournament ');
-
+				
+				flog.debug({function: 'startTournament', tournamnetState: tournamentState}, 'FINAL GAME STATE ');
+				reply.code(200).send({status: 'OK', tournament: tournamentState});
 			} catch (err) {
-				flog.error({fucntion: 'startTournament'}, "error :: in start tournament", err); //wrong
+				flog.error({fucntion: 'startTournament', errStack: err.stack, errMessage: err.message}, "error :: in start tournament"); //wrong
 				reply.code(500).send({ status: 'ERROR', error: 'Start tournament failed?' });//wrong	
 			}
 		}
@@ -525,36 +585,37 @@ async function startTournament(fastify, options){
 
 
 
-    const fullPlayers = currentTournament?.players || [];
-
-    // First round matches
-    const firstRound: Match[] = [
-      {
-        match_id: "round1match1",
-        player1: fullPlayers[0],
-        player2: fullPlayers[1],
-        winner: TBD_PLAYER,
-        status: "pending",
-        score: { player1: 0, player2: 0 },
-      },
-      {
-        match_id: "round1match2",
-        player1: fullPlayers[2],
-        player2: fullPlayers[3],
-        winner: TBD_PLAYER,
-        status: "pending",
-        score: { player1: 0, player2: 0 },
-      },
-    ];
-
-    const final: Match = {
-      match_id: "finalmatch",
-      player1: { ...TBD_PLAYER },
-      player2: { ...TBD_PLAYER },
-      winner: { ...TBD_PLAYER },
-      status: "pending",
-      score: { player1: 0, player2: 0 },
-    };
+//    const fullPlayers = currentTournament?.players || [];
+//
+//    // First round matches
+//    const firstRound: Match[] = [
+//      {
+//        match_id: "round1match1",
+//        player1: fullPlayers[0],
+//        player2: fullPlayers[1],
+//        winner: TBD_PLAYER,
+//        status: "pending",
+//        score: { player1: 0, player2: 0 },
+//      },
+//      {
+//        match_id: "round1match2",
+//        player1: fullPlayers[2],
+//        player2: fullPlayers[3],
+//        winner: TBD_PLAYER,
+//        status: "pending",
+//        score: { player1: 0, player2: 0 },
+//      },
+//    ];
+//
+//    const final: Match = {
+//      match_id: "finalmatch",
+//      player1: { ...TBD_PLAYER },
+//      player2: { ...TBD_PLAYER },
+//      winner: { ...TBD_PLAYER },
+//      status: "pending",
+//      score: { player1: 0, player2: 0 },
+//    };
+//
 
 /**
  * 2. maybe request all registered players
@@ -664,6 +725,7 @@ async function startTournament(fastify, options){
 async function tournamentRoutes(fastify, options) {
 	await createTournament(fastify, options);
 	await verifyPlayer(fastify, options);
+	await startTournament(fastify, options);
 	//await getTournamentState(tournamentId, userId, token);
 }
 
