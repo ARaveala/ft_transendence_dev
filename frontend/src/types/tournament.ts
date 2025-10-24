@@ -36,3 +36,11 @@ export interface TournamentState {
   can_start?: boolean;
   pending_players?: number;
 }
+
+
+type GameResultPayload = {
+  gameId: string;
+  winner: string;
+  loser: string;
+  score: [number, number];
+};

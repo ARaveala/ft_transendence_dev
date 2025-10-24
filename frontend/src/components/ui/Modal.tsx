@@ -1,85 +1,104 @@
 import React, { useState } from "react";
 import Button from "./Button";
+import { useTranslation } from "../../shared/Translation";
 
 // Props interface for the Modal component
 interface ModalProps {
-isOpen: boolean;      // Controls whether the modal is visible
-onClose: () => void;  // Callback to close the modal
-onFormSubmit: (data: {
-	username: string;
-	password: string;
-}) => void;            // Callback to send the registration data to parent
-mode?: "register" | "login"; // new prop to indicate mode
+	isOpen: boolean;      // Controls whether the modal is visible
+	onClose: () => void;  // Callback to close the modal
+	onFormSubmit: (data: {
+		username: string;
+		password: string;
+	}) => void;            // Callback to send the registration data to parent
+	mode?: "register" | "login"; // new prop to indicate mode
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFormSubmit, mode = "register" }) => {
-// Local state to track form inputs
-const [username, setUsername] = useState("");            // Username input
-const [password, setPassword] = useState("");            // Password input
-const [error, setError] = useState("");                  // Validation error message
+	const { t } = useTranslation();
 
-// If modal is not open, don't render anything
-if (!isOpen) return null;
+	// Local state to track form inputs
+	const [username, setUsername] = useState("");            // Username input
+	const [password, setPassword] = useState("");            // Password input
+	const [error, setError] = useState("");                  // Validation error message
 
-// Handles form submission
-const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-	e.preventDefault();
+	// If modal is not open, don't render anything
+	if (!isOpen) return null;
 
-	// Validates that username and password are provided
-	if (!username.trim() || !password.trim()) {
-	setError("Username and password are required.");
-	return;
-	}
-	// Clears any previous errors
-	setError("");
+	const title =
+		mode === "login" ? t("auth.title.login") : t("auth.title.register");
+	const buttonText =
+		mode === "login" ? t("auth.action.login") : t("auth.action.register");
 
-	// Calls parent's onSubmit callback with form data
-	onFormSubmit({
-	username,
-	password
-	});
-};
 
-const title = mode === "login" ? "Login" : "Register"; // dynamic title
-const buttonText = mode === "login" ? "Login" : "Register"; // dynamic button
+	// Handles form submission
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
 
-return (
-	<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-	<div className="bg-white text-black rounded-lg p-6 w-96">
-		<h2 className="text-xl font-bold mb-4">{title}</h2>
-		<form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-		{error && <p className="text-red-500">{error}</p>}
+		// Validates that username and password are provided
+		if (!username.trim() || !password.trim()) {
+			setError(t("error.auth.missingFields"));
+			return;
+		}
+		// Clears any previous errors
+		setError("");
 
-		{/* Username input */}
-		<input
-			type="text"
-			placeholder="Username"
-			value={username}
-			onChange={(e) => setUsername(e.target.value)}
-			className="p-2 border rounded"
-			required
-		/>
+		// Calls parent's onSubmit callback with form data
+		onFormSubmit({
+			username,
+			password
+		});
+	};
 
-		{/* Password input */}
-		<input
-			type="password"
-			placeholder="Password"
-			value={password}
-			onChange={(e) => setPassword(e.target.value)}
-			className="p-2 border rounded"
-			required
-		/>
-		{/* Submit and Close buttons */}
-		<div className="flex justify-between items-center mt-4">
-			<Button type="submit">{buttonText}</Button>
-			<Button type="button" onClick={onClose} className="bg-red-500 hover:bg-red-600">
-			Close
-			</Button>
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center">
+			<div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
+			<div className="relative w-[22rem] sm:w-[26rem] rounded-2xl border border-gray-700 bg-gray-900/95 text-gray-100 shadow-2xl">
+
+				<div className="px-5 pt-4">
+					<h2 className="text-lg font-bold">{title}</h2>
+				</div>
+
+			<form className="px-5 pb-5 pt-3 space-y-3" onSubmit={handleSubmit}>
+				{error && <p className="text-sm text-red-400">{error}</p>}
+
+				{/* Username input */}
+				<input
+					type="text"
+					placeholder={t("auth.placeholder.username")}
+					value={username}
+					onChange={(e) => setUsername(e.target.value)}
+					className="w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					required
+				/>
+
+				{/* Password input */}
+				<input
+					type="password"
+					placeholder={t("auth.placeholder.password")}
+					value={password}
+					onChange={(e) => setPassword(e.target.value)}
+					className="w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					required
+				/>
+
+				{/* Submit and Close buttons */}
+				<div className="flex justify-between items-center mt-4">
+					<Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+						{buttonText}
+					</Button>
+					<Button
+						type="button"
+						onClick={onClose}
+						className="bg-red-500 hover:bg-red-600"
+					>
+						{t("common.close")}
+					</Button>
+				</div>
+			</form>
 		</div>
-		</form>
 	</div>
-	</div>
-);
+	);
 };
 
 export default Modal;

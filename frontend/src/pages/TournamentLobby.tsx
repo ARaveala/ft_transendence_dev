@@ -2,61 +2,59 @@ import React, { useEffect, useState } from "react";
 import TournamentHeader from "../components/tournament/TournamentHeader";
 import TournamentBracket from "../components/tournament/TournamentBracket";
 import TournamentSetup from "../components/tournament/TournamentSetup";
+import GameSettings from "../components/game/GameSettings";
 import type { TournamentState, Match } from "../types/tournament";
 import Button from "../components/ui/Button";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useAuth } from "../context/AuthContext";
-import { CreateTournamentPayload, CreateTournamentResponse, GetActiveTournamentResponse, StartTournamentMatchPayload, StartTournamentMatchResponse } from "../../shared/payloads";
-
+import { CreateTournamentPayload,
+        CreateTournamentResponse,
+        GetActiveTournamentResponse,
+        StartTournamentMatchPayload,
+        StartTournamentMatchResponse
+      } from "../../shared/payloads";
 
 const TournamentLobby: React.FC = () => {
-  const [tournament, setTournament] = useState<TournamentState | null>(null);      // Main tournament state (null means there is no tournament yet)
+  const { user, isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
   const [showSetup, setShowSetup] = useState(false);                               // Indicates whether we are in tournament setup mode (adding players etc.)
+  const [player1Token, setPlayer1Token] = useState<string | null>(null);
+  const [player2Token, setPlayer2Token] = useState<string | null>(null);
   const [activeGameId, setActiveGameId] = useState<string | null>(null);           // Game state: which match is currently active
   const [currentGameMatch, setCurrentGameMatch] = useState<Match | null>(null);
-  const { user, isLoggedIn, loading, refreshSession } = useAuth();
+  const [gameSettings, setGameSettings] = useState<{
+      ballSpeed: number;
+      paddleSize: number;
+      paddleSpeed: number;
+      maxScore: number;
+  } | null>(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [gameResult, setGameResult] = useState<{
+      gameId: string;
+      winner: string;
+      loser: string;
+      score: [number, number];
+    } | null>(null);
+  
+    useEffect(() => {
+      function handleMessage(event: MessageEvent) {
+        if (event.origin !== "http://localhost:3000") return;
 
-   /*
+        if (event.data?.type === "GAME RESULT") {
+          console.log("Received game result from iframe:", event.data.payload);
+          setGameResult(event.data.payload);
+          handleMatchEnd(); // closes iframe
+        }
+      }
+      window.addEventListener("message", handleMessage);
+        return () => window.removeEventListener("message", handleMessage);
+    }, []);
+
+  /*
    * Creates a new tournament
    *  Triggered when user clicks "Start a new tournament"
    * - Sends a request to backend
    * - Stores tournament state in React
    */
-
-    //const loadTournament = async () => { 
-    //  try {
-    //    const res = await fetch(API_PROTOCOL.GET_ACTIVE_TOURNAMENT.path, {
-    //      method: API_PROTOCOL.GET_ACTIVE_TOURNAMENT.method,
-    //      credentials: "include",
-    //    }); 
-    //    
-    //    if (res.ok) { 
-    //      const data: GetActiveTournamentResponse = await res.json();
-    //      if (data.status === "OK" && data.tournament) {
-    //        setTournament(data.tournament);
-    //        setShowSetup(data.tournament.status === "waiting");
-    //      } else {
-    //          setTournament(null);
-    //          setShowSetup(false);
-    //    }
-    //    }
-    //  } catch (err) { 
-    //    console.error("Error loading existing tournament:", err);
-    //    setTournament(null);
-    //    setShowSetup(false);
-    //  }
-    //};
-    //
-	////Load tournament only after auth finishes and user is logged in
-	//useEffect(() => {
-	//	if (isLoggedIn) {
-	//		loadTournament();
-	//	} else {
-	//		setTournament(null);
-	//		setShowSetup(false);
-	//	}
-	//}, [isLoggedIn]);
-
 
   const handleCreateTournament = async () => {
     const payload: CreateTournamentPayload = { max_players: 4 };
@@ -64,7 +62,7 @@ const TournamentLobby: React.FC = () => {
 	try {
       const res = await fetch(API_PROTOCOL.CREATE_TOURNAMENT.path, {
         method: API_PROTOCOL.CREATE_TOURNAMENT.method,
-		credentials: 'include',
+		    credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
     });
@@ -74,7 +72,7 @@ const TournamentLobby: React.FC = () => {
     if (data.status === "OK") {
         setTournament(data.tournament);
         setShowSetup(true);
-		await refreshSession(); // Refresh session to update user tournament status
+        await refreshSession(); // Refresh session to update user tournament status
       } else {
         console.error("Error creating tournament:", data.error);
       }
@@ -108,7 +106,7 @@ const TournamentLobby: React.FC = () => {
 
       setTournament(null);
       setShowSetup(false);
-	  await refreshSession(); // Refresh session to update user tournament status
+      await refreshSession(); // Refresh session to update user tournament status
     } catch (err) {
       console.error("Error cancelling tournament:", err);
     }
@@ -122,35 +120,66 @@ const TournamentLobby: React.FC = () => {
   const handleStartMatch = async (match: Match) => {
     if (!tournament) return;
 
-    const payload: StartTournamentMatchPayload = { match_id: match.match_id };
+    if (!gameSettings) {
+      setCurrentGameMatch(match);
+      setShowSettingsModal(true);
+      return;
+    }
 
+    await startTournamentGame(match, gameSettings);
+    };
+
+    const handleSettingsConfirm = async (settings: typeof gameSettings) => {
+    setGameSettings(settings);
+    setShowSettingsModal(false);
+    if (currentGameMatch) {
+      await startTournamentGame(currentGameMatch, settings);
+    }
+  };
+
+  //const getPlayer1TokenFromCookie = (): string | null => {
+  //  const match = document.cookie.match(/(^|;) ?session_token=([^;]*)/);
+  //  return match ? match[2] : null;
+  //};
+
+
+const startTournamentGame = async (match: Match, settings: typeof gameSettings) => {
+    const payload: StartTournamentMatchPayload = { match_id: match.match_id };
     try {
-      const res = await fetch(`/api/tournament/${tournament.tournament_id}/start-match`, {
+      const res = await fetch(`/api/tournament/${tournament?.tournament_id}/start-match`, {
         method: API_PROTOCOL.START_TOURNAMENT_MATCH.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-     });
+      });
 
-      const data: StartTournamentMatchResponse = await res.json();
-
+      const data = await res.json() as StartTournamentMatchResponse & { playerTokens?: { player1: string } };
       if (data.status === "OK") {
-          setTournament(data.tournament);      // Updates tournament state with new match info
-          setCurrentGameMatch(match);         // Sets active game state (triggers Pong iframe)
-          setActiveGameId(match.match_id);
+        setTournament(data.tournament);
+        setCurrentGameMatch(match);
+        setActiveGameId(match.match_id);
+        // Extracts player1 token from cookie
+        setPlayer1Token(data.playerTokens?.player1 ?? null);
+        // player2Token is null in tournament
+        setPlayer2Token(null);
       } else {
-        console.error ("Error starting match:", data.error);
+        console.error("Error starting match:", data.error);
       }
     } catch (err) {
       console.error(err);
     }
   };
 
-  // Ends a match - Simply clears the current game state and closes iframe
-
+    // Ends a match - Simply clears the current game state and closes iframe
   const handleMatchEnd = () => {
     setCurrentGameMatch(null);
     setActiveGameId(null);
+    setPlayer1Token(null);
+    setPlayer2Token(null);
   };
+
+  if (loading) return <div className="p-6 text-center text-gray-300">Loading tournament info...</div>;
+  if (!isLoggedIn) return <div className="p-6 text-center text-gray-300">Please log in to view tournaments.</div>;
+
 
 	//  Handle AuthContext states first
 	if (loading) {
@@ -201,13 +230,21 @@ const TournamentLobby: React.FC = () => {
           tournament={tournament}
           onStartMatch={handleStartMatch}
           onCancel={handleCancelTournament}
+          lastMatchResult={gameResult}
         />
       )}
     </div>
+
+    {showSettingsModal && (
+        <GameSettings
+          onConfirm={handleSettingsConfirm}
+          onBack={() => setShowSettingsModal(false)}
+        />
+      )}
 	</div>
     
       {/* Pong Game Iframe  -- this needs to be fixed*/}
-      {currentGameMatch && activeGameId && (
+      {currentGameMatch && activeGameId && player1Token && gameSettings &&(
         <div
           style={{
           position: "fixed",
@@ -223,7 +260,7 @@ const TournamentLobby: React.FC = () => {
         }}
         >
           <iframe
-            src={`../../shared/index.html?gameId=${activeGameId}&player1Token=localP1&player2Token=localP2`}
+            src={`http://localhost:3000/pong_game/index.html?gameId=${activeGameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}`}
             style={{ width: "100%", height: "100%", border: "none" }}
             title="Pong Game"
           />

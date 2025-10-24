@@ -130,34 +130,34 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({
   }
 
   return (
-    <div className="mt-10 space-y-6">
-      <div>
-        <p className="text-gray-300 mb-4 ml-7">Players in Tournament</p>
+      <div className="mt-3 space-y-6">
+        <div>
+          <p className="text-gray-300 mb-4 ml-8">Players</p>
 
-        <PlayerList
-          tournament={tournament}
-          onTournamentUpdated={onTournamentUpdated}
-          onRemovePlayer={handleRemovePlayer}
-        />
+          <PlayerList
+            tournament={tournament}
+            onTournamentUpdated={onTournamentUpdated}
+            onRemovePlayer={handleRemovePlayer}
+          />
+        </div>
+
+        <div className="flex gap-4 mt-6 ml-7">
+          <Button onClick={onCancel} disabled={loading}>
+            Cancel tournament
+          </Button>
+
+          <Button
+            onClick={handleStartTournament}
+            disabled={!tournament.can_start || loading}
+          >
+            {loading
+              ? "Processing..."
+              : tournament.can_start
+              ? "Start Tournament"
+              : "Start Tournament"}
+          </Button>
+        </div>
       </div>
-
-      <div className="flex gap-4 mt-6 ml-7">
-        <Button onClick={onCancel} disabled={loading}>
-          Cancel tournament
-        </Button>
-
-        <Button
-          onClick={handleStartTournament}
-          disabled={!tournament.can_start || loading}
-        >
-          {loading
-            ? "Processing..."
-            : tournament.can_start
-            ? "Start Tournament"
-            : "Waiting for players..."}
-        </Button>
-      </div>
-    </div>
   );
 };
 

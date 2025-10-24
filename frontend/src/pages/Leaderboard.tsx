@@ -1,21 +1,34 @@
 import React, { useEffect, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
-import type { Player, PlayerPayload } from "../../shared/payloads";
+import type { LeaderBoardResponse, LeaderboardEntry, PlayerPayload } from "../../shared/payloads";
+import { useTranslation } from "../shared/Translation";
+import { useAuth } from "../context/AuthContext";
 
 const Leaderboard: React.FC = () => {
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [friends, setFriends] = useState<string[]>([]); // store friend IDs
+  const [players, setPlayers] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const { user, refreshSession } = useAuth(); 
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
         const res = await fetch(API_PROTOCOL.GET_LEADERBOARD.path);
-        const data: PlayerPayload = await res.json();
-        setPlayers(data);
-        setLoading(false);
+        const data: LeaderBoardResponse = await res.json();
+        
+        if (data.status === 'OK') {
+          setPlayers(data.leaders);
+          await refreshSession();
+          setMsg(("leaderboard.loaded"));
+        }
+        else {
+          setErr(("leaderboard.errorLoading"));
+        }
       } catch (err) {
         console.error("Failed to fetch leaderboard", err);
+        setErr(("leaderboard.errorNetwork"));
+      } finally {
         setLoading(false);
       }
     };
@@ -23,70 +36,72 @@ const Leaderboard: React.FC = () => {
     fetchLeaderboard();
   }, []);
 
-  const handleAddFriend = async (playerId: string) => {
-    try {
-      const res = await fetch(API_PROTOCOL.ADD_FRIEND.path, {
-        method: API_PROTOCOL.ADD_FRIEND.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ friendId: playerId }),
-      });
+ 
+  if (loading) return <div className="p-6 text-center text-gray-400">{("leaderboard.loading")}</div>;
 
-      if (!res.ok) throw new Error("Failed to add friend");
+return (
+  <div className="p-6 max-w-4xl mx-auto">
+    <h1 className="text-3xl font-bold mb-10">{("Leaderboard")}</h1>
 
-      setFriends((prev) => [...prev, playerId]);
-      alert("Friend added!");
-    } catch (err) {
-      console.error(err);
-      alert("Could not add friend");
-    }
-  };
-
-  if (loading) return <div>Loading leaderboard...</div>;
-
-  return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Leaderboard</h1>
-      <table className="w-full text-left border">
-        <thead>
-          <tr>
-            <th className="border px-2 py-1">Rank</th>
-            <th className="border px-2 py-1">Avatar</th>
-            <th className="border px-2 py-1">Username</th>
-            <th className="border px-2 py-1">Score</th>
-            <th className="border px-2 py-1">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {players.map((player) => (
-            <tr key={player.username}>
-              <td className="border px-2 py-1">{player.rank}</td>
-              <td className="border px-2 py-1">
+    {/* Leaderboard section */}
+    <section className="mt-6 bg-gray-800/50 rounded-lg border border-gray-700 p-4">
+      <h2 className="text-xl font-semibold mb-3 ml-2">{("Rank")}</h2>
+        <div className="space-y-3">
+          {players.map((p) => (
+            <div
+              key={p.username}
+              className="flex items-center p-1 rounded-lg bg-gray-800/50 border border-gray-700"
+            >
+              {/* Left side: Rank + Avatar + Username + Status */}
+              <div className="flex items-center gap-4">
+                {/* Rank */}
+                <div className="w-12 h-12 flex items-center justify-center
+                                font-extrabold text-xl text-indigo-400"
+                                > {p.rank}
+                </div>
+                {/* Avatar */}
                 <img
-                  src={player.avatar || "/default-avatar.png"}
-                  alt={player.username}
-                  className="w-8 h-8 rounded-full"
+                  src={p.avatar || "/default-avatar.png"}
+                  alt={p.username}
+                  className="w-10 h-10 rounded-full"
                 />
-              </td>
-              <td className="border px-2 py-1">{player.username}</td>
-              <td className="border px-2 py-1">{player.score}</td>
-              <td className="border px-2 py-1">
-                {friends.includes(player.user_id) ? (
-                  <span className="text-gray-500">Friend</span>
-                ) : (
-                  <button
-                    className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    onClick={() => handleAddFriend(player.user_id)}
-                  >
-                    Add Friend
-                  </button>
-                )}
-              </td>
-            </tr>
+
+                {/* Username + status */}
+                <div>
+                  <div className="font-semibold">{p.username}</div>
+                  <div className="flex items-center gap-1 text-sm">
+                    <span
+                      className={
+                        "inline-block w-2 h-2 rounded-full " +
+                        (p.online_status ? "bg-green-400" : "bg-gray-500")
+                      }
+                    />
+                    <span
+                      className={
+                        p.online_status ? "text-green-300" : "text-gray-400"
+                      }
+                    >
+                      {p.online_status
+                        ? ("online")
+                        : ("offline")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-grow max-w-sm mr-28"></div>
+              {/* Right side: Score */}
+              <div className="text-right pl-16">
+                <span className="text-xl font-bold text-indigo-200">
+                  {p.score}
+                </span>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
-    </div>
-  );
+        </div>
+    </section>
+  </div>
+);
 };
 
 export default Leaderboard;
