@@ -238,12 +238,15 @@ GET_ACTIVE_TOURNAMENT
 /*export interface TournamentState {
   tournament_id: string;
   status: 'waiting' | 'ongoing' | 'finished';
+  owner: string;
   players: TournamentPlayer[];
   currentMatch?: Match;
-  bracket: Match[][];
+  bracket?: Match[][];
   winner?: TournamentPlayer;
   createdAt?: Date;
   lastUpdated?: Date
+  can_start?: boolean;
+  pending_players?: number;
 } */
 
 export interface VerifyPlayerPayload {

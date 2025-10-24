@@ -6,12 +6,15 @@
 export interface TournamentState {
   tournament_id: string;
   status: 'waiting' | 'ongoing' | 'finished';
+  owner: string;
   players: TournamentPlayer[];
   currentMatch?: Match;
-  bracket: Match[][];
+  bracket?: Match[][];
   winner?: TournamentPlayer;
-  createdAt?: Date;               // not sure if this is needed
-  lastUpdated?: Date              // not sure if this is needed
+  createdAt?: Date;
+  lastUpdated?: Date
+  can_start?: boolean;
+  pending_players?: number;
 }
 ```
 ```
