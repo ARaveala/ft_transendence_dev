@@ -250,6 +250,53 @@ function updatePlayerReadyStatus(tournamentId, playerId, newStatus) {
 		});
 }
 
+/**
+CREATE TABLE IF NOT EXISTS brackets
+(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tournament_id INTEGER,
+    p1_id INTEGER,
+    p2_id INTEGER,
+    p1_score INTEGER NOT NULL DEFAULT 0,
+    p2_score INTEGER NOT NULL DEFAULT 0,
+    winner_id INTEGER,
+    round INTEGER,
+    bracket_pos INTEGER,
+	ALTER TABLE brackets ADD COLUMN game_uid TEXT UNIQUE,
+    status TEXT NOT NULL DEFAULT 'waiting'
+        CHECK (status IN ('waiting', 'ready', 'ongoing', 'finished')),
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+    FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+
+ */
+
+//status pending
+function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status){
+	const bracket_pos = 0;
+	if (round === 1 || 3)
+	{
+		bracket_pos = 1;
+	}
+	else {
+		bracket_pos = 2;
+	}
+	db.run('INSERT INTO brackets (tournament_id, p1_id, p2_id, game_uid, round, status, bracket_pos) VALUES (?, ?, ?, ?, ?, ?)', 
+		[tournamentId, player1Id, player2Id, gameid, round, status, bracket_pos], function onDone(err) {
+		if (err || !row) {
+			flog.error({ function: 'DBbuild bracket', err}, 'DB error adding player to tournament:');
+			return reject(err);
+		}
+		flog.info({ function: 'DBbuild bracket', tournamentId, player1Id, player2Id}, 'Players added to bracket');
+		resolve(row);
+		}
+	);
+}
+
+
 function updateTournamentStatus(tournamentId, newStatus) {
 	flog.debug({ function: 'updateTournamnetStatus',}, 'Updating tournamnetStatus in tournament');
 		return new Promise((resolve, reject) => {
@@ -266,7 +313,6 @@ function updateTournamentStatus(tournamentId, newStatus) {
 		});
 }
 
-
 module.exports = {
 	createTournament,
 	getActiveTournamentStatus,
@@ -278,5 +324,6 @@ module.exports = {
 	updatePlayerReadyStatus,
 	getTournamentPlayers,
 	updateTournamentStatus,
+	buildBracket,
 	
 };

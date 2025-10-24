@@ -1,7 +1,7 @@
 
 const { API_PROTOCOL } = require('@sharedApi');
 const {logger} = require('@logger');
-const { createTournamentPlayer, getTournamentPlayerById } = require('../../database/tournament');
+//const { createTournamentPlayer, getTournamentPlayerById } = require('../../database/tournament');
 const flog = logger.child({ fileContext: 'tournamnet.js' });
 
 
@@ -245,7 +245,7 @@ let currentTournamentId = null; // global variable to track current tournament i
  * @returns all players inside db tournament player object , filling empty slots with placeholders, player
  * object has been cleaned , so that eg, no user ids are sent to front end
  */
-function buildTournamentPlayerList(players, isOwner) {
+function buildTournamentPlayerList(players) {
 	const fullPlayerList = [];
 //	flog.debug({function: 'buildTournamentPlayerList', players: players}, 'building full player list ');
 	for (let i = 1; i <= 4; i++) {
@@ -405,17 +405,128 @@ async function verifyPlayer(fastify, options){
  	});
 }
 
+async function createMatches(players, match_id){
+//same is logic as buildfulllist?
+	/**
+	 *       {
+        match_id: "round1match1",
+        player1: fullPlayers[0],
+        player2: fullPlayers[1],
+        winner: TBD_PLAYER,
+        status: "pending",
+        score: { player1: 0, player2: 0 },
+      },
+	 */
+}
+
+/**
+ * expected full return 
+ * export interface Match {
+  match_id: string;
+  player1: TournamentPlayer;
+  player2: TournamentPlayer;
+  winner?: TournamentPlayer;
+  score?: {
+    player1: number;
+    player2: number;
+  };
+  status: 'pending' | 'ongoing' | 'finished';
+  //lastUpdated: Date;
+  //gameState?: any;
+}
+ */
 
 
 
+async function startTournament(fastify, options){
+	const {secure, DBget, DBtour, game} = options;
+ 	fastify.route({
+		method: API_PROTOCOL.START_TOURNAMENT.method,
+		url: API_PROTOCOL.START_TOURNAMENT.path,
+ 		handler: async (request, reply) => {
+			try {
+	 			const token = request.cookies.auth_token;
+	 			const userId = secure.getUserIdFromToken(token);
+
+				const players = DBtour.getTournamentPlayers(currentTournamentId);
+				//this will sort into order highest to lowest 
+				players.sort((a, b) => a.seed - b.seed);
+//addPlayer(gameId, userId, {type: type, ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+
+				// Round 1: seed 1 vs seed 4
+				const gameId1 = game.createGamecore(players[0].user_id, 'tournament', 'local');
+				game.addPlayer(gameId1, players[3].user_id, {
+					type: 'login',
+					ws: undefined,
+					role: players.player_role,
+					alias: players.alias,
+					ready: false,
+					disconnectedAt: undefined,
+					pauseTimeout: undefined,
+					score: players.score
+				})
+				const match1 = await DBtour.buildBracket(
+				  tournamentId,
+				  players[0].user_id,
+				  players[3].user_id,
+				  gameId1,
+				  1, // round
+				  'pending'
+				);
+				// Round 2
+				const gameId2 = game.createGamecore(players[1].user_id, 'tournament', 'local');
+				game.addPlayer(gameId1, players[2].user_id, {
+					type: 'login',
+					ws: undefined,
+					role: players.player_role,
+					alias: players.alias,
+					ready: false,
+					disconnectedAt: undefined,
+					pauseTimeout: undefined,
+					score: players.score
+				})
+				const match2 = await DBtour.buildBracket(
+				  tournamentId,
+				  players[1].user_id,
+				  players[2].user_id,
+				  gameId2,
+				  2, // round
+				  'pending'
+				);
+				
+				const gameId3 = game.createGamecore(undefined, 'tournament', 'local');
+				const match3 = await DBtour.buildBracket(
+				  tournamentId,
+				  null,
+				  null,
+				  //players[0].user_id,
+				  //players[3].user_id,
+				  gameId1,
+				  3, // round
+				  'pending'
+				);
+
+
+				const tournamentState = getTournamentState(players, currentTournamentId, tournamentStatus);
+				tournamentState.match = [match1, match2, match3];
+//				const gameId = game.createGamecore(userId.id, 'tournament', 'local');
+//				const match = DBtour.buildBracket(tournamentId, player1Id, player2Id, gameid, round, 'pending');
+				flog.debug({function: 'startTournament', tid: currentTournamentId, userId: userId.id}, 'starting tournament ');
+
+			} catch (err) {
+				flog.error({fucntion: 'startTournament'}, "error :: in start tournament", err); //wrong
+				reply.code(500).send({ status: 'ERROR', error: 'Start tournament failed?' });//wrong	
+			}
+		}
+		
+	});
+}
 
 
 
- http.post(API_PROTOCOL.START_TOURNAMENT.path, async ({ request }) => {
-    const payload = (await request.json()) as StartTournamentPayload;
 
     const fullPlayers = currentTournament?.players || [];
-    
+
     // First round matches
     const firstRound: Match[] = [
       {
