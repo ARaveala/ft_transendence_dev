@@ -141,10 +141,10 @@ function AISimulateKeyPress(state) {
 
     // AI presses key to move towards where it predicts it will hit the ball
     const AIPaddleCenter = state.positions[AIState.rightPaddleI] + AIState.paddleHeight / 2;
-    if (AIPaddleCenter > predictedBallCollision) {
+    if (AIPaddleCenter - predictedBallCollision > AIState.paddleHeight / 10) {
         console.log("AI is pressing up");
         state.keysDown[2] = true;
-    } else if (AIPaddleCenter < predictedBallCollision) {
+    } else if (AIPaddleCenter - predictedBallCollision < -AIState.paddleHeight / 10) {
         console.log("AI is pressing down");
         state.keysDown[3] = true;
     } // else do nothing
