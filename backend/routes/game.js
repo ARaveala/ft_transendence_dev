@@ -130,7 +130,8 @@ function createGameCore(userId, type, mode, alias) {
 		const gameId = createGameMap(userId, type, mode);
 		//flog.debug({function : "createGameCore", gameid: gameId}, 'did game id get made');
 		//flog.debug({function: 'createGameCore', gameId}, 'game id should be created')
-		addPlayer(gameId, userId.id, {type: "login", ws: undefined, role: "player1", alias: alias, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+		if (userId)
+			addPlayer(gameId, userId.id, {type: "login", ws: undefined, role: "player1", alias: alias, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
 
 
 
@@ -140,7 +141,7 @@ function createGameCore(userId, type, mode, alias) {
 		return gameId;
 
 	} catch {
-		flog.error({ function: 'createGameCore', userId: userId, type: type, mode: mode }, 'Error creating game core');
+		flog.error({ function: 'createGameCore', userId: userId, type: type, mode: mode, errormsg: err.message, errtpe: err.stack}, 'Error creating game core');
 		throw new Error('Game initialization failed');
 	}
 }
