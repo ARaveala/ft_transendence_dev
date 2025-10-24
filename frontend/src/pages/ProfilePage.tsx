@@ -66,10 +66,11 @@ const Profile: React.FC = () => {
 			</section>
 
 			{/* Stats */}
-			<section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-				<StatCard label={t("profile.stats.victories")} value={user.victories} />
-				<StatCard label={t("profile.stats.losses")} value={user.losses} />
-				<StatCard label={t("profile.stats.matches")} value={user.totalMatches ?? matches.length} />
+			<section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+				<StatCard label={`${t("profile.stats.victories")} 🏅`} value={user.victories ?? 0} />
+				<StatCard label={`${t("profile.stats.losses")} 💣`} value={user.losses ?? 0} />
+				<StatCard label={`${t("profile.stats.matches")} 🕹️`} value={(user.totalMatches ?? matches.length) ?? 0} />
+				<StatCard label={`${t("profile.stats.tournamentWins")} 🏆`} value={user.tournamentWins ?? user.tournament_wins ?? 0} />
 			</section>
 
 			{/* Match History */}
@@ -77,7 +78,9 @@ const Profile: React.FC = () => {
 				<h3 className="font-semibold mb-2">{t("profile.history.title")}</h3>
 					<div className="rounded-lg border border-gray-700 bg-gray-800/40 overflow-hidden">
 					{matches.length === 0 ? (
-						<div className="text-gray-400">{t("profile.history.empty")}</div>
+						<div className="px-4 py-6 text-gray-400">
+							{t("profile.history.empty")}
+						</div>
 					) : (
 						<div className="overflow-x-auto">
 							<table className="w-full text-left border border-gray-700 rounded-lg">
@@ -127,11 +130,19 @@ const Profile: React.FC = () => {
 		);
 };
 
-function StatCard({ label, value }: {label: string; value: React.ReactNode }) {
+function StatCard({ 
+	label,
+	value,
+	className = "",
+}: {
+	label: string;
+	value: React.ReactNode;
+	className?: string;
+}) {
 	return (
-		<div className="rounded-lg border border-gray-700 p-4 bg-gray-800/40">
+		<div className={`rounded-lg border border-gray-700 p-4 bg-gray-800/40 ${className}`}>
 			<div className="text-sm text-gray-400">{label}</div>
-			<div className="text-2xl font-semibold">{value ?? "-"}</div>
+			<div className="text-2xl font-semibold">{value ?? 0}</div>
 		</div>
 	);
 }
