@@ -45,6 +45,19 @@ const [gameSettings, setGameSettings] = useState<{
 // 	checkAuth();
 // }, [isLoggedIn, refreshSession]); //run once on mount
 
+	useEffect(() => {
+	  function handleMessage(event: MessageEvent) {
+		if (event.origin !== "http://localhost:3000") return;
+
+		if (event.data?.type === "GAME RESULT") {
+		  console.log("Received game end from iframe:", event.data.payload);
+		  handleGameEnd();
+		}
+	  }
+	  window.addEventListener("message", handleMessage);
+		return () => window.removeEventListener("message", handleMessage);
+	}, []);
+
 
 //  Initialize useRef for the iframe
 const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -113,6 +126,16 @@ const startGame = async (settings?: typeof gameSettings) => {
 	}
 };
 
+const handleGameEnd = () => {
+	console.log("Game ended!");
+	setPlayer1Token(null);
+	setPlayer2Token(null);
+	setGameId(null);
+	setGameSettings(null);
+	setGameStarted(false);
+	setSelectedMode(null);
+
+  };
 
 if (loading) return <div>Checking login status...</div>;
 if (!isLoggedIn) return <div>Please log in to access the game.</div>;

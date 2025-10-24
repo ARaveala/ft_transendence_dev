@@ -5,7 +5,7 @@ import avatar3 from "../assets/avatars/avatar3.png";
 
 import { http, HttpResponse } from "msw";
 import { API_PROTOCOL } from "../../shared/api-protocols";
-import type { UserProfile, PlayerPayload } from "../../shared/payloads";
+import type { UserProfile, PlayerPayload, Player, LeaderboardEntry } from "../../shared/payloads";
 import type { RemovePlayerPayload, RemovePlayerResponse, StartTournamentPayload, StartTournamentResponse, VerifyPlayerPayload, VerifyPlayerResponse } from "../../shared/payloads";
 import type { TournamentPlayer, Match, TournamentState } from "../types/tournament";
 import { TBD_PLAYER } from "../../shared/constants";
@@ -43,6 +43,14 @@ const mockProfile: UserProfile = {
 let mockFriends: Friend[] = [
         { user_id: "1", username: "Player2", avatar: avatar2, online_status: true },
         { user_id: "2", username: "Player3", avatar: avatar3, online_status: false },
+];
+
+const mockLeaderboard: LeaderboardEntry[] = [
+  { username: "Al", avatar: avatar1, rank: 1, score: 250, online_status: true },
+  { username: "Peggy", avatar: avatar2, rank: 2, score: 200, online_status: true },
+  { username: "Dobby", avatar: avatar3, rank: 3, score: 180, online_status: false },
+  { username: "Dixie", avatar: avatar1, rank: 4, score: 160, online_status: true },
+  { username: "Carson", avatar: avatar2, rank: 5, score: 140, online_status: false },
 ];
 
 let currentTournament: TournamentState | null = null;
@@ -544,11 +552,17 @@ export const handlers = [
     return HttpResponse.json(mockProfile, { status: 200 });
   }),
 
-  //Mock for leaderboard request
+    // Mock for leaderboard
   http.get(API_PROTOCOL.GET_LEADERBOARD.path, () => {
-    return HttpResponse.json(mockUsers, { status: 200 });
-}),
-
+    console.log("Mock: GET leaderboard");
+    return HttpResponse.json(
+      {
+        status: "OK",
+        leaders: mockLeaderboard,
+      },
+      { status: 200 }
+    );
+  }),
 
   // Mock for fetching a tournament by its ID
   http.get('/api/tournament/:tournamentId', async ({ params }) => {
@@ -561,6 +575,22 @@ export const handlers = [
     return HttpResponse.json({ status: 'OK', tournament: currentTournament }, { status: 200 });
   }),
 
+  // Mock for getting token from cookie
+  http.get('/api/get-session-token', () => {
+    console.log("Mock: GET session token");
+    
+    const mockSessionToken = "MOCK_SESSION_PLAYER_A_1234567890";
+
+    return HttpResponse.json(
+      {
+        status: "OK" },
+      { status: 200,
+      headers: {
+            'Set-Cookie': `session_token=${mockSessionToken}; Path=/; HttpOnly; SameSite=Lax`,
+        }
+      }
+    );
+  }),
 
   // Mock for starting a tournament match
   http.post('/api/tournament/:tournamentId/start-match', async ({ params, request }) => {
@@ -569,9 +599,9 @@ export const handlers = [
   
   console.log('Mock: Starting match', match_id, 'in tournament', tournamentId);
 
-  if (!currentTournament) {
+  if (!currentTournament || !currentTournament.bracket) {
       return HttpResponse.json(
-        { error: 'No tournament found' },
+        { error: 'No tournament or bracket data found' },
         { status: 404 }
       );
     }
@@ -600,7 +630,7 @@ export const handlers = [
   return HttpResponse.json({
     status: "OK",
     tournament: currentTournament,
-    playerTokens: { player1: "p1", player2: "p2"},
+    playerTokens: { player1: "mockPlayer1Token"},
     });
   }),
 
@@ -616,7 +646,9 @@ export const handlers = [
       { status: 'OK' },
       { status: 200 }
     );
-  })
+  }),
+  
+
 ];
 
 

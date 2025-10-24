@@ -122,6 +122,14 @@ export interface Player {
   //online_status: boolean;
 }
 
+export interface LeaderboardEntry {
+  username: string;
+  avatar: string;
+  score: number;
+  rank: number;
+  online_status: boolean;
+}
+
 export type PlayerPayload = Player[];
 
 export interface MatchHistoryResponse {
@@ -231,12 +239,15 @@ GET_ACTIVE_TOURNAMENT
 /*export interface TournamentState {
   tournament_id: string;
   status: 'waiting' | 'ongoing' | 'finished';
+  owner: string;
   players: TournamentPlayer[];
   currentMatch?: Match;
-  bracket: Match[][];
+  bracket?: Match[][];
   winner?: TournamentPlayer;
   createdAt?: Date;
   lastUpdated?: Date
+  can_start?: boolean;
+  pending_players?: number;
 } */
 
 export interface VerifyPlayerPayload {
@@ -360,6 +371,12 @@ export interface UploadAvatarResponse {
 	status: 'UPLOADED' | 'ERROR';
 	url?: string;
 	error?: string;
+}
+
+export interface LeaderBoardResponse {
+  status: 'OK' | 'ERROR';
+  error?: string;
+  leaders: LeaderboardEntry[],
 }
 
 // over websocket??

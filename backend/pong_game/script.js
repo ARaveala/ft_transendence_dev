@@ -91,7 +91,10 @@ function endFunction() {
         loser: loser ,
         score: [p1Score, p2Score]
     };
-    window.parent.postMessage(data, '*');
+    window.parent.postMessage({
+        type: "GAME RESULT",
+        payload: data
+    }, "*");
 }
 
 webSocket.onmessage = (event) => {
