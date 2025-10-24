@@ -116,8 +116,6 @@ webSocket.onmessage = (event) => {
                 // Update powerups
                 if (gameSettings.powerUp) {
                     const container = document.getElementById('powerup-container');
-                    console.log(container);
-                    console.log(container.getBoundingClientRect());
                     container.innerHTML = '';  // Clear old powerups
 
                     for (const powerup of data.visiblePowerups) {
@@ -139,9 +137,10 @@ webSocket.onmessage = (event) => {
                 let winner = 0;
                 p1Score = data.player1_score;
                 p2Score = data.player2_score;
+                document.getElementById('p1Score').textContent = p1Score;
+                document.getElementById('p2Score').textContent = p2Score;
                 if (p1Score == victory_score) winner = 1;
                 else if (p2Score == victory_score) winner = 2;
-
                 if (winner == 0) // game not finished yet
                     webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["ball", "gameRunning"]}));
                 else {
@@ -150,7 +149,9 @@ webSocket.onmessage = (event) => {
                     let endPromptText = document.getElementById("endPromptText");
                     const text = (winner == 1 ? p1Alias : p2Alias) + " won!";
                     endPromptText.textContent = text;
+                    endPromptText.classList.add("text-" + (winner == 1 ? "blue" : "red") + "-500");
                     endPrompt.classList.remove("hidden");
+                    webSocket.send(JSON.stringify({ type: "gameOver", gameId: gameId }));			
                 }
             } else if (data.type == 'playerNames') { // Receive this when asked for player aliases
                 p1Alias = data.player1;

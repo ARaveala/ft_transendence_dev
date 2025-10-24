@@ -71,8 +71,8 @@ function attachPlayerToGame(ws, session) {
 
 	const game = getGame(ws.gameId);
 	//if (!game) return false; throw, make sure its being caught
-	console.log('player id from token', ws.playerId.id);
-    const player = game.players.get(ws.playerId.id);
+	console.log('player id from token', ws.playerId);
+    const player = game.players.get(ws.playerId);
 	if (!player) {
 		console.log('acces player ready state', player.ready);
 		console.log("Player not found in game, player id", player.playerId,'player itesle', player);

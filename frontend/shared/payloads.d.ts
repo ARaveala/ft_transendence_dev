@@ -55,6 +55,7 @@ export interface UserProfile {
   victories: number;
   losses: number;
   totalMatches: number;
+  tournamentWins?: number;
   friends: Friend[];
   matchHistory: Match[];
   //online_status: boolean;
