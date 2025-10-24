@@ -1,3 +1,6 @@
+const {logger} = require('@logger');
+//const { createTournamentPlayer, getTournamentPlayerById } = require('../../database/tournament');
+const flog = logger.child({ fileContext: 'game.js' });
 // all these should be swapped for context files, either or
 // 2 different approaches
 const {
@@ -11,6 +14,7 @@ const {log} = require('@logger');
 //} = require('@security');
 
 const { API_PROTOCOL } = require('@sharedApi');
+
 
 const games = new Map(); // gameId -> { owner, players, state, loop }
 // this fucntion maybe should handle 1 user at a Time,
@@ -109,6 +113,21 @@ function addPlayer(gameId, playerId, playerData) {
 	console.log('After adding:', Array.from(game.players.entries()));
 }
 
+function createGameCore(userId, type, mode, alias) {
+	try{
+		//if (userId === undefined)
+		//{
+		//	if undefined no owner 
+		//}
+		const gameId = createGameMap(user1, type, mode);
+		addPlayer(gameId, user1.id, {type: "login", ws: undefined, role: "player1", alias: alias, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+		log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
+	} catch {
+		flog.error({ function: 'createGameCore', userId: userId, type: type, mode: mode }, 'Error creating game core');
+		throw new Error('Game initialization failed');
+	}
+	return gameId;
+}
 
 async function createGame(fastify, options) {
 		const {secure} = options;
@@ -123,10 +142,11 @@ async function createGame(fastify, options) {
 		// this also verifies the token
 		const user1 = secure.getUserIdFromToken(token); //this should throw bad session or something
 	    log('CREATE_GAME', `checking id ${user1}`);
+		createGameCore(userId, type, mode, undefined)
 		// local or remote should be type, mode is vs or tournament
-		const gameId = createGameMap(user1, type, mode);
-		addPlayer(gameId, user1.id, {type: "login", ws: undefined, role: "player1", alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
-		log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
+////		const gameId = createGameMap(user1, type, mode);
+////		addPlayer(gameId, user1.id, {type: "login", ws: undefined, role: "player1", alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+////		log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
 		reply.send({ status: 'game created' , gameId});
 	   } catch (err) {
 	     reply.code(400).send({ error: 'Game initialization failed' });
@@ -269,7 +289,9 @@ async function gameRoutes(fastify, options) {
 }
 //module.exports = gameRoutes;
 
-module.exports = {gameRoutes, startGame, joinGame, createGame, getGame, generateRandomId};
+module.exports = {gameRoutes, startGame, joinGame, createGame, getGame, generateRandomId,
+	createGameCore, addPlayer,
+};
 
 //front end connects to websocket like so
 /**async function gameRoutes(fastify, options) {
