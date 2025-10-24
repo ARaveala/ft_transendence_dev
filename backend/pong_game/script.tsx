@@ -1,4 +1,3 @@
-
 // Get data from URL params
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
