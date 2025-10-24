@@ -66,7 +66,7 @@ function getActiveTournamentStatus(tId) {
 
 
 
-function createTournamentPlayer(tournamentId, playerId, alias, seed, role, verified) {
+function createTournamentPlayer(tournamentId, playerId, alias, seed, role, verified, isOwner) {
 	flog.debug({ function: 'createTournamentPlayer', playerid: playerId }, 'Adding player to tournament');
 		return new Promise((resolve, reject) => {
 			// db.get('SELECT id FROM tournaments WHERE id = ?', [tournamentId], (err, tournamentRow) => {
@@ -85,8 +85,8 @@ function createTournamentPlayer(tournamentId, playerId, alias, seed, role, verif
 			//        }
 			// });
 			//})			
-			db.run('INSERT INTO tournament_players (tournament_id, user_id, alias, seed, player_role, verified) VALUES (?, ?, ?, ?, ?, ?)', 
-				[tournamentId, playerId, alias, seed, role, verified], function onDone(err) {
+			db.run('INSERT INTO tournament_players (tournament_id, user_id, alias, seed, player_role, verified, is_owner) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+				[tournamentId, playerId, alias, seed, role, verified, isOwner], function onDone(err) {
 				if (err) {
 					flog.error({ function: 'createTournamentPlayer', err}, 'DB error adding player to tournament:');
 					return reject(err);
@@ -123,7 +123,7 @@ function createTournamentPlayer(tournamentId, playerId, alias, seed, role, verif
  * @returns 
  */
 function getTournamentPlayersWithUsernames(tournamentId) {
-	flog.debug({ function: 'getTournamentPlayersWithUsernames' }, 'Fetching tournament players with usernames');
+	//flog.debug({ function: 'getTournamentPlayersWithUsernames' }, 'Fetching tournament players with usernames');
 	return new Promise((resolve, reject) => {
 		const query = `
     		SELECT 
@@ -132,6 +132,7 @@ function getTournamentPlayersWithUsernames(tournamentId) {
 				tp.player_status,
 				tp.player_score,
 				tp.verified,
+				tp.is_owner,
 				tp.user_id,
 				u.username
 			FROM tournament_players tp
@@ -155,7 +156,7 @@ function getTournamentPlayersWithUsernames(tournamentId) {
  * @returns 
  */
 function getTournamentPlayerById(userId) {
-	flog.debug({ function: 'getTournamentPlayers' }, 'Fetching tournament players');
+	//flog.debug({ function: 'getTournamentPlayers' }, 'Fetching tournament players');
 		return new Promise((resolve, reject) => {
 			db.all('SELECT * FROM tournament_players WHERE player_id = ?',[userId], (err, rows) =>{
 				if (err) {
@@ -173,7 +174,7 @@ function getTournamentPlayerById(userId) {
 
 
 function getTournamentPlayers(tid) {
-	flog.debug({ function: 'fffffffffffffffffffffgetTournamentPlayersALL', tournamnetId: tid }, 'Fetching tournament players');
+	//flog.debug({ function: 'fffffffffffffffffffffgetTournamentPlayersALL', tournamnetId: tid }, 'Fetching tournament players');
 		return new Promise((resolve, reject) => {
 			db.all('SELECT * FROM tournament_players WHERE tournament_id = ?',[tid], (err, rows) =>{
 				if (err) {
@@ -217,7 +218,7 @@ function getTournamentById(tournamentId) {
 }
 
 function updateAlias(tournamentId, playerId, newAlias) {
-	flog.debug({ function: 'updateAlias', playerId: playerId }, 'Updating player alias in tournament');
+	//flog.debug({ function: 'updateAlias', playerId: playerId }, 'Updating player alias in tournament');
 		return new Promise((resolve, reject) => {
 			db.run('UPDATE tournament_players SET alias = ? WHERE tournament_id = ? AND user_id = ?', 
 				[newAlias, tournamentId, playerId], function onDone(err) {
@@ -234,7 +235,7 @@ function updateAlias(tournamentId, playerId, newAlias) {
 
 
 function updatePlayerReadyStatus(tournamentId, playerId, newStatus) {
-	flog.debug({ function: 'playerReadyStatus', playerId: playerId }, 'Updating playerReadyStatus in tournament');
+	flog.debug({ function: 'playerReadyStatus', playerId: playerId }, '!!!!!!!!!!Updating playerReadyStatus in tournament');
 		return new Promise((resolve, reject) => {
 			db.run('UPDATE tournament_players SET player_status = ? WHERE tournament_id = ? AND user_id = ?', 
 				[newStatus, tournamentId, playerId], function onDone(err) {
