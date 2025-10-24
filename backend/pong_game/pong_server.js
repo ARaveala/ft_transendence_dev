@@ -58,7 +58,103 @@ function updateKeys(state, keys) {
 	state.keysDown = keys;
 }
 
+let AIState;
+let lastAIStateUpdate = undefined;
+
+function getNextCollision(AIState) {
+    
+    // Find out which wall its going towards and set its y value
+    const yMinMax = AIState.ball.dy > 0 ? AIState.height : 0;
+
+    // Calculate time to hit top or bot wall and x axis where AI's paddle is
+    const horizontalWallHitTime = (yMinMax - AIState.positions[AIState.ballYI]) / AIState.ball.dy;
+    const rightWallHitTime = ((AIState.width - AIState.paddleOffset) - AIState.positions[AIState.ballXI]) / AIState.ball.dx;
+
+    // Return which wall it will hit and where
+    // It calculates how much it will move during the time it takes to hit
+    if (horizontalWallHitTime > rightWallHitTime) {
+        // It is not going to bounce and is going for the win
+        return {
+            wall: "right",
+            y: AIState.positions[AIState.ballYI] + AIState.ball.dy * rightWallHitTime
+        }
+    }
+
+    return {
+        wall: yMinMax == 0 ? "top" : "bot",
+        x: AIState.positions[AIState.ballXI] + AIState.ball.dx * horizontalWallHitTime
+    }
+}
+
+// Makes a deep copy of state for AI
+function deepCopyState(state) {
+    return {
+        positions: [...state.positions],
+        ball: {...state.ball},
+        ballXI: state.ballXI,
+        ballYI: state.ballYI,
+        rightPaddleI: state.rightPaddleI,
+        paddleOffset: state.paddleOffset,
+        height: state.height,
+        width: state.width,
+        paddleHeight: state.paddleHeight
+    }
+}
+
+// This will decide which is the best key to press as player2
+function AISimulateKeyPress(state) {
+    // Save state every second. AI can only see AIState
+    const now = new Date();
+    if (lastAIStateUpdate == undefined || now - lastAIStateUpdate >= 1000) {
+        AIState = deepCopyState(state);
+        lastAIStateUpdate = now;
+    }
+
+    let predictedBallCollision = AIState.height / 2;
+
+    // If ball is going away from its paddle, it cannot know where it will end up
+    // Instead of predicting balls future position, move to center to maximize potential
+    if (AIState.ball.dx < 0)
+        predictedBallCollision = AIState.height / 2;
+    else {
+        // Get an object containing which wall it hits and where
+        let nextCollision = getNextCollision(AIState);
+
+        // Loop while it bounces
+        while (nextCollision.wall !== "right") {
+            // Set new position inside AIState which it will remember. 
+            // These will be calculated once per human player paddle hits ball
+            // And saved in AIState for next "frame"
+            AIState.positions[AIState.ballXI] = nextCollision.x;
+            AIState.positions[AIState.ballYI] = nextCollision.wall == "top" ? 1 : AIState.height - 1;
+
+            // Flip vertical direction aka bounce
+            AIState.ball.dy = -AIState.ball.dy;
+
+            // Find next collision
+            nextCollision = getNextCollision(AIState);
+        }
+
+        // Now AIState is updated to contain a direct path to right with no more bounces
+        predictedBallCollision = nextCollision.y;
+    }
+
+    // AI presses key to move towards where it predicts it will hit the ball
+    const AIPaddleCenter = state.positions[AIState.rightPaddleI] + AIState.paddleHeight / 2;
+    if (AIPaddleCenter > predictedBallCollision) {
+        console.log("AI is pressing up");
+        state.keysDown[2] = true;
+    } else if (AIPaddleCenter < predictedBallCollision) {
+        console.log("AI is pressing down");
+        state.keysDown[3] = true;
+    } // else do nothing
+}
+
 function updateGame(state, player1, player2) {
+
+    // AI will simulate pressing keys
+    if (true || player2.type === "ai")
+        AISimulateKeyPress(state);
 
 	// Move paddles
 	if (state.keysDown[0]) state.positions[state.leftPaddleI] -= state.paddleSpeed;
