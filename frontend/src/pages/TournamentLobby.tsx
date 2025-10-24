@@ -169,9 +169,11 @@ const TournamentLobby: React.FC = () => {
 		);
 	}
 
-  return (
-    <>
-    <div className="p-6 max-w-4xl mx-auto">
+ return (
+  <>
+    <div className="flex justify-center px-6 py-6">
+      {/* Semi-transparent card */}
+      <div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
       <TournamentHeader />
 
       {/* Start New Tournament Button */}
@@ -202,6 +204,7 @@ const TournamentLobby: React.FC = () => {
         />
       )}
     </div>
+	</div>
     
       {/* Pong Game Iframe  -- this needs to be fixed*/}
       {currentGameMatch && activeGameId && (

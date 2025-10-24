@@ -67,6 +67,7 @@ function createGameMap(owner, mode, type) {
     		paddleOffset: 1,
 			paddleSpeed: 0,
 			ballSpeed: 0,
+            ballSpeedUp: 1,
 			leftPaddleI: 0,
 			rightPaddleI: 1,
 			ballYI: 2,
@@ -75,7 +76,10 @@ function createGameMap(owner, mode, type) {
 			ball: { dx: 3, dy: 1 },
 			gameRunning: false,
 			keysDown: [false, false, false, false],
-			lastUpdate: undefined
+			lastUpdate: undefined,
+            powerups: false,
+            visiblePowerups: new Array(),
+            activePowerups: new Array()
 		}});
 	return gameId;
 }
@@ -164,7 +168,7 @@ async function joinGame(fastify, options) {
 					userId = 'AI' + generateRandomId();
 				}
 
-				addPlayer(gameId, userId.id, {type: type, ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+				addPlayer(gameId, userId, {type: type, ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
 				log('JOIN_GAME', `added player ${JSON.stringify(getGame(gameId))}`);
 			}
 				reply.send({ player: "player"+player_count, status: 'ready', });

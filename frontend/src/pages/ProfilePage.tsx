@@ -25,7 +25,9 @@ const Profile: React.FC = () => {
 	};
 
 	return (
-    	<div className="p-6 max-w-4xl mx-auto">
+    	  <div className="flex justify-center px-6 py-6">
+  		  {/* Semi-transparent card for content */}
+  		  <div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
       		<h1 className="text-3xl font-bold mb-4">{t("profile.title")}</h1>
 
       		{/* Avatar + profile name */}
@@ -124,7 +126,8 @@ const Profile: React.FC = () => {
 				</div>
 			</section>
 		</div>
-	);
+		</div>
+		);
 };
 
 function StatCard({ 

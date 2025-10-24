@@ -14,6 +14,10 @@ const {
 } = require('./handlers.js');
 
 const {
+	updatePlayerGameStats,
+} = require('@db/update.js');
+
+const {
 	getGame,
 } = require("@Rgame");
 // we should rename this to message deligation?
@@ -115,10 +119,45 @@ function handleMessage(ws, data) {
 			player2.score = 0;
 			break;
 		}
+		case 'gameOver': {
+			const players = [...game.players.entries()]; // [ [id, player], ... ]
+
+			const player1Entry = players.find(([_, p]) => p.role === 'player1');
+			const player2Entry = players.find(([_, p]) => p.role === 'player2');
+
+			const [id1, player1] = player1Entry;
+			const [id2, player2] = player2Entry;
+
+			const winner = player1.score > player2.score ? 1 : 2;
+
+			console.log("ids:", id1, id2);
+			console.log("winner:", winner);
+			console.log("scores:", player1.score, player2.score);
+			console.log("gameID:", data.gameId);
+			
+			if (winner === 1){
+				updatePlayerGameStats(true, id1, player1.score)
+				 .catch(err => console.error('Failed to update player1 stats', err));
+				//if (typeof id2 === 'string' && !id2.includes('Guest')) {
+				//	updatePlayerGameStats(false, id2, player2.score)
+				//	 .catch(err => console.error('Failed to update player2 stats', err));
+				//}
+			}
+			else {
+				//if (typeof id2 === 'string' && !id2.includes('Guest')) {
+				//	updatePlayerGameStats(true, id2, player2.score)
+				//	 .catch(err => console.error('Failed to update player2 stats', err));
+				//}
+				updatePlayerGameStats(false === 0, id1, player1.score)
+				 .catch(err => console.error('Failed to update player1 stats', err));
+			}
+			break;
+		}
 		case 'init': {
 			// if remote initgame should only happen for player1
 			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset, ballSpeed, paddleSpeed, powerUp }
 			currentWs.send(JSON.stringify({type: 'init_ack', message: 'game init success' }));
+            gameState.powerups = data.payload.powerups;
 		}
 			break;
 		case 'keys':{

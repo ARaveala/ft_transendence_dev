@@ -21,6 +21,7 @@ import Friends from "./pages/Friends";
 import Profile from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
+import background from "./assets/background.png";
 
 
 // Import shared layout components
@@ -36,18 +37,43 @@ import { useAuth } from "./context/AuthContext";
 // - Shows the Navbar unless user is on the LandingPage ("/")
 // - Wraps page content inside <main>
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const location = useLocation();
-  const { isLoggedIn } = useAuth(); // get login status
+const location = useLocation();
+const { isLoggedIn } = useAuth(); // get login status
 
-  // Show navbar if user is logged in OR if not on landing page
-  const showNavbar = isLoggedIn || location.pathname !== "/";
+// Show navbar if user is logged in OR if not on landing page
+const showNavbar = isLoggedIn || location.pathname !== "/";
 
-  return (
-    <>
-      {showNavbar && <Navbar />}
-      <main className="p-6">{children}</main>
-    </>
-  );
+return (
+        <div className="relative h-full"> {/* CHANGE MIN-H-SCREEN TO H-FULL */}
+            {/* Background (unchanged) */}
+            <div
+                className="fixed inset-0 bg-black/50"
+                style={{
+                    backgroundImage: `url(${background})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundAttachment: "fixed",
+                }}
+            />
+
+            {/* Foreground content: h-full is now 100% of viewport height */}
+            <div className="relative z-10 flex flex-col h-full p-6"> {/* CHANGE MIN-H-SCREEN TO H-FULL */}
+
+                {showNavbar && (
+                    <div className="mb-6">
+                        <div className="rounded-xl overflow-hidden shadow-lg">
+                            <Navbar />
+                        </div>
+                    </div>
+                )}
+                
+                {/* Main area: MUST GROW to push the remaining space to the content */}
+                <main className="flex-grow py-0"> 
+                    {children}
+                </main>
+            </div>
+        </div>
+    );
 };
 
 const protectedRoutes = [

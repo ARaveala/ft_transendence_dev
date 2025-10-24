@@ -28,7 +28,15 @@ pnpm-debug.log*
 .env.*
 
 # logs
+<<<<<<<<< Temporary merge branch 1
+backend/logUtils/logs/
 
+# nodemodules
+
+# database
+backend/data/new.sqlite-shm
+backend/data/new.sqlite-wal
+=========
 backend/logUtils/logs/*
 backend/logs
 
@@ -39,4 +47,4 @@ backend/data/database.sqlite-shm
 backend/data/database.sqlite-wal
 backend/data/new.sqlite-shm
 backend/data/new.sqlite-wal
-
+>>>>>>>>> Temporary merge branch 2
