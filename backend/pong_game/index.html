@@ -18,11 +18,20 @@
   <!-- Ball -->
   <div id="ball" class="bg-green-500 rounded-full absolute"></div>
 
+  <!-- Powerup elements will live inside this -->
   <div id="powerup-container" class="relative w-full h-full"></div>
+
+  <!-- Scoreboard -->
+  <div id="scoreboard" class="font-mono -translate-x-1/2 fixed top-0 left-1/2 flex space-x-8 text-5xl">
+    <div id="p1Score" class="text-blue-500">0</div>
+    <div id="p2Score" class="text-red-500">0</div>
+  </div>
+
+
   <!-- Game End Prompt -->
   <div id="endPrompt" class="hidden fixed inset-0 flex flex-col items-center justify-center min-h-screen">
-    <div id="endPromptText" class="text-red-500"></div>
-    <div id="endPromptButton" class="text-blue-500" onclick="endFunction()">OK</div>
+    <div id="endPromptText"></div>
+    <div id="endPromptButton" class="text-green-500" onclick="endFunction()">OK</div>
   </div>
 
   <script src="script.js"></script>
