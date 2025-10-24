@@ -189,7 +189,8 @@ async function miniLogin(username, password) {
     //     return reject({ error: 'Invalid password' });
     //   }
       // Return minimal info — no profile data
-      resolve({ id: row.id});
+    //   resolve({ id: row.id});
+	resolve(row.id);
     });
   });
 }

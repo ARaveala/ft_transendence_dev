@@ -108,7 +108,7 @@ async function loginUser(fastify, options) {
                     });
 
                 } else { // old login logic before 2FA added
-                    const token = secure.generateToken(result, username);
+                    const token = secure.generateToken(result.id ?? result, username);
                     log('LOGINUSER', `token on creation ${token}`);
                     secure.setAuthCookie(reply, token);
                     log('LOGINUSER', `User registration result:${JSON.stringify(result)}`);

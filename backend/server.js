@@ -11,7 +11,8 @@
 	const fastify = require('fastify')({ logger });
 
 	const app = fastify;
-
+	const cookie = require('@fastify/cookie');
+	fastify.register(cookie);
 	// set up fucntion userRoutes , require from user.js
 	//this will be split later into multiple files we can use this now as the tetsing ground
 	const userRoutes = require('@routes/user.js');
@@ -53,13 +54,11 @@
 
 	// websocket handlers
 	//const WBhandlers = require ('Webscoket/');
-	const cookie = require('@fastify/cookie');
 	// utalizes api routing from  routes/user.js
-
-//	const tournamentRoutes = require('./routes/tournament/tournament');
-//	fastify.register(tournamentRoutes, { db, secure });
-
-	fastify.register(cookie);
+	
+	//	const tournamentRoutes = require('./routes/tournament/tournament');
+	//	fastify.register(tournamentRoutes, { db, secure });
+	
 	// no i need to register all of above? not just user routes
 
 
