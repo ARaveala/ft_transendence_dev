@@ -198,9 +198,11 @@ const startTournamentGame = async (match: Match, settings: typeof gameSettings) 
 		);
 	}
 
-  return (
-    <>
-    <div className="p-6 max-w-4xl mx-auto">
+ return (
+  <>
+    <div className="flex justify-center px-6 py-6">
+      {/* Semi-transparent card */}
+      <div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
       <TournamentHeader />
 
       {/* Start New Tournament Button */}
@@ -239,6 +241,7 @@ const startTournamentGame = async (match: Match, settings: typeof gameSettings) 
           onBack={() => setShowSettingsModal(false)}
         />
       )}
+	</div>
     
       {/* Pong Game Iframe  -- this needs to be fixed*/}
       {currentGameMatch && activeGameId && player1Token && gameSettings &&(

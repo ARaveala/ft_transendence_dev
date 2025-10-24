@@ -457,7 +457,9 @@ const SettingsPage: React.FC = () => {
 	const previewSrc = uploadPreview || selectedAvatar || currentAvatar || null;
 				
 	return (
-		<div className="p-6 max-w-4xl mx-auto">
+  <div className="flex justify-center px-6 py-6">
+    {/* Semi-transparent card for content */}
+    <div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
 			<h1 className="text-3xl font-bold mb-4">{t("settings.title")}</h1>
 
 			{/* Inline status */}
@@ -693,6 +695,7 @@ const SettingsPage: React.FC = () => {
 				</button>
 			</section>
 		</div>
+		  </div>
 	);
 };
 
@@ -708,7 +711,7 @@ function SettingButton({
 			<button
 				type="button"
 				onClick={onClick}
-				className="px-3 py-1.5 text-sm rounded-md text-white bg-gray-800 hover:bg-gray-600"
+  				className="px-3 py-1.5 text-sm rounded-md text-white bg-blue-600 hover:bg-blue-700"
 			>
 				{label}
 			</button>

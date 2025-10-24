@@ -4,6 +4,7 @@ import Modal from "../components/ui/Modal";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import type { RegisterUserPayload } from "../../shared/payloads";
 import { useAuth } from "../context/AuthContext";
+import CenteredContainer from "../components/layout/CenteredContainer"; // <-- Import it
 
 const HomePage: React.FC = () => {
 const [isModalOpen, setIsModalOpen] = useState(false); // Tracks if modal is open
@@ -124,7 +125,9 @@ const handle2faVerifySubmit = async () => {
     };
 
 return (
-	<div className="flex flex-col items-center justify-center min-h-screen gap-6">
+<CenteredContainer> 
+{/* Semi-transparent card wrapper for Home page content */}
+        <div className="w-full max-w-md bg-gray-900/90 rounded-xl p-8 text-white shadow-2xl flex flex-col items-center space-y-8">
 	<h1 className="text-5xl font-bold">Pong</h1>
 
 	{!isLoggedIn && (
@@ -162,6 +165,7 @@ return (
 		</button>
 		</div>
 	)}
+	</div>
 
 	<Modal
 		isOpen={isModalOpen}
@@ -191,7 +195,7 @@ return (
 			</div>
 		</div>
 	)}
-	</div>
+	</CenteredContainer>
 );
 };
 
