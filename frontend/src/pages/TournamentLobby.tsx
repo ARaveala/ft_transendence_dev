@@ -135,7 +135,7 @@ const TournamentLobby: React.FC = () => {
 
       if (data.status === "OK") {
           setTournament(data.tournament);      // Updates tournament state with new match info
-          setCurrentGameMatch(match);          // Sets active game state (triggers Pong iframe)
+          setCurrentGameMatch(match);         // Sets active game state (triggers Pong iframe)
           setActiveGameId(match.match_id);
       } else {
         console.error ("Error starting match:", data.error);

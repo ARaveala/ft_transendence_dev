@@ -74,7 +74,7 @@ function attachPlayerToGame(ws, session) {
 	console.log('player id from token', ws.playerId);
     const player = game.players.get(ws.playerId);
 	if (!player) {
-		console.log('acces player ready state', player.ready);
+		//console.log('acces player ready state', player.ready);
 		console.log("Player not found in game, player id", player.playerId,'player itesle', player);
 		ws.send(JSON.stringify({ error: 'Player not found in game' }));
 		ws.close();

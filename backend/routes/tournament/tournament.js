@@ -450,7 +450,7 @@ flog.warn({function: 'createMatches', bracket: bracket}, 'entering create matche
 		}
 	}
 const ret = {
-        match_id: bracket.tournament_id,
+        match_id: bracket.game_uid,
         player1: player1,
         player2: player2,
         status: "pending",
@@ -583,7 +583,23 @@ async function startTournament(fastify, options){
 }
 
 
+async function startTournamentMatch(fastify, options){
+	const {secure, DBget, DBtour, game} = options;
+ 	fastify.route({
+		method: API_PROTOCOL.START_TOURNAMENT_MATCH.method,
+		url: API_PROTOCOL.START_TOURNAMENT_MATCH.path,
+ 		handler: async (request, reply) => {
+			const match_id = request.body;
 
+			
+			try{
+				flog.info({function: 'startTournamentMatch', body: request.body}, 'starting match , showing body');
+			}catch{
+				flog.error({function: 'startTournamentMatch'});
+			}
+		}
+	})
+}
 
 //    const fullPlayers = currentTournament?.players || [];
 //
@@ -726,6 +742,7 @@ async function tournamentRoutes(fastify, options) {
 	await createTournament(fastify, options);
 	await verifyPlayer(fastify, options);
 	await startTournament(fastify, options);
+	await startTournamentMatch(fastify, options);
 	//await getTournamentState(tournamentId, userId, token);
 }
 

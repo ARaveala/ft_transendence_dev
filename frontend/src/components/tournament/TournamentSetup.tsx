@@ -74,7 +74,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({
       });
 
       const data: StartTournamentResponse = await res.json();
-
+	  console.log("lets looky at the data sent ", data);
       if (data.status !== "OK" || !data.tournament) {
         console.error("Tournament start error:", data.error);
         return;

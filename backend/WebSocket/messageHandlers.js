@@ -62,7 +62,7 @@ function handleMessage(ws, data) {
 			currentWs.send(JSON.stringify({ type: 'pong', payload: 'Pong!' }));
 			break;
 		case "pause": {
-				console.log("Game paused");
+				console.log("Game paused");Error 
 
 			if (gameState.loop) {
 				clearInterval(gameState.loop);
