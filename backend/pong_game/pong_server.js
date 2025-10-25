@@ -174,8 +174,10 @@ function updateGame(state, player1, player2) {
 	if (!state.gameRunning) return;
 	
 	// Moving ball. state.speedUp is updated when a powerup starts and ends. Default is 1.
-	state.positions[state.ballYI] += state.ball.dy * (state.ballSpeed * state.ballSpeedUp);
-	state.positions[state.ballXI] += state.ball.dx * (state.ballSpeed * state.ballSpeedUp);
+    // At the start ball moves half speed
+    const speedMultiplier = (state.firstHit == false ? 0.5 : 1) * state.ballSpeed * state.ballSpeedUp;
+	state.positions[state.ballYI] += state.ball.dy * speedMultiplier;
+	state.positions[state.ballXI] += state.ball.dx * speedMultiplier;
 
 	// check bounds and make it bounce
 	if (state.positions[state.ballYI] <= 0 // is top of ball hitting top wall
@@ -219,6 +221,7 @@ function updateGame(state, player1, player2) {
 		// this fix is not perfect, it can look weird when it hits the top or bottom in a certain angle
 		if (state.ball.dx < 0)
 			state.ball.dx = -state.ball.dx;
+        state.firstHit = true;
 	}
 	if (ballHitsPaddle(state, state.rightPaddleI))
 	{
@@ -228,6 +231,7 @@ function updateGame(state, player1, player2) {
 		// ball cannot change direction towards right
 		if (state.ball.dx > 0)
 			state.ball.dx = -state.ball.dx;
+        state.firstHit = true;
 	}
 
     if (!state.powerups)

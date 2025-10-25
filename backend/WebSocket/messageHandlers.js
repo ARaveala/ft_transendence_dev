@@ -109,6 +109,7 @@ function handleMessage(ws, data) {
 				gameState.positions[gameState.ballXI] = gameState.width / 2;
 			} if (resetAll || data.resetTargets.includes("gameRunning")) {
 				gameState.gameRunning = true;
+                gameState.firstHit = false;
 			}
 			break;
 		}
