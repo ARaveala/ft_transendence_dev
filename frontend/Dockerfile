@@ -8,17 +8,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install 
-RUN npm install -D @types/react @types/react-dom
+RUN npm install
 
 # Copy the rest of the project
 COPY . .
 
-# Build for production (optional if just testing dev server)
-# RUN npm run build
-
-# Expose port for Vite dev server
+# Expose the Vite dev server port
 EXPOSE 5173
 
-# Run the dev server
-CMD ["npm", "run", "dev", "--", "--host"]
+# Run the dev server (Vite)
+CMD ["npm", "run", "dev"]
+
