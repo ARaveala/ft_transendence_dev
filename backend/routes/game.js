@@ -79,7 +79,8 @@ function createGameMap(owner, mode, type) {
 			lastUpdate: undefined,
             powerups: false,
             visiblePowerups: new Array(),
-            activePowerups: new Array()
+            activePowerups: new Array(),
+            firstHit: false
 		}});
 	return gameId;
 }
