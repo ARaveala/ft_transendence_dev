@@ -9,9 +9,6 @@ import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useAuth } from "../context/AuthContext";
 import { CreateTournamentPayload,
         CreateTournamentResponse,
-        GetActiveTournamentResponse,
-        StartTournamentMatchPayload,
-        StartTournamentMatchResponse
       } from "../../shared/payloads";
 
 const TournamentLobby: React.FC = () => {
@@ -27,7 +24,7 @@ const TournamentLobby: React.FC = () => {
       paddleSpeed: number;
       maxScore: number;
   } | null>(null);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);  // controls whether game settings modal is shown
   const [gameResult, setGameResult] = useState<{
       gameId: string;
       winner: string;
@@ -35,6 +32,8 @@ const TournamentLobby: React.FC = () => {
       score: [number, number];
     } | null>(null);
   
+    // Listens for messages from pong iframe 
+
     useEffect(() => {
       function handleMessage(event: MessageEvent) {
         if (event.origin !== "http://localhost:3000") return;
@@ -42,7 +41,7 @@ const TournamentLobby: React.FC = () => {
         if (event.data?.type === "GAME RESULT") {
           console.log("Received game result from iframe:", event.data.payload);
           setGameResult(event.data.payload);
-          handleMatchEnd(); // closes iframe
+          handleMatchEnd(); // clears data and closes iframe
         }
       }
       window.addEventListener("message", handleMessage);
@@ -58,7 +57,7 @@ const TournamentLobby: React.FC = () => {
 
   const handleCreateTournament = async () => {
     const payload: CreateTournamentPayload = { max_players: 4 };
-    console.log('CREATE TOURNAMENT????');
+    console.log('Creating tournament...');
 	try {
       const res = await fetch(API_PROTOCOL.CREATE_TOURNAMENT.path, {
         method: API_PROTOCOL.CREATE_TOURNAMENT.method,
@@ -71,8 +70,8 @@ const TournamentLobby: React.FC = () => {
 
     if (data.status === "OK") {
         setTournament(data.tournament);
-        setShowSetup(true);
-        await refreshSession(); // Refresh session to update user tournament status
+        setShowSetup(true);         // Show setup for adding players
+        await refreshSession();     // Refresh session to update tournament state
       } else {
         console.error("Error creating tournament:", data.error);
       }
@@ -93,6 +92,8 @@ const TournamentLobby: React.FC = () => {
     }
   };
 
+  // Cancels the current tournament
+
   const handleCancelTournament = async () => {
     if (!tournament)
       return;
@@ -112,11 +113,9 @@ const TournamentLobby: React.FC = () => {
     }
   };
 
-  /*
-   * Starts a specific match
-   * - Sends a start request to backend
-   * - If successful, activates the Pong game iframe
-   */
+   /* Starts a specific match from the tournament bracket
+    - If game settings have not been set, shows settings modal */
+
   const handleStartMatch = async (match: Match) => {
     if (!tournament) return;
 
@@ -129,6 +128,9 @@ const TournamentLobby: React.FC = () => {
     await startTournamentGame(match, gameSettings);
     };
 
+    /* Called when user confirms game settings
+      Starts the match with the selected settings */
+    
     const handleSettingsConfirm = async (settings: typeof gameSettings) => {
     setGameSettings(settings);
     setShowSettingsModal(false);
@@ -137,39 +139,39 @@ const TournamentLobby: React.FC = () => {
     }
   };
 
-  //const getPlayer1TokenFromCookie = (): string | null => {
-  //  const match = document.cookie.match(/(^|;) ?session_token=([^;]*)/);
-  //  return match ? match[2] : null;
-  //};
+   /* Sends API request to start a tournament match
+      Updates player tokens and active match */
 
-
-const startTournamentGame = async (match: Match, settings: typeof gameSettings) => {
-    const payload: StartTournamentMatchPayload = { match_id: match.match_id };
+  const startTournamentGame = async (match: Match, settings: typeof gameSettings) => {
+    const payload = { gameId: match.match_id };
     try {
-      const res = await fetch(`/api/tournament/${tournament?.tournament_id}/start-match`, {
-        method: API_PROTOCOL.START_TOURNAMENT_MATCH.method,
+      const res = await fetch("/api/start-game", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        credentials: "include",
       });
 
-      const data = await res.json() as StartTournamentMatchResponse & { playerTokens?: { player1: string } };
-      if (data.status === "OK") {
-        setTournament(data.tournament);
-        setCurrentGameMatch(match);
-        setActiveGameId(match.match_id);
-        // Extracts player1 token from cookie
-        setPlayer1Token(data.playerTokens?.player1 ?? null);
-        // player2Token is null in tournament
-        setPlayer2Token(null);
-      } else {
-        console.error("Error starting match:", data.error);
+      const data = await res.json();
+      if (!res.ok || !data.playerTokens) {
+          console.error("Failed to start tournament game:", data.error || res.statusText);
+          return;
       }
-    } catch (err) {
-      console.error(err);
+        setPlayer1Token(data.playerTokens?.player1 ?? null);
+        setPlayer2Token(null);   // player2Token is null in tournament
+
+      if (data.tournament) setTournament(data.tournament);   // updates tournament context if needed
+
+        setCurrentGameMatch(match);              // Sets active match to trigger iframe
+        setActiveGameId(match.match_id);
+
+     } catch (err) {
+      console.error("Error starting tournament match:", err);
     }
   };
 
     // Ends a match - Simply clears the current game state and closes iframe
+    
   const handleMatchEnd = () => {
     setCurrentGameMatch(null);
     setActiveGameId(null);

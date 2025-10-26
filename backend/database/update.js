@@ -144,11 +144,22 @@ async function updatePlayerGameStats(winner, id, score) {
 					flog.error({ function: 'updateGameStats' }, 'No changes made, user not found');
 					reject({ error: 'User not found , no changes made' });
 				} else {
-					resolve({ message: 'player game stats updated', userId: id, winner: winner, score: score});
-				}
-			}
-		);
-	});
+         db.get(
+            'SELECT wins, losses, score, total_games FROM users WHERE id = ?',
+            [id],
+            (err, row) => {
+              if (err) {
+                reject({ error: 'Failed to fetch updated stats', details: err });
+              } else {
+				flog.debug({function: "updategamestats", ...row}, "show me the stats");
+                resolve({ message: 'player game stats updated', userId: id, ...row });
+              }
+            }
+          );
+        }
+      }
+    );
+  });
 }
 
 //
