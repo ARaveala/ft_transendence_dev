@@ -43,9 +43,9 @@ async function getUser(fastify, options) {
 				mfa_enabled: false,
 				rank: 5,
 				score: 1200,
-				victories: 15,
+				victories: 20,
 				losses: 7,
-				totalMatches: 22,
+				matches: 22,
 				friends: [],
 				matchHistory: [
 					{ id: "m1", opponent: "Player2", result: "win", score: 21, timestamp: "2025-08-25T12:00:00" },
@@ -55,8 +55,9 @@ async function getUser(fastify, options) {
 		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
 		try {
 			const profile = await DBget.fetchUser({userId});
+			//flog.warn({function: "getProfile", totalGames: profile.total_games}, "can we see total matches updated and recived==============================");
 			const friends = await DBget.getFriendsForPlayer(userId.id);
-			flog.info({function: 'getUser', friends}, 'checking friend object');
+	//		flog.info({function: 'getUser', friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory({userId});
 			//const { password, ...safeUser } = profile;
 			mockProfile.username = profile.username;
@@ -64,9 +65,9 @@ async function getUser(fastify, options) {
 			mockProfile.mfa_enabled = profile.mfa_enabled === 1; // convert to boolean
 			mockProfile.rank = profile.rank;
 			mockProfile.score = profile.score;
-			mockProfile.wins = profile.victories;
+			mockProfile.victories = profile.wins;
 			mockProfile.losses = profile.losses;
-			mockProfile.total_games = profile.totalMatches;
+			mockProfile.totalMatches = profile.total_games;
 			mockProfile.friends = friends || [];
 			mockProfile.matchHistory = matchHistory || [];
 			//mockP

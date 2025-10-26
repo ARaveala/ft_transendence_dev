@@ -48,7 +48,7 @@ CREATE INDEX IF NOT EXISTS idx_friend_friend_id ON friends(friend_id);
 CREATE TABLE IF NOT EXISTS tournaments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     status TEXT NOT NULL DEFAULT 'waiting'
-        CHECK (status IN ('waiting','ongoing','finished')),
+        CHECK (status IN ('waiting','ready','ongoing','finished')),
     winner_id INTEGER,
     FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
 );
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
 -- do we want to add if game was 1v1 or tournament ?
 -- no match key as we want to use this to build leaderboard
 -- leaderboard should not have same player twice , if user has top score , next score is another user
-CREATE TABLE IF NOT EXISTS games
+CREATE TABLE IF NOT EXISTS brackets
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tournament_id INTEGER,
@@ -67,8 +67,9 @@ CREATE TABLE IF NOT EXISTS games
     winner_id INTEGER,
     round INTEGER,
     bracket_pos INTEGER,
+	game_uid TEXT UNIQUE,
     status TEXT NOT NULL DEFAULT 'waiting'
-        CHECK (status IN ('waiting', 'ongoing', 'finished')),
+        CHECK (status IN ('waiting', 'pending', 'ongoing', 'finished')),
     FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
     FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -83,6 +84,11 @@ CREATE TABLE IF NOT  EXISTS tournament_players (
     user_id INTEGER NOT NULL,
     alias TEXT NOT NULL,
     seed INTEGER NOT NULL CHECK (seed BETWEEN 1 AND 4),
+	player_role TEXT NOT NULL DEFAULT 'player',
+	player_status TEXT NOT NULL DEFAULT 'waiting',
+	player_score INTEGER NOT NULL DEFAULT 0,
+	verified INTEGER NOT NULL DEFAULT 0,
+	is_owner INTEGER NOT NULL DEFAULT 0,
     UNIQUE (tournament_id, user_id),
     UNIQUE (tournament_id, alias),
     UNIQUE (tournament_id, seed),
