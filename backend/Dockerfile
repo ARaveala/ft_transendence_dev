@@ -44,7 +44,8 @@ RUN npm i @fastify/static
 RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 && rm -rf /var/lib/apt/lists/*
 
 COPY . .
-RUN mkdir -p /app/data
+RUN mkdir -p data
+RUN chmod 777 data
 
 # # Expose the port Fastify listens on
 EXPOSE 3000

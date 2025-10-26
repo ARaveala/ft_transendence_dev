@@ -50,7 +50,7 @@ const [gameSettings, setGameSettings] = useState<{
 
 	useEffect(() => {
 	  function handleMessage(event: MessageEvent) {
-		if (event.origin !== "http://localhost:3000") return;
+		//if (event.origin !== "http://localhost:3001") return;
 
 		if (event.data?.type === "GAME RESULT") {
 		  console.log("Received game end from iframe:", event.data.payload);
