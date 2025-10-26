@@ -264,7 +264,7 @@ function buildTournamentPlayerList(players) {
 			isVerified: player.verified
 	});
 	} else {
-    	fullPlayerList.push({
+		fullPlayerList.push({
 			username: "",
 			alias: "",
 			role: `player${i}`,
@@ -288,14 +288,14 @@ async function getTournamentState(players, tournamentId, tournamentStatus) {
 //		status = tournamentStatus.status;
 //	}
   const tournamentState = {
-    tournament_id: tournamentId,
-    status: tournamentStatus,
-    players: full_list,
-    currentMatch: undefined,
-    bracket: [],
-    winner: undefined,
-    createdAt: undefined,
-    lastUpdated: undefined
+	tournament_id: tournamentId,
+	status: tournamentStatus,
+	players: full_list,
+	currentMatch: undefined,
+	bracket: [],
+	winner: undefined,
+	createdAt: undefined,
+	lastUpdated: undefined
   };
  // flog.debug({function: 'getTournamentState', tournamentState: tournamentState}, 'tournament state built +++++++++');
   return tournamentState;
@@ -411,21 +411,21 @@ async function verifyPlayer(fastify, options){
 /**
  * 
  * id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tournament_id INTEGER,
-    p1_id INTEGER,
-    p2_id INTEGER,
-    p1_score INTEGER NOT NULL DEFAULT 0,
-    p2_score INTEGER NOT NULL DEFAULT 0,
-    winner_id INTEGER,
-    round INTEGER,
-    bracket_pos INTEGER,
+	tournament_id INTEGER,
+	p1_id INTEGER,
+	p2_id INTEGER,
+	p1_score INTEGER NOT NULL DEFAULT 0,
+	p2_score INTEGER NOT NULL DEFAULT 0,
+	winner_id INTEGER,
+	round INTEGER,
+	bracket_pos INTEGER,
 	game_uid TEXT UNIQUE,
-    status TEXT NOT NULL DEFAULT 'waiting'
-        CHECK (status IN ('waiting', 'pending', 'ongoing', 'finished')),
-    FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
-    FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
+	status TEXT NOT NULL DEFAULT 'waiting'
+		CHECK (status IN ('waiting', 'pending', 'ongoing', 'finished')),
+	FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+	FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
+	FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
+	FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
 );
  */
 async function createMatches(player1, player2, bracket){
@@ -450,11 +450,11 @@ flog.warn({function: 'createMatches', bracket: bracket}, 'entering create matche
 		}
 	}
 const ret = {
-        match_id: bracket.game_uid,
-        player1: player1,
-        player2: player2,
-        status: "pending",
-        score: { player1: player1.score, player2: player2.score },
+		match_id: bracket.game_uid,
+		player1: player1,
+		player2: player2,
+		status: "pending",
+		score: { player1: player1.score, player2: player2.score },
 	}
 	return ret;
 }
@@ -467,8 +467,8 @@ const ret = {
   player2: TournamentPlayer;
   winner?: TournamentPlayer;
   score?: {
-    player1: number;
-    player2: number;
+	player1: number;
+	player2: number;
   };
   status: 'pending' | 'ongoing' | 'finished';
   //lastUpdated: Date;
@@ -506,8 +506,8 @@ async function startTournament(fastify, options){
 				game.addPlayer(gameId1, players[3].user_id, {
 					type: 'login',
 					ws: undefined,
-					role: players.player_role,
-					alias: players.alias,
+					role: players[3].player_role,
+					alias: players[3].alias,
 					ready: false,
 					disconnectedAt: undefined,
 					pauseTimeout: undefined,
@@ -582,23 +582,59 @@ async function startTournament(fastify, options){
 	});
 }
 
-
 async function startTournamentMatch(fastify, options){
-	const {secure, DBget, DBtour, game} = options;
- 	fastify.route({
+	const {secure, game, DBtour} = options;
+	fastify.route({
 		method: API_PROTOCOL.START_TOURNAMENT_MATCH.method,
 		url: API_PROTOCOL.START_TOURNAMENT_MATCH.path,
- 		handler: async (request, reply) => {
-			const match_id = request.body;
+		handler: async (request, reply) => {
+			const { gameId } = request.body;
+			if (!gameId) {
+				return reply.code(400).send({ status: 'ERROR', error: 'gameId required' });
+			}
+			try {
 
-			
-			try{
-				flog.info({function: 'startTournamentMatch', body: request.body}, 'starting match , showing body');
-			}catch{
-				flog.error({function: 'startTournamentMatch'});
+				const match = await DBtour.getMatchByGameUid(gameId);
+				if (!match || !match.p1_id || !match.p2_id) {
+					return reply.code(400).send({status: 'ERROR', error: 'Match or players not found'});
+				}
+
+				const { p1_id, p2_id, game_uid } = match;
+
+				const gameObj = game.getGame(game_uid);
+				if (!gameObj) {
+					return reply.code(404).send({ status: 'ERROR', error: 'Game object not found' });
+				}
+
+				//Add players if they aren’t already in the game
+				if (!gameObj.players.has(p1_id)) {
+					game.addPlayer(game_uid, p1_id, { type: 'login', role: 'player1', ready: false, score: 0 });
+				}
+				if (!gameObj.players.has(p2_id)) {
+					game.addPlayer(game_uid, p2_id, { type: 'login', role: 'player2', ready: false, score: 0 });
+				}
+
+				// Generate player tokens
+				const playerTokens = {
+					player1: secure.generateWsToken(p1_id, game_uid),
+					player2: secure.generateWsToken(p2_id, game_uid),
+				};
+
+				gameObj.phase = 'starting';
+
+				return reply.send({
+					status: 'OK',
+					match_id: match.id || null,
+					gameId: game_uid,
+					playerTokens,
+				});
+
+			} catch (err) {
+				console.error('Error starting tournament match:', err);
+				return reply.code(500).send({ status: 'ERROR', error: 'Failed to start tournament match' });
 			}
 		}
-	})
+	});
 }
 
 //    const fullPlayers = currentTournament?.players || [];
@@ -691,10 +727,10 @@ async function startTournamentMatch(fastify, options){
   tournament_id: string; //also not potentially required , as the user , with cookie, 
   is determined as tournament owner , this way we will know which tournamnet is in progress
   players: {
-    username: string; why do u need this 
-    alias: string;
-    password?: string; //NEVER
-    isSelf?: boolean;
+	username: string; why do u need this 
+	alias: string;
+	password?: string; //NEVER
+	isSelf?: boolean;
   }[];
 }
  * 10 starttorunament

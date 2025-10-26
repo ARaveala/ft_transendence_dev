@@ -102,7 +102,7 @@ export const API_PROTOCOL = {
   },
 
   START_TOURNAMENT_MATCH: {
-    path: '/api/tournament/:id/start-match',
+    path: '/api/tournament/start-match',
     method: 'POST',
   },
 
