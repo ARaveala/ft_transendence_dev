@@ -39,7 +39,8 @@
     "@Rauth": "routes/auth",
     "@Rprofile": "routes/profile",
     "@Rgame": "routes/game.js",
-    "@logger": "logUtils/logger.js"
+    "@logger": "logUtils/logger.js",
+	"@Rtour": "routes/tournament"
   },
   "devDependencies": {
     "@fastify/static": "^6.12.0",

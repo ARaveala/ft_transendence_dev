@@ -11,6 +11,7 @@ import { useAuth } from "../context/AuthContext";
 import ChooseGameMode from "../components/game/ChooseGameMode";
 import GameSettings from "../components/game/GameSettings";
 import CenteredContainer from "../components/layout/CenteredContainer";
+import MiniLogin from "../components/game/MiniLogin";
 
 type GameMode = "guest" | "login" | "ai";
 
@@ -19,9 +20,11 @@ const { isLoggedIn, loading} = useAuth();
 const [gameStarted, setGameStarted] = useState(false);
 const [player1Token, setPlayer1Token] = useState<string | null>(null);
 const [player2Token, setPlayer2Token] = useState<string | null>(null);
+const [player2Id, setPlayer2Id] = useState<string | null>(null);
 const [gameId, setGameId] = useState<string | null>(null);
 //const [loading, setLoading] = useState(true);
 const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
+const [showMiniLogin, setShowMiniLogin] = useState(false);
 const [gameSettings, setGameSettings] = useState<{
 	ballSpeed: number;
 	paddleSize: number;
@@ -93,6 +96,11 @@ const startGame = async (settings?: typeof gameSettings) => {
 	const { gameId } = await createRes.json();
 	setGameId(gameId);
 
+	if (selectedMode === "login" && !player2Id) {
+		setShowMiniLogin(true);
+		return; // pause here until MiniLogin completes
+	}
+
 	// 2. Join second player
 	const joinRes = await fetch("/api/join-game", {
 		method: "POST",
@@ -130,6 +138,7 @@ const handleGameEnd = () => {
 	console.log("Game ended!");
 	setPlayer1Token(null);
 	setPlayer2Token(null);
+	setPlayer2Id(null);
 	setGameId(null);
 	setGameSettings(null);
 	setGameStarted(false);
@@ -140,11 +149,49 @@ const handleGameEnd = () => {
 if (loading) return <div>Checking login status...</div>;
 if (!isLoggedIn) return <div>Please log in to access the game.</div>;
 
+  const handleMiniLoginSuccess = async (id: string) => {
+    console.log("Mini login successful, player2Id:", id);
+    setPlayer2Id(id);
+    setShowMiniLogin(false);
+
+    if (!gameId) {
+      return;
+    }
+
+    try {
+      // Join second player
+      const joinRes = await fetch("/api/join-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameId,
+          type: "login",
+          player2Id: id,
+        }),
+        credentials: "include",
+      });
+      const joinData = await joinRes.json();
+      console.log("Player 2 joined:", joinData);
+
+      // Start game
+      const startRes = await fetch("/api/start-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gameId }),
+        credentials: "include",
+      });
+      const startData = await startRes.json();
+
+      setPlayer1Token(startData.playerTokens.player1);
+      setPlayer2Token(startData.playerTokens.player2);
+      setGameStarted(true);
+    } catch (err) {
+      console.error("Mini login join/start failed:", err);
+    }
+  };
+
 return (
-	// Use the CenteredContainer
 	<CenteredContainer>
-		{/* Remove all sizing classes from this div */}
-	
 		{!selectedMode && (
 		<div className="w-full max-w-lg bg-gray-900/90 rounded-xl p-8 text-white shadow-2xl">
 		<ChooseGameMode
