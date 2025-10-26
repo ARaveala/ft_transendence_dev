@@ -61,7 +61,7 @@ function updateKeys(state, keys) {
 let AIState;
 let lastAIStateUpdate = undefined;
 
-function getNextCollision(AIState) {
+function getNextCollision() {
     
     // Find out which wall its going towards and set its y value
     const yMinMax = AIState.ball.dy > 0 ? AIState.height : 0;
@@ -97,18 +97,15 @@ function deepCopyState(state) {
         paddleOffset: state.paddleOffset,
         height: state.height,
         width: state.width,
-        paddleHeight: state.paddleHeight
+        paddleHeight: state.paddleHeight,
+        paddleSpeed: state.paddleSpeed
     }
 }
 
 // This will decide which is the best key to press as player2
-function AISimulateKeyPress(state) {
+// It gets access to keysDown and global AIState only, not "state"
+function AISimulateKeyPress(keysDown) {
     // Save state every second. AI can only see AIState
-    const now = new Date();
-    if (lastAIStateUpdate == undefined || now - lastAIStateUpdate >= 1000) {
-        AIState = deepCopyState(state);
-        lastAIStateUpdate = now;
-    }
 
     let predictedBallCollision = AIState.height / 2;
 
@@ -118,7 +115,7 @@ function AISimulateKeyPress(state) {
         predictedBallCollision = AIState.height / 2;
     else {
         // Get an object containing which wall it hits and where
-        let nextCollision = getNextCollision(AIState);
+        let nextCollision = getNextCollision();
 
         // Loop while it bounces
         while (nextCollision.wall !== "right") {
@@ -132,7 +129,7 @@ function AISimulateKeyPress(state) {
             AIState.ball.dy = -AIState.ball.dy;
 
             // Find next collision
-            nextCollision = getNextCollision(AIState);
+            nextCollision = getNextCollision();
         }
 
         // Now AIState is updated to contain a direct path to right with no more bounces
@@ -140,26 +137,40 @@ function AISimulateKeyPress(state) {
     }
 
     // AI presses key to move towards where it predicts it will hit the ball
-    const AIPaddleCenter = state.positions[AIState.rightPaddleI] + AIState.paddleHeight / 2;
+    const AIPaddleCenter = AIState.positions[AIState.rightPaddleI] + AIState.paddleHeight / 2;
     if (AIPaddleCenter - predictedBallCollision > AIState.paddleHeight / 10) {
         console.log("AI is pressing up");
-        state.keysDown[2] = true;
+        keysDown[2] = true;
+        AIState.positions[AIState.rightPaddleI] -= AIState.paddleSpeed;
     } else if (AIPaddleCenter - predictedBallCollision < -AIState.paddleHeight / 10) {
         console.log("AI is pressing down");
-        state.keysDown[3] = true;
+        keysDown[3] = true;
+        AIState.positions[AIState.rightPaddleI] += AIState.paddleSpeed;
     } // else do nothing
 }
 
 function updateGame(state, player1, player2) {
 
-    // AI will simulate pressing keys
-    if (true || player2.type === "ai")
-        AISimulateKeyPress(state);
+    // AI will simulate pressing keys. "true" condition is for testing, remove later
+    if (true || player2.type === "ai") {
+        // create a copy of state every second
+        const now = new Date();
+        if (lastAIStateUpdate == undefined || now - lastAIStateUpdate >= 1000) {
+            AIState = deepCopyState(state);
+            lastAIStateUpdate = now;
+        }
 
-	// Move paddles
+        // Give AI keysDown so it can input its keypresses
+        AISimulateKeyPress(state.keysDown);
+    }
+
+	// Move player1 paddle
 	if (state.keysDown[0]) state.positions[state.leftPaddleI] -= state.paddleSpeed;
 	if (state.keysDown[1]) state.positions[state.leftPaddleI] += state.paddleSpeed;
-	if (state.keysDown[2]) state.positions[state.rightPaddleI] -= state.paddleSpeed;
+
+    // Move player2 paddle
+	// Adding if player2.type === "ai" here will prevent human from moving AIs paddle, add later
+    if (state.keysDown[2]) state.positions[state.rightPaddleI] -= state.paddleSpeed;
 	if (state.keysDown[3]) state.positions[state.rightPaddleI] += state.paddleSpeed;
 
 	// keep paddles inside bounds by clamping
@@ -174,8 +185,10 @@ function updateGame(state, player1, player2) {
 	if (!state.gameRunning) return;
 	
 	// Moving ball. state.speedUp is updated when a powerup starts and ends. Default is 1.
-	state.positions[state.ballYI] += state.ball.dy * (state.ballSpeed * state.ballSpeedUp);
-	state.positions[state.ballXI] += state.ball.dx * (state.ballSpeed * state.ballSpeedUp);
+    // At the start ball moves half speed
+    const speedMultiplier = (state.firstHit == false ? 0.5 : 1) * state.ballSpeed * state.ballSpeedUp;
+	state.positions[state.ballYI] += state.ball.dy * speedMultiplier;
+	state.positions[state.ballXI] += state.ball.dx * speedMultiplier;
 
 	// check bounds and make it bounce
 	if (state.positions[state.ballYI] <= 0 // is top of ball hitting top wall
@@ -219,6 +232,7 @@ function updateGame(state, player1, player2) {
 		// this fix is not perfect, it can look weird when it hits the top or bottom in a certain angle
 		if (state.ball.dx < 0)
 			state.ball.dx = -state.ball.dx;
+        state.firstHit = true;
 	}
 	if (ballHitsPaddle(state, state.rightPaddleI))
 	{
@@ -228,6 +242,7 @@ function updateGame(state, player1, player2) {
 		// ball cannot change direction towards right
 		if (state.ball.dx > 0)
 			state.ball.dx = -state.ball.dx;
+        state.firstHit = true;
 	}
 
     if (!state.powerups)
