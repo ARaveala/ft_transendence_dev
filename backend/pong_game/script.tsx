@@ -32,6 +32,7 @@ const paddleOffset = 100; // how far are paddles from window edges in pixels
 const fps = 60; // don't change unless change also in server
 
 const victory_score = gameSettings.maxScore;
+const countdownTime = 3; // seconds
 
 // key related
 const controls = ["w", "s", "ArrowUp", "ArrowDown"];
@@ -67,7 +68,7 @@ let gameReady = false;
 // Websocket
 const webSocket = new WebSocket("ws://localhost:3000/ws");
 
-// Aliases of players. Ask for these through websocket with "getPlayerNames"
+// Player data
 let p1Alias, p2Alias;
 let p1Score, p2Score;
 
@@ -94,6 +95,14 @@ function endFunction() {
         type: "GAME RESULT",
         payload: data
     }, "*");
+}
+
+async function countdown() {
+    for (let i = countdownTime; i > 0; --i) {
+        document.getElementById("countdown").textContent = i;
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    document.getElementById("countdown").textContent = "";
 }
 
 webSocket.onmessage = (event) => {
@@ -140,9 +149,15 @@ webSocket.onmessage = (event) => {
                 document.getElementById('p2Score').textContent = p2Score;
                 if (p1Score == victory_score) winner = 1;
                 else if (p2Score == victory_score) winner = 2;
-                if (winner == 0) // game not finished yet
-                    webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["ball", "gameRunning"]}));
-                else {
+                if (winner == 0) { // game not finished yet
+                    countdown();
+                    webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["ball"]}));
+                    document.getElementById("ball").classList.add("hidden");
+                    setTimeout(() => {
+                        webSocket.send(JSON.stringify({type: "resetPositions", resetTargets: ["gameRunning"]}));
+                        document.getElementById("ball").classList.remove("hidden");
+                    }, countdownTime * 1000);
+                } else {
                     // Update win declaration and show the div
                     let endPrompt = document.getElementById("endPrompt");
                     let endPromptText = document.getElementById("endPromptText");
