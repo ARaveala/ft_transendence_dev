@@ -29,10 +29,12 @@ avatarFile: "avatars/avatar1.png",
 				matchHistory: 0 (format unknown)
  */
 function insertUser({ username, password, score = 0, status = 'online'}) {
-    console.log('Incoming user data:', { username, password});
+    console.log('Incoming user data:', { username});
     return new Promise(async (resolve, reject) => {
         try
         {
+          if (!username || !password)
+            return reject({ status: 400, error: 'username and password are required' });
             const hash = await bcrypt.hash(password, 10);
             // const avatarFile = 'frontend/src/assets/avatars/avatar1.png';
             db.run(
@@ -42,10 +44,15 @@ function insertUser({ username, password, score = 0, status = 'online'}) {
                 function (err) {
                     if (err)
                     {
-                        if (err.code === 'SQL_CONSTRAINT') {
-                            return reject({status: 409, error: 'Username already taken'});   
-                        }
-                        return reject({status: 500, error: 'DB insert failed', details: err});
+                      console.error('DB insert error:', { code: err.code, errno: err.errno, msg: err.message });
+                      const isConstraint =
+                        err.code === 'SQLITE_CONSTRAINT' ||
+                        err.code === 'SQLITE_CONSTRAINT_UNIQUE' ||
+                        err.errno === 19 ||
+                        (err.message && err.message.includes('UNIQUE constraint failed'));
+                      if (isConstraint)
+                        return reject({status: 409, error: 'Username already taken'});
+                      return reject({status: 500, error: 'DB insert failed', details: err});
                     }
                     resolve(this.lastID);
                 }
@@ -53,7 +60,8 @@ function insertUser({ username, password, score = 0, status = 'online'}) {
         }
         catch(e)
         {
-            reject({status: 500, error: 'Hashing failed', details: e});
+          console.error('Hashing failed:', e);
+          reject({status: 500, error: 'Hashing failed', details: e});
         }
     });
 }

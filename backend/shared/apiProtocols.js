@@ -139,12 +139,12 @@ const API_PROTOCOL = {
   },
 
   VERIFY_PLAYER: {
-  path: '/api/tournament/verify-player',
+  path: '/api/tournament/:tid/verify-player',
   method: 'POST',
   },
 
   JOIN_TOURNAMENT: {
-	path: '/api/tournaments/:tid/join',
+	path: '/api/tournament/:tid/join',
 	method: 'POST'
   },
 

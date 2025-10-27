@@ -2,6 +2,7 @@
 const { API_PROTOCOL } = require('@sharedApi');
 const bcrypt = require('bcryptjs');
 const { getUserIdFromToken } = require('../../security/security');
+const { fetchUserByUsername } = require('../../database/get');
 
 let _db;
 const _wrap = (db) => ({
@@ -12,10 +13,10 @@ const _wrap = (db) => ({
 		})
 	),
 	get: (sql, params = []) => new Promise((res, rej) =>
-	db.get(sql, params, (e, row) => (e ? rej(e) : res(row)))
+	db.get(sql, params, (e, row) => (e ? rej(e) : res(row || null)))
 	),
 	all: (sql, params = []) => new Promise((res, rej) =>
-	db.all(sql, params, (e, rows) => (e ? rej(e) : res(rows)))
+	db.all(sql, params, (e, rows) => (e ? rej(e) : res(rows || [])))
 	),
 	tx: async (fn) => {
 		const run = (sql, p=[]) => _wrap(db).run(sql, p);
@@ -70,12 +71,19 @@ module.exports = async function tournamentRoutes(fastify, options) {
 	const {db, secure} = options;
 	_db = db;
 	const {run, get, all, tx} = _wrap(db);
-	// const run = (sql, params=[]) => new Promise((res, rej) => db.run(sql, params, function(err){
-	// 	if (err) rej(err); else res({lastID: this.lastID, changes: this.changes});
-	// }));
-	// const get = (sql, params=[]) => new Promise((res, rej) => db.get(sql, params, (e, row) => e ? rej(e) : res(row)));
-	// const all = (sql, params=[]) => new Promise((res, rej) => db.all(sql, params, (e, rows) => e ? rej(e) : res(rows)));
-	// const tx =  async(fn) => {await run('BEGIN'); try {const r = await fn(); await run('COMMIT'); return r} catch (e) {await run('ROLLBACK'); throw e;} };
+	async function _fetchTournamentState(all, get, tid)
+	{
+		const t = await get(`SELECT id, status FROM tournaments WHERE id = ?`, [tid]);
+		const players = await all(
+			`SELECT tp.user_id AS userId, u.username, tp.alias, tp.role
+				FROM tournament_players tp
+				JOIN users u ON u.id = tp.user_id
+			WHERE tp.tournament_id = ?
+			ORDER BY tp.role ASC`,
+			[tid]
+		);
+		return {id: t.id, status: t.status, players};
+	}
 	const requireUser = (request, reply) => {
 		const token = request.cookies?.auth_token;
 		if (!token) {reply.code(401).send({error: 'Not authenticated'}); return null;}
@@ -93,20 +101,10 @@ module.exports = async function tournamentRoutes(fastify, options) {
 		let creatorId;
 		try
 		{
-			// console.log(token)
-			// const payload = fastify.jwt.verify(token);
-			// request.log.info(
-			// 	{ payloadTypeId: typeof payload?.id, payloadTypeUserId: typeof payload?.user_id },
-			// 	'verify ok'
-			// );
-			creatorId = getUserIdFromToken(token); //payload.id || payload.user_id;
+			creatorId = getUserIdFromToken(token);
 		}
 		catch (e)
 		{
-			request.log.warn(
-			{ name: e.name, message: e.message },
-			'JWT verify failed'
-			);
 			return reply.code(401).send({status: 'ERROR', error: 'Invalid auth token'});
 		}
 		const creator = await get(`SELECT id, username FROM users WHERE id = ?`, [creatorId]);
@@ -120,7 +118,7 @@ module.exports = async function tournamentRoutes(fastify, options) {
 				);
 				const tid = insT.lastID;
 				await run(
-					`INSERT INTO tournament_players (tournament_id, user_id, alias, seed)
+					`INSERT INTO tournament_players (tournament_id, user_id, alias, role)
 					 VALUES (?, ?, 'alias', 1)`,
 					[tid, creatorId]
 				);
@@ -141,53 +139,87 @@ module.exports = async function tournamentRoutes(fastify, options) {
 		{
 			const msg = String(err?.message || '');
 			if (msg.includes('UNIQUE'))
-				return reply.code(409).send({status: 'ERROR', error: 'Seed already used'});
+				return reply.code(409).send({status: 'ERROR', error: 'Role already used'});
 			fastify.log.error({err}, 'Create tournament failed');
 			return reply.code(500).send({status: 'ERROR', error: 'Create tournament failed'});
 		}
 	});
-	fastify.post(API_PROTOCOL.JOIN_TOURNAMENT.path, async (request, reply) => {
+	fastify.post(API_PROTOCOL.VERIFY_PLAYER.path, async (request, reply) => {
 		db.exec('PRAGMA foreign_keys = ON;');
 		const token = request.cookies?.auth_token;
 		if (!token) return reply.code(401).send({status: 'ERROR', error: 'Not authenticated'});
-		let userId;
-		try
-		{
-			const payload = fastify.jwt.verify(token);
-			userId = payload.id || payload.user_id;
-		} catch(e)
-		{
-			return reply.code(401).send({status: 'ERROR', error: 'Invalid auth token'});
-		}
-		const userRow = await get(`SELECT id FROM users WHERE id = ?`, [userId]);
-		if (!userRow) return reply.code(401).send({ status: 'ERROR', error: 'User no longer exists' });
+		let requesterId;
+		try { requesterId = getUserIdFromToken(token); }
+		catch { return reply.code(401).send({status: 'ERROR', error: 'Invalid auth token'});}
 		const tid = Number(request.params.tid);
-		const {alias, seed} = request.body || {};
-		if (!alias || typeof alias !== 'string' || ![1, 2, 3, 4].includes(Number(seed)))
-			return reply.code(400).send({status: 'ERROR', error: 'alias and seed (1-4) are required'});
-		try {
-			const t = await get(`SELECT id, status FROM tournaments WHERE id = ?`, [tid]);
-			if (!t) return reply.code(404).send({status: 'ERROR', error: 'Tournament not found'});
-			if (t.status !== 'waiting') return reply.code(409).send({status: 'ERROR', error: 'Tournament not joinable'});
-			const u = await get(`SELECT COUNT(*) AS c FROM tournament_players WHERE tournament_id = ?`, [tid] || {c: 0});
-			if (!u) return reply.code(400).send({status: 'ERROR', error: 'Tournament full'});
-			const row = await get(`SELECT COUNT(*) AS c FROM tournament_players WHERE tournament_id = ?`, [tid]);
-			const c = row?.c ?? 0;
-			if (c >= 4) return reply.code(409).send({status: 'ERROR', error: 'Tournament full'});
-			await run(
-				`INSERT INTO tournament_players (tournament_id, user_id, alias, seed) VALUES (?, ?, ?, ?)`, [tid, userId, alias.trim(), Number(seed)]
-			);
-			reply.code(201).send({status: 'OK'});
-		}
-		catch (err)
+		const {alias, role, username, password} = request.body || {};
+		const numericRole = Number(role);
+		if (!Number.isFinite(tid))
+			return reply.code(400).send({status: 'ERROR', error: 'Tournament ID is required'});
+		if (!alias || typeof alias !== 'string')
+			return reply.code(400).send({status: 'ERROR', error: 'Alias is required'});
+		if (role == null)
+			return reply.code(400).send({status: 'ERROR', error: 'Invalid role'});
+		const t = await get(`SELECT id, status FROM tournaments WHERE id = ?`, [tid]);
+		if (!t) return reply.code(404).send({status: 'ERROR', error: 'Tournament not found'});
+		if (t.status !== 'waiting')
+			return reply.code(400).send({status: 'ERROR', error: 'Tournament not joinable'});
+		const host = await get(
+			`SELECT user_id AS userId, alias FROM tournament_players WHERE tournament_id = ? AND role = 1`,
+			[tid]
+		);
+		if (!host)
+			return reply.code(409).send({status: 'ERROR', error: 'Tournament not initialized correctly'});
+		const addOther = Boolean(password);
+		if (!addOther)
 		{
-			const msg = String(err.message || '');
-			if (msg.includes('UNIQUE'))
-				return reply.code(409).send({status: 'ERROR', error: 'Alias or seed already used'});
-			fastify.log.error({err}, 'Join failed');
-			reply.code(500).send({status: 'ERROR', error: 'Join failed'});
+			if (role !== 1)
+				return reply.code(400).send({status: 'ERROR', error: 'Host must be role must be 1'});
+			if (requesterId !== host.userId)
+				return reply.code(403).send({status: 'ERROR', error: 'Only host can update role 1 alias'});
+			await run(
+				`UPDATE tournament_players SET alias = ? WHERE tournament_id = ? AND role = 1`,
+				[alias.trim(), tid]
+			);
+			const state = await _fetchTournamentState(all, get, tid);
+			return reply.send({status: 'OK', tournament: state});
 		}
+		if (![2, 3, 4].includes(role))
+			return reply.code(400).send({status: 'ERROR', error: 'Role must be 2-4'});
+		if (!username)
+			return reply.code(400).send({error: 'ERROR', error: 'Username is required'});
+		const userRow = await get(
+			`SELECT id, username, password FROM users WHERE username = ?`,
+			[username]
+		);
+		if (!userRow) return reply.code(404).send({status: 'ERROR', error: 'User not found'});
+		const ok = await bcrypt.compare(password, userRow.password);
+		if (!ok) return reply.code(401).send({status: 'ERROR', error: 'Invalid credentials'});
+		const dupe = await get(
+			`SELECT 1 FROM tournament_players WHERE tournament_id = ? AND user_id = ?`,
+			[tid, userRow.id]
+		);
+		if (dupe) return reply.code(409).send({status: 'ERROR', error: 'User already joined'});
+		const usedRole = await get(
+			`SELECT 1 FROM tournament_players WHERE tournament_id = ? AND role = ?`,
+			[tid, role]
+		);
+		if (usedRole) return reply.code(409).send({status: 'ERROR', error: 'Role already taken'});
+		const countRow = await get(
+			`SELECT COUNT(*) AS c FROM tournament_players WHERE tournament_id = ?`,
+			[tid]
+		);
+		if ((countRow?.c ?? 0) >= 4)
+			return reply.code(409).send({status: 'ERROR', error: 'Tournament full'});
+		await run(
+			`INSERT INTO tournament_players (tournament_id, user_id, alias, role)
+			 VALUES(?, ?, ?, ?)`,
+			[tid, userRow.id, alias.trim(), role]
+		);
+		const state = await _fetchTournamentState(all, get, tid);
+		return reply.code(200).send({status: 'OK', tournament: state});
 	});
+
 	fastify.post(API_PROTOCOL.START_TOURNAMENT.path, async (request, reply) => {
 		const userId = requireUser(request, reply);
 		if (!userId) return;
@@ -199,16 +231,16 @@ module.exports = async function tournamentRoutes(fastify, options) {
 				if (!t) throw Object.assign(new Error('Tournament not found'), { statusCode: 404 });
 				if (t.status !== 'waiting') throw Object.assign(new Error('Tournament already started'), {statusCode: 409});
 				const players = await all(
-					`SELECT tp.user_id, tp.alias, tp.seed
+					`SELECT tp.user_id, tp.alias, tp.role
 						FROM tournament_players tp
 					WHERE tp.tournament_id = ?
-					ORDER BY tp.seed ASC`,
+					ORDER BY tp.role ASC`,
 					[tid]
 				);
 				if (players.length !== 4) throw Object.assing(new Error('Tournament requires exactly 4 players'), {statusCode: 409});
-				const bySeed = (s) => players.find(p => p.seed === s)?.user_id;
-				const s1 = bySeed(1), s2 = bySeed(2), s3 = bySeed(3), s4 = bySeed(4);
-				if (!s1 || !s2 || !s3 || !s4) throw Object.assign(new Error('Seeds 1-4 must be unique'), {statusCode: 409});
+				const byRole = (s) => players.find(p => p.role === s)?.user_id;
+				const s1 = byRole(1), s2 = byRole(2), s3 = byRole(3), s4 = byRole(4);
+				if (!s1 || !s2 || !s3 || !s4) throw Object.assign(new Error('Roles 1-4 must be unique'), {statusCode: 409});
 				// Semifinals
 				await run(`INSERT INTO games (tournament_id, round, bracket_pos, p1_id, p2_id, status)
 							VALUES (?, 1, 1, ?, ?, 'waiting')`, [tid, s1, s4]);

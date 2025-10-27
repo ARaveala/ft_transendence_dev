@@ -32,7 +32,7 @@ async function registerUser(fastify, options) {
 			const userId = await DBinsert.insertUser({username, password, score, status});
 			const token = secure.generateToken(userId, username);
 			secure.setAuthCookie(reply, token);
-			reply.code(201).send({id: userId, username});
+			reply.code(200).send({id: userId, username: username});
 		}
 		catch (err)
 		{

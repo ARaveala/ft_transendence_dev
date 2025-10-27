@@ -3698,3 +3698,260 @@
 [LOGINUSER] User registration result:3
 [GET USER ID FROM TOKEN] taking id from token
 [GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761288683,"exp":1761292283}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"felipe1","password":"hello12"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJmZWxpcGUxIiwiaWF0IjoxNzYxMjg5ODUxLCJleHAiOjE3NjEyOTM0NTF9.IiGQYL3cmfKUhGPhT6Kr4OTTpYJptI8ApI-8HgZj1_0
+[LOGINUSER] User registration result:3
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761289851,"exp":1761293451}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"felipe1","password":"hello12"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJmZWxpcGUxIiwiaWF0IjoxNzYxMjg5OTQ3LCJleHAiOjE3NjEyOTM1NDd9.rWkgUzZcvDAi608IIsgskIkG2vWd4dx2aRxANV6cdTM
+[LOGINUSER] User registration result:3
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761289947,"exp":1761293547}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761289947,"exp":1761293547}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761289947,"exp":1761293547}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"felipe1","password":"hello12"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJmZWxpcGUxIiwiaWF0IjoxNzYxNTU1NjY5LCJleHAiOjE3NjE1NTkyNjl9.lck0f1teZZ82ad8xbsik_D_s0JcQJYtBA0CC1q2cSVE
+[LOGINUSER] User registration result:3
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761555669,"exp":1761559269}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761555669,"exp":1761559269}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761555669,"exp":1761559269}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761555669,"exp":1761559269}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761555669,"exp":1761559269}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761555669,"exp":1761559269}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761555669,"exp":1761559269}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"felipe1","password":"hello12"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJmZWxpcGUxIiwiaWF0IjoxNzYxNTU2MjYzLCJleHAiOjE3NjE1NTk4NjN9.kjL9MIoGhGY_7K6SRC97Q1WR4xYQ6WxRSdaguFHLNKE
+[LOGINUSER] User registration result:3
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761556263,"exp":1761559863}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761556263,"exp":1761559863}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761556263,"exp":1761559863}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"felipe1","password":"hello12"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJmZWxpcGUxIiwiaWF0IjoxNzYxNTU2MzU2LCJleHAiOjE3NjE1NTk5NTZ9.A28c1-cyo7Nyk4y5XG8wkW_AfGHtW_aDQQiyL0k2oWg
+[LOGINUSER] User registration result:3
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761556356,"exp":1761559956}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761556356,"exp":1761559956}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"felipe1","password":"hello12"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJmZWxpcGUxIiwiaWF0IjoxNzYxNTU2NDUyLCJleHAiOjE3NjE1NjAwNTJ9.Om3aTWolJOEwHEtEL6-l9HUZ83yeerZbSijr6hcWaBY
+[LOGINUSER] User registration result:3
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761556452,"exp":1761560052}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761556452,"exp":1761560052}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761556452,"exp":1761560052}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"felipe1","password":"hello12"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJmZWxpcGUxIiwiaWF0IjoxNzYxNTU2NTQ5LCJleHAiOjE3NjE1NjAxNDl9.fE_VqYC5V4_kp3aVOKeN_-e8ZsMygOo2eKaWflArFsk
+[LOGINUSER] User registration result:3
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761556549,"exp":1761560149}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761556549,"exp":1761560149}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"felipe1","password":"hello12"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJmZWxpcGUxIiwiaWF0IjoxNzYxNTU2NjE3LCJleHAiOjE3NjE1NjAyMTd9.ISzD-CuYiFsz-yf2AOHepj5msCH9T-xhSYjT7E9S9Jg
+[LOGINUSER] User registration result:3
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761556617,"exp":1761560217}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":3,"username":"felipe1","iat":1761556617,"exp":1761560217}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"nikolai","password":"password1"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJuaWtvbGFpIiwiaWF0IjoxNzYxNTU4NDE3LCJleHAiOjE3NjE1NjIwMTd9.ifumTi-P1AK0_sPvIuoR6p5BJyETCUGtetMuueuVxZI
+[LOGINUSER] User registration result:1
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761558417,"exp":1761562017}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"nikolai","password":"password1"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJuaWtvbGFpIiwiaWF0IjoxNzYxNTYyOTE0LCJleHAiOjE3NjE1NjY1MTR9.e6P1cwZDeaSLLnRKN4rw5_q37xK0kRF0lSjb23MmMWw
+[LOGINUSER] User registration result:1
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761562914,"exp":1761566514}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761562914,"exp":1761566514}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761562914,"exp":1761566514}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761562914,"exp":1761566514}
+[LOGINUSER] Incoming user data: {"username":"nikolai","password":"password1"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJuaWtvbGFpIiwiaWF0IjoxNzYxNTYzNDgyLCJleHAiOjE3NjE1NjcwODJ9.NESE8Bq0UgbfQbP5_lYU0QwZEytDZ9u2Pe2oCMNiLmU
+[LOGINUSER] User registration result:1
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761563482,"exp":1761567082}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761563482,"exp":1761567082}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761563482,"exp":1761567082}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761563482,"exp":1761567082}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761563482,"exp":1761567082}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761563482,"exp":1761567082}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[LOGINUSER] Incoming user data: {"username":"nikolai","password":"password1"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJuaWtvbGFpIiwiaWF0IjoxNzYxNTY4ODY1LCJleHAiOjE3NjE1NzI0NjV9.nFweX6VsX7-JPNySddMxzo69vaJZuzRkjw3ze9jVIyE
+[LOGINUSER] User registration result:1
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761568865,"exp":1761572465}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761568865,"exp":1761572465}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"nikolai","password":"password1"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJuaWtvbGFpIiwiaWF0IjoxNzYxNTY5NTE0LCJleHAiOjE3NjE1NzMxMTR9.q2w94T70JbR4rTdvzQjPCe_YL01JkLVxNj5WQzlhFNQ
+[LOGINUSER] User registration result:1
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761569514,"exp":1761573114}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761569514,"exp":1761573114}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761569514,"exp":1761573114}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761569514,"exp":1761573114}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761569514,"exp":1761573114}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761569514,"exp":1761573114}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761569514,"exp":1761573114}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761569514,"exp":1761573114}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761569514,"exp":1761573114}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761569514,"exp":1761573114}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761569514,"exp":1761573114}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"nikolai","password":"password1"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJuaWtvbGFpIiwiaWF0IjoxNzYxNTcwMDM1LCJleHAiOjE3NjE1NzM2MzV9.iu2sD6jnh6hvwl9EIaQdVehXD2ymZqe2Y8BE_L56F3s
+[LOGINUSER] User registration result:1
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761570035,"exp":1761573635}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761570035,"exp":1761573635}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761570035,"exp":1761573635}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"nikolai","password":"password1"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJuaWtvbGFpIiwiaWF0IjoxNzYxNTcxMTI1LCJleHAiOjE3NjE1NzQ3MjV9.wxU1-IPoACvuwJkjQV63ULQ4jM0cMJTLhKLupdPZJsg
+[LOGINUSER] User registration result:1
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571125,"exp":1761574725}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571125,"exp":1761574725}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"nikolai","password":"password1"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJuaWtvbGFpIiwiaWF0IjoxNzYxNTcxMjI2LCJleHAiOjE3NjE1NzQ4MjZ9.Y77ksHUDgn_RnHMUWd146u2tTCIxFtNKmAjVrfaUr_Q
+[LOGINUSER] User registration result:1
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571226,"exp":1761574826}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571226,"exp":1761574826}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571226,"exp":1761574826}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571226,"exp":1761574826}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571226,"exp":1761574826}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"nikolai","password":"password1"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJuaWtvbGFpIiwiaWF0IjoxNzYxNTcxNDAzLCJleHAiOjE3NjE1NzUwMDN9.4LUpY0LRbOEayl5dLvDI93K-24fZVvxuhDlfW8p_RA0
+[LOGINUSER] User registration result:1
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571403,"exp":1761575003}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571403,"exp":1761575003}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571403,"exp":1761575003}
+[STARTING SERVER] ---------------------------------------------
+[GETGAME] geting game called
+[LOGINUSER] Incoming user data: {"username":"nikolai","password":"password1"}
+[LOGINUSER] token on creation eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJuaWtvbGFpIiwiaWF0IjoxNzYxNTcxNjgxLCJleHAiOjE3NjE1NzUyODF9.ztaPlV9dlrrDTLE2bgAKNRDZ0VxvNl8X5IvOgLO6UdU
+[LOGINUSER] User registration result:1
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571681,"exp":1761575281}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571681,"exp":1761575281}
+[GET USER ID FROM TOKEN] taking id from token
+[GET USER ID FROM TOKEN] decoded token {"id":1,"username":"nikolai","iat":1761571681,"exp":1761575281}

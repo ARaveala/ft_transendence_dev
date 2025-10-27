@@ -71,10 +71,10 @@ CREATE TABLE IF NOT  EXISTS tournament_players (
     tournament_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     alias TEXT NOT NULL,
-    seed INTEGER NOT NULL CHECK (seed BETWEEN 1 AND 4),
+    role INTEGER NOT NULL CHECK (role BETWEEN 1 AND 4),
     UNIQUE (tournament_id, user_id),
     UNIQUE (tournament_id, alias),
-    UNIQUE (tournament_id, seed),
+    UNIQUE (tournament_id, role),
     FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
