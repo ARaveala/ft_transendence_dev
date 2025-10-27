@@ -3,6 +3,7 @@ import TournamentHeader from "../components/tournament/TournamentHeader";
 import TournamentBracket from "../components/tournament/TournamentBracket";
 import TournamentSetup from "../components/tournament/TournamentSetup";
 import GameSettings from "../components/game/GameSettings";
+import { TBD_PLAYER } from "../../shared/constants";
 import CenteredContainer from "../components/layout/CenteredContainer";
 import type { TournamentState, Match } from "../types/tournament";
 import Button from "../components/ui/Button";
@@ -54,16 +55,17 @@ const TournamentLobby: React.FC = () => {
 	useEffect(() => {
 		function handleMessage(event: MessageEvent) {
 			if (event.origin !== "http://localhost:3000") return;
-
 			if (event.data?.type === "GAME RESULT") {
 				console.log("Received game result from iframe:", event.data.payload);
-				setGameResult(event.data.payload);
-				handleMatchEnd(); // clears data and closes iframe
+				const result = event.data.payload;
+				setGameResult(result);
+				handleGameResult(result);
+				handleMatchEnd();
 			}
 		}
 		window.addEventListener("message", handleMessage);
 			return () => window.removeEventListener("message", handleMessage);
-	}, []);
+	}, [tournament, currentGame, gameResult]);
 
   /*
    * Creates a new tournament
@@ -107,6 +109,88 @@ const TournamentLobby: React.FC = () => {
 		}
 	};
 
+	// Updates the bracket with a finished match
+	const updateTournamentBracket = (tournament: TournamentState, result: NonNullable<typeof gameResult>): TournamentState => {
+		if (!tournament.bracket)
+			return tournament;
+
+		const { gameId, winner: winnerUsername, score } = result;
+
+		// Find match in bracket
+		let roundIndex = -1;
+		let matchIndex = -1;
+		for (let r = 0; r < tournament.bracket.length; r++) {
+			matchIndex = tournament.bracket[r].findIndex(m => m.match_id === gameId);
+			if (matchIndex !== -1) {
+				roundIndex = r;
+				break;
+			}
+		}
+
+		if (roundIndex === -1) return tournament;
+
+		const finishedMatch = tournament.bracket[roundIndex][matchIndex];
+
+		// Determine winner and loser
+		const winnerPlayer = finishedMatch.player1.username === winnerUsername ? finishedMatch.player1 : finishedMatch.player2;
+
+		const matchScore = {
+			player1: score[0],
+			player2: score[1],
+		};
+
+		// Update finished match
+		const updatedFinishedMatch: Match = {
+			...finishedMatch,
+			winner: winnerPlayer,
+			score : matchScore,
+			status: "finished",
+		};
+
+		// Update bracket
+		const updatedBracket: Match[][] = tournament.bracket.map(round => [...round]);
+		updatedBracket[roundIndex][matchIndex] = updatedFinishedMatch;
+
+		// Advance winner to next round if not final
+		let newStatus: TournamentState["status"] = tournament.status;
+
+		if (roundIndex < updatedBracket.length - 1) {
+			const nextRound = updatedBracket[roundIndex + 1];
+			const nextMatch = nextRound[0];
+
+			// Determine slot in next match
+			const isMatch1 = gameId === 'match1';
+			const playerSlotKey = isMatch1 ? 'player1' : 'player2';
+
+			const updatedNextMatch: Match = {
+				...nextMatch,
+				[playerSlotKey]: winnerPlayer,
+			};
+			updatedBracket[roundIndex + 1] = [updatedNextMatch];
+		} else if (gameId === 'final') {
+			newStatus = 'finished';
+		}
+
+		return { ...tournament, bracket: updatedBracket, status: newStatus };
+	};
+
+	// Handles the result from iframe and updates context + cleans UI
+	const handleGameResult = (result: typeof gameResult) => {
+		if (!result) return;
+
+		setTournament(prev => {
+			if (!prev) return prev;
+
+			const updated = updateTournamentBracket(prev, result);
+			return updated;
+		});
+
+		setCurrentGame(null);
+		setActiveGameId(null);
+		setPlayer1Token(null);
+		setPlayer2Token(null);
+	};
+
 	// Cancels the current tournament
 
 	const handleCancelTournament = async () => {
@@ -116,7 +200,7 @@ const TournamentLobby: React.FC = () => {
 		try {
 			const res = await fetch(API_PROTOCOL.CANCEL_TOURNAMENT.path, {
 			method: API_PROTOCOL.CANCEL_TOURNAMENT.method,
-		});
+			});
 
 			if (!res.ok) throw new Error("Failed to cancel tournament");
 
@@ -128,12 +212,46 @@ const TournamentLobby: React.FC = () => {
 		}
 	};
 
+	// Determines if a match is playable
+	const isMatchPlayable = (match: Match, round: number, idx: number): boolean => {
+		if (!tournament?.bracket ||  match.status === "finished") return false;
+
+		if (round === 1) {
+			if (idx === 0) return match.status === "pending";
+			const prevMatch = tournament.bracket[0][idx - 1];
+			return prevMatch?.status === "finished" && match.status === "pending";
+			}
+
+		// Final
+		const prevRound = tournament.bracket[round - 2];
+		const allPrevFinished = prevRound.every(m => m.status === "finished");
+		return allPrevFinished && match.status === "pending";
+	};
+
+
    /* Starts a specific match from the tournament bracket
 	- If game settings have not been set, shows settings modal */
 
 	const handleStartTournamentGame = async (match: Match) => {
-		if (!tournament) return;
+		if (!tournament || !tournament.bracket) return;
 
+		// Find the round and index for this match
+		const roundIndex = tournament.bracket.findIndex(r =>
+			r.some(m => m.match_id === match.match_id)
+		);
+		if (roundIndex === -1) {
+			console.error("Match not found in bracket", match);
+			return;
+		}
+		const idx = tournament.bracket[roundIndex].findIndex(m => m.match_id === match.match_id);
+
+		// Check if match is playable
+		if (!isMatchPlayable(match, roundIndex + 1, idx)) {
+			console.warn(`Cannot start ${match.match_id} yet. Complete previous matches first.`);
+			return;
+		}
+
+		// Show settings modal if not set
 		if (!gameSettings) {
 			setCurrentGame(match);
 			setShowSettingsModal(true);
@@ -141,7 +259,7 @@ const TournamentLobby: React.FC = () => {
 		}
 
 		await startTournamentGame(match);
-		};
+	};
 
 	/* Called when user confirms game settings
 	  Starts the match with the selected settings */
@@ -155,37 +273,38 @@ const TournamentLobby: React.FC = () => {
 	  Updates player tokens and active match */
 
 	const startTournamentGame = async (match: Match) => {
-		if (!currentGame || !gameSettings)
+		if (!match || !gameSettings)
 			return;
 	
-	const payload = { gameId: currentGame.match_id };
-	try {
-		const res = await fetch(API_PROTOCOL.START_TOURNAMENT_MATCH.path, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(payload),
-			credentials: "include",
-		});
+		const payload = { gameId: match.match_id };
+		try {
+			const res = await fetch(API_PROTOCOL.START_TOURNAMENT_MATCH.path, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+				credentials: "include",
+			});
 
-		const data = await res.json();
-		if (!res.ok || !data.playerTokens) {
-			console.error("Failed to start tournament game:", data.error || res.statusText);
-			return;
+			const data = await res.json();
+			if (!res.ok || !data.playerTokens) {
+				console.error("Failed to start tournament game:", data.error || res.statusText);
+				return;
+			}
+			setPlayer1Token(data.playerTokens.player1);
+			setPlayer2Token(data.playerTokens.player2);
+			setGameStarted(true);
+			setCurrentGame(match);					// Sets active match to trigger iframe
+			setActiveGameId(match.match_id);
+
+		} catch (err) {
+			console.error("Error starting tournament match:", err);
 		}
-		setPlayer1Token(data.playerTokens.player1);
-		setPlayer2Token(data.playerTokens.player2);
-		setGameStarted(true);
-		setCurrentGame(match);					// Sets active match to trigger iframe
-		setActiveGameId(match.match_id);
-
-	} catch (err) {
-		console.error("Error starting tournament match:", err);
-	}
-};
+	};
 
 	// Ends a match - Simply clears the current game state and closes iframe
 	
 	const handleMatchEnd = () => {
+
 		setCurrentGame(null);
 		setActiveGameId(null);
 		setPlayer1Token(null);
