@@ -215,7 +215,7 @@ const TournamentLobby: React.FC = () => {
 
 	return (
 		<div className="flex justify-center px-6 py-6">
-			{/* Semi-transparent card */}
+			{!showSettingsModal && !currentGame && (
 			<div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
 				<TournamentHeader />
 
@@ -238,7 +238,7 @@ const TournamentLobby: React.FC = () => {
 				)}
 
 				{/* Tournament Bracket */}
-				{tournament && !showSetup && (
+				{tournament && !showSetup && !showSettingsModal && !currentGame &&(
 					<TournamentBracket
 						tournament={tournament}
 						onStartMatch={handleStartTournamentGame}
@@ -247,6 +247,8 @@ const TournamentLobby: React.FC = () => {
 					/>
 				)}
 			</div>
+		)}
+
 				{/* Game settings */}
 				{showSettingsModal && (
 					<GameSettings
@@ -255,7 +257,7 @@ const TournamentLobby: React.FC = () => {
 					/>
 				)}
 
-				{/* Game settings */}
+				{/* Start Game button */}
 				{currentGame && gameSettings && !gameStarted && (
 					<div className="flex flex-col items-center space-y-4">
 						<button
