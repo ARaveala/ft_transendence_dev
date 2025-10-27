@@ -500,18 +500,18 @@ async function startTournament(fastify, options){
 				flog.debug({function : 'startTournament', player: players[0]}, 'players sorted by seed');
 
 				// Round 1: seed 1 vs seed 4
-				const gameId1 = game.createGameCore(players[0].user_id, 'tournament', 'local', players[0].alias);
-				flog.debug({function : 'startTournament'}, 'heloooooooooooooooooooooo    game 1 is created');
+				const gameId1 = game.createGameCore({id: players[0].user_id }, 'tournament', 'local', players[0].alias);
+				flog.debug({function : 'startTournament', gameId1}, 'game 1 is created');
 
 				game.addPlayer(gameId1, players[3].user_id, {
 					type: 'login',
 					ws: undefined,
-					role: players[3].player_role,
+					role: 'player2',
 					alias: players[3].alias,
 					ready: false,
 					disconnectedAt: undefined,
 					pauseTimeout: undefined,
-					score: players.score
+					score: players[3].player_score
 				})
 				let matchSetup = await DBtour.buildBracket(
 				  currentTournamentId,
@@ -525,18 +525,18 @@ async function startTournament(fastify, options){
 				const match1 = await createMatches(players[0], players[3], matchSetup);
 				flog.debug({function :'startTournament', match1: match1}, '!!!!!!!!!!!!!!!!!!!!!show me if match was creaqted for gods sake im gonna shoot someone"""""""""""');
 				// Round 2
-				const gameId2 = game.createGameCore(players[1].user_id, 'tournament', 'local', players[1].alias);
+				const gameId2 = game.createGameCore({id: players[1].user_id}, 'tournament', 'local', players[1].alias);
 				flog.debug({function : 'startTournament'}, 'game 2 is created');
 
 				game.addPlayer(gameId2, players[2].user_id, {
 					type: 'login',
 					ws: undefined,
-					role: players.player_role,
-					alias: players.alias,
+					role: 'player2',
+					alias: players[2].alias,
 					ready: false,
 					disconnectedAt: undefined,
 					pauseTimeout: undefined,
-					score: players.score
+					score: players[2].player_score
 				})
 				matchSetup = await DBtour.buildBracket(
 				  currentTournamentId,
