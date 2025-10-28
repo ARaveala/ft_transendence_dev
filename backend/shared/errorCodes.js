@@ -1,12 +1,23 @@
+const ERROR_MESSAGES = {
+  INVALID_USERNAME: 'Username does not exist',
+  INVALID_PASSWORD: 'Incorrect password',
+  INVALID_INPUT: 'Input format is incorrect',
+  USER_NOT_VERIFIED: 'User account is not verified',
+  DEFAULT_VALIDATION: 'Invalid input',
+  DEFAULT_AUTH: 'Authentication required',
+};
+
 const ERROR_CODES = {
   VALIDATION_FAILED: {
     code: 400,
     message: 'Invalid input'
   },
-  UNAUTHORIZED: {
+  
+  UNAUTHORIZED: (msgKey = 'DEFAULT_AUTH') =>({
     code: 401,
-    message: 'Authentication required'
-  },
+	message: ERROR_MESSAGES[msgKey] || ERROR_MESSAGES.DEFAULT_AUTH
+  }),
+
   FORBIDDEN: {
     code: 403,
     message: 'Access denied'
@@ -25,4 +36,4 @@ const ERROR_CODES = {
   }
 };
 
-module.exports = ERROR_CODES;
+module.exports = {ERROR_CODES, ERROR_MESSAGES};
