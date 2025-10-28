@@ -22,12 +22,14 @@ import Profile from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import background from "./assets/background.png";
+import Exit from "./pages/Exit";
 
 
 // Import shared layout components
 import Navbar from "./components/layout/Navbar";
 // Translation
 import { TranslationProvider } from "./shared/Translation";
+import LanguageSync from "./shared/LanguageSync";
 
 // Import AuthContext to manage user authentication state
 import { AuthProvider } from "./context/AuthContext";
@@ -94,20 +96,22 @@ export default function App() {
     <AuthProvider>
 		<Router>
 			<TranslationProvider>
-		<Layout>
-			<Routes>
-			<Route path="/" element={<LandingPage />} />
-			{protectedRoutes.map(({ path, element }) => (
-				<Route
-				key={path}
-				path={path}
-				element={<ProtectedRoute>{element}</ProtectedRoute>}
-				/>
-			))}
-			</Routes>
-			</Layout>
+				<LanguageSync />
+				<Layout>
+					<Routes>
+						<Route path="/" element={<LandingPage />} />
+						<Route path="/exit" element={<Exit />} />
+						{protectedRoutes.map(({ path, element }) => (
+							<Route
+								key={path}
+								path={path}
+								element={<ProtectedRoute>{element}</ProtectedRoute>}
+							/>
+						))}
+					</Routes>
+				</Layout>
 			</TranslationProvider>
 		</Router>
-	</AuthProvider>  
-	    );
-	}
+	</AuthProvider>
+	);
+}
