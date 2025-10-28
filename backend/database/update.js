@@ -1,25 +1,102 @@
 const db = require('./initDB');
-// const updateScoreSchema = require('@schemas/updateScore.js');
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'DB/update.js' }); // scoped logger
 
-function updateUserScore({userId, score}) {
-	console.log('updating score for user:', { userId, score });
+function updateUserScoreByDelta({userId, delta})
+{
+	console.log('updating score for user:', { userId, delta });
 
 	return new Promise((resolve, reject) => {
 		db.run(
 			`UPDATE users SET score = ? WHERE id = ?`,
-			[score, userId],
+			[delta, userId],
 			function (err) {
-				if (err) {
-					reject({ error: 'Failed to update the score', details: err});
-				} else if (this.changes === 0) {
-					reject({ error: 'User not found , no changes made' });
-				} else {
-					resolve({ message: 'Score updated', userId: userId, newScore: score});
-				}
+				if (err) reject({ error: 'Failed to update the score', details: err});
+				if (this.changes === 0) reject({ error: 'User not found , no changes made' });
+				resolve({ message: 'Score updated', userId: userId, newScore: score});
 			}
 		);
+	});
+}
+
+function setUserScore({userId, score})
+{
+	flog.debug({fn: 'setUSerScore', userId, score});
+	return new Promise((resolve, reject) => {
+		db.run(
+			`UPDATE users SET score = ? WHERE id = ?`,
+			[score, userId],
+			function (err)
+			{
+				if (err) return reject({error: 'Failed to set score', details: err});
+				if (this.changes === 0) return reject({error: 'User not found'});
+				resolve({ok: true, changes: this.changes});
+			}
+		);
+	})
+}
+
+function finalizeGameAndUpdateScores({gameId, p1Score, p2Score, winnerScoreDelta = 10, loserScoreDelta = 0})
+{
+	flog.info({fn: 'finalizeGameAndUpdateScores', gameId, p1Score, p2Score});
+	return new Promise((resolve, reject) => {
+		db.serialize(() => {
+			const rollback = (payload) => db.run('ROLLBACK', () => reject(payload));
+			db.run('BEGIN');
+			db.get(
+				`SELECT id, p1_id, p2_id, status FROM games WHERE id = ?`,
+				[gameId],
+				(err, game) => {
+					if (err) return rollback({error: 'DB read failed', details: err});
+					if (!game) return rollback({error: 'Game not found'});
+					if (game.status === 'finished')
+						return rollback({error: 'Game already finished'});
+					if (typeof p1Score !== 'number' || typeof p2Score !== 'number')
+						return rollback({error: 'Invalid scores'});
+					if (p1Score === p2Score)
+						return rollback({error: 'Draws are not supported'});
+					const winnerId = p1Score > p2Score ? game.p1_id : game.p2_id;
+					const loserId = p1Score > p2Score ? game.p2_id : game.p1_id;
+					db.run(
+						`UPDATE games
+							SET p1_score = ?, p2_score = ?, winner_id = ?, status = 'finished'
+						WHERE id = ?`,
+						[p1Score, p2Score, winnerId, gameId],
+						function (err) {
+							if (err) return rollback({error: 'Failed to update game', details: err});
+							db.run(
+								`UPDATE users
+									SET wins = wins + 1,
+										total_games = total_games + 1,
+										score = score + ?
+								WHERE id = ?`,
+								[winnerScoreDelta, winnerId],
+								function (err) {
+									if (err) return rollback({error: 'Failed to update winner', details: err});
+									if (this.changes === 0) return rollback({error: 'Winner user not found'});
+									db.run(
+										`UPDATE users
+											SET losses = losses + 1,
+												total_games = total_games + 1,
+												score = score + ?
+										WHERE id = ?`,
+										[loserScoreDelta, loserId],
+										function (err) {
+											if (err) return rollback({error: 'Failed to update loser', details: err});
+											if (this.changes === 0) return rollback({error: 'Loser user not found'});
+											db.run('COMMIT', (err) => {
+												if (err) return reject({error: 'Commit failed', details: err});
+												resolve({ok: true, winnerId, loserId});
+											});
+										}
+									);
+								}
+							);
+						}
+					);
+				}
+			);
+		});
 	});
 }
 
@@ -184,12 +261,14 @@ async function updatePlayerGameStats(winner, id, score) {
 //	});
 //}	
 //	
-module.exports = { updateUserScore,
+module.exports = {
+	// updateUserScore,
+	finalizeGameAndUpdateScores,
 	updateUsername,
 	updatePassword,
 	changeAvatar,
 	changeLanguage,
 	update2fa,
-	updatePlayerGameStats,
+	// updatePlayerGameStats,
 //	updateMatchHistory
 };

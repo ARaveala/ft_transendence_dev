@@ -129,29 +129,39 @@ function handleMessage(ws, data) {
 			const [id1, player1] = player1Entry;
 			const [id2, player2] = player2Entry;
 
-			const winner = player1.score > player2.score ? 1 : 2;
+			// const winner = player1.score > player2.score ? 1 : 2;
 
 			console.log("ids:", id1, id2);
 			console.log("winner:", winner);
 			console.log("scores:", player1.score, player2.score);
 			console.log("gameID:", data.gameId);
+			finalizeGameAndUpdateScores({
+				gameId: data.gameId,
+				p1Score: player1.score,
+				p2Score: player2.score,
+			}).then(({winnerId}) => {
+				currentWs.send(JSON.stringify({type: 'game_result_saved', gameId: data.gameId, winnerId}));
+			}).catch(err => {
+				console.log('Failed to finalize game', err);
+				currentWs.send(JSON.stringify({type: 'error', error: 'Failed to save game result'}));
+			});
 			
-			if (winner === 1){
-				updatePlayerGameStats(true, id1, player1.score)
-				 .catch(err => console.error('Failed to update player1 stats', err));
-				//if (typeof id2 === 'string' && !id2.includes('Guest')) {
-				//	updatePlayerGameStats(false, id2, player2.score)
-				//	 .catch(err => console.error('Failed to update player2 stats', err));
-				//}
-			}
-			else {
-				//if (typeof id2 === 'string' && !id2.includes('Guest')) {
-				//	updatePlayerGameStats(true, id2, player2.score)
-				//	 .catch(err => console.error('Failed to update player2 stats', err));
-				//}
-				updatePlayerGameStats(false === 0, id1, player1.score)
-				 .catch(err => console.error('Failed to update player1 stats', err));
-			}
+			// if (winner === 1){
+			// 	updatePlayerGameStats(true, id1, player1.score)
+			// 	 .catch(err => console.error('Failed to update player1 stats', err));
+			// 	//if (typeof id2 === 'string' && !id2.includes('Guest')) {
+			// 	//	updatePlayerGameStats(false, id2, player2.score)
+			// 	//	 .catch(err => console.error('Failed to update player2 stats', err));
+			// 	//}
+			// }
+			// else {
+			// 	//if (typeof id2 === 'string' && !id2.includes('Guest')) {
+			// 	//	updatePlayerGameStats(true, id2, player2.score)
+			// 	//	 .catch(err => console.error('Failed to update player2 stats', err));
+			// 	//}
+			// 	updatePlayerGameStats(false === 0, id1, player1.score)
+			// 	 .catch(err => console.error('Failed to update player1 stats', err));
+			// }
 			break;
 		}
 		case 'init': {
@@ -159,8 +169,8 @@ function handleMessage(ws, data) {
 			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset, ballSpeed, paddleSpeed, powerUp }
 			currentWs.send(JSON.stringify({type: 'init_ack', message: 'game init success' }));
             gameState.powerups = data.payload.powerups;
-		}
 			break;
+		}
 		case 'keys':{
 			// if remote update keys should somehow update keys for both players at the same time
 			/**
@@ -183,7 +193,7 @@ function handleMessage(ws, data) {
 				console.log("Player2: ", player2);
 				return;
 			}
-			startLoop(currentWs, gameState, player1, player2);
+			startLoop(game, gameState, player1, player2);
 			break;
 		}
 		case "reconnect": {

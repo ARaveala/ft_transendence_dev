@@ -21,8 +21,8 @@
 	const friendContext = require('@routes/context.js');
 	
 	
-	const tournamentRoutes = require('@routes/tournament/tournament.js');
-	const tournamentContext = require('@routes/tournament/context.js');
+	const tournamentRoutes = require('@routes/tournament_group_2/tournament.js');
+	const tournamentContext = require('@routes/tournament_group_2/context.js');
 	// set up context, require from context.js 
 	// there will be multiple index or context.txt for each file ....
 	const context = require('@context');
@@ -88,7 +88,7 @@
 	const errorCodes = require('@sharedEcode');
 	const formatError = require("@errors");
 
-	const {gameRoutes} = require('@Rgame');
+	const gameRoutes = require('@routes/game.js');
 	fastify.register(gameRoutes, context);
 
 	

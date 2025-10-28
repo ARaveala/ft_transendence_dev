@@ -12,6 +12,7 @@
     "@fastify/multipart": "^7.7.3",
     "@fastify/websocket": "^11.2.0",
     "@sinclair/typebox": "^0.34.40",
+    "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.1",
     "fastify": "^4.29.1",
     "jsonwebtoken": "^9.0.2",
@@ -40,7 +41,7 @@
     "@Rprofile": "routes/profile",
     "@Rgame": "routes/game.js",
     "@logger": "logUtils/logger.js",
-	"@Rtour": "routes/tournament"
+    "@Rtour": "routes/tournament"
   },
   "devDependencies": {
     "@fastify/static": "^6.12.0",

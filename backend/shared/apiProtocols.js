@@ -135,7 +135,7 @@ const API_PROTOCOL = {
   },
 
   VERIFY_PLAYER: {
-  path: '/api/tournament/verify-player',
+  path: '/api/tournament/:tid/verify-player',
   method: 'POST',
   },
 
@@ -144,9 +144,10 @@ const API_PROTOCOL = {
 	method: 'POST'
   },
 
-REPORT_GAME_RESULT:{
+  REPORT_GAME_RESULT:{
 	path: '/api/games/result',
 	method: 'POST' },
+  
   CHANGE_2FA: {
 	path: '/api/profile/2fa',
 	method: 'POST',

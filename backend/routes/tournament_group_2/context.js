@@ -5,7 +5,7 @@ const DBupdate = require('@db/update.js');
 const secure = require('@security');
 const DBtour = require('@db/tournament.js');
 
-const game = require('@Rgame');
+// const game = require('@Rgame');
 module.exports = {
 	db,
 	DBinsert,
@@ -13,5 +13,5 @@ module.exports = {
 	DBget,
 	DBupdate,
 	DBtour,
-	game,
+	// game,
 };

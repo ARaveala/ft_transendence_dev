@@ -1,6 +1,7 @@
 const db = require('./initDB.js');
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'get.js' }); // scoped logger
+const bcrypt = require('bcryptjs');
 
 // naming can be changed 
 // get each element from database , such as score, name , status
@@ -180,14 +181,12 @@ async function miniLogin(username, password) {
       if (!row) {
         return reject({ error: 'User not found' });
       }
-
-      // TEMP: plain text password check for testing only
-      if (row.password !== password) {
-        return reject({ error: 'Invalid password' });
-      }
+	  const ok = bcrypt.compare(password, row.password);
+	  if (!ok)
+		throw {status: 401, error: 'Invalid username or password'};
       // Return minimal info — no profile data
 	  flog.info({ function: 'miniLogin', userId: row.id}, 'mini login success ');
-      resolve({ id: row.id});
+      resolve(row.id);
     });
   });
 }

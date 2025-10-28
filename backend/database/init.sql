@@ -1,4 +1,5 @@
 
+
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS users
@@ -18,18 +19,6 @@ CREATE TABLE IF NOT EXISTS users
     total_games INTEGER NOT NULL DEFAULT 0
 );
 
-CREATE tABLE IF NOT EXISTS match_history
-(
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	user_id INTEGER NOT NULL,
-	opponent_id INTEGER NOT NULL,
-	user_score INTEGER NOT NULL,
-	opponent_score INTEGER NOT NULL,
-	result TEXT NOT NULL CHECK (result IN ('win', 'loss')),
-	match_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-	FOREIGN KEY (opponent_id) REFERENCES users(id) ON DELETE CASCADE
-);
 -- multidirectional friendship table, allows for sigle directional requests
 -- status can be 'pending', 'accepted', 'blocked'
 -- cap at 20?
@@ -48,7 +37,7 @@ CREATE INDEX IF NOT EXISTS idx_friend_friend_id ON friends(friend_id);
 CREATE TABLE IF NOT EXISTS tournaments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     status TEXT NOT NULL DEFAULT 'waiting'
-        CHECK (status IN ('waiting','ready','ongoing','finished')),
+        CHECK (status IN ('waiting','ongoing','finished')),
     winner_id INTEGER,
     FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
 );
@@ -56,7 +45,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
 -- do we want to add if game was 1v1 or tournament ?
 -- no match key as we want to use this to build leaderboard
 -- leaderboard should not have same player twice , if user has top score , next score is another user
-CREATE TABLE IF NOT EXISTS brackets
+CREATE TABLE IF NOT EXISTS games
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tournament_id INTEGER,
@@ -64,12 +53,13 @@ CREATE TABLE IF NOT EXISTS brackets
     p2_id INTEGER,
     p1_score INTEGER NOT NULL DEFAULT 0,
     p2_score INTEGER NOT NULL DEFAULT 0,
+    type TEXT,
+    mode TEXT,
     winner_id INTEGER,
     round INTEGER,
     bracket_pos INTEGER,
-	game_uid TEXT UNIQUE,
     status TEXT NOT NULL DEFAULT 'waiting'
-        CHECK (status IN ('waiting', 'pending', 'ongoing', 'finished')),
+        CHECK (status IN ('waiting', 'ongoing', 'finished')),
     FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
     FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -83,18 +73,14 @@ CREATE TABLE IF NOT  EXISTS tournament_players (
     tournament_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     alias TEXT NOT NULL,
-    seed INTEGER NOT NULL CHECK (seed BETWEEN 1 AND 4),
-	player_role TEXT NOT NULL DEFAULT 'player',
-	player_status TEXT NOT NULL DEFAULT 'waiting',
-	player_score INTEGER NOT NULL DEFAULT 0,
-	verified INTEGER NOT NULL DEFAULT 0,
-	is_owner INTEGER NOT NULL DEFAULT 0,
+    role INTEGER NOT NULL CHECK (role BETWEEN 1 AND 4),
     UNIQUE (tournament_id, user_id),
     UNIQUE (tournament_id, alias),
-    UNIQUE (tournament_id, seed),
+    UNIQUE (tournament_id, role),
     FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
 
 
 -- leaderboard table to track user rankings
