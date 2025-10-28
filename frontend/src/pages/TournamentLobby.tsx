@@ -214,18 +214,28 @@ const TournamentLobby: React.FC = () => {
 
 	// Determines if a match is playable
 	const isMatchPlayable = (match: Match, round: number, idx: number): boolean => {
-		if (!tournament?.bracket ||  match.status === "finished") return false;
+		if (!tournament?.bracket ||  match.status === "finished")
+			return false;
 
+		// Round 1 matches
 		if (round === 1) {
-			if (idx === 0) return match.status === "pending";
-			const prevMatch = tournament.bracket[0][idx - 1];
-			return prevMatch?.status === "finished" && match.status === "pending";
+			if (idx === 0)                          // match 1
+				return match.status === "pending";
+
+			// Match 2
+			const firstMatch = tournament.bracket[0][0];
+			return firstMatch?.status === "finished" && match.status === "pending";
 			}
 
-		// Final
-		const prevRound = tournament.bracket[round - 2];
-		const allPrevFinished = prevRound.every(m => m.status === "finished");
-		return allPrevFinished && match.status === "pending";
+		// Round 2 : Final
+		if (round === 2)
+		{
+			const semis = tournament.bracket[0];
+			console.log("Status of round 1 matches:" , tournament.bracket[0].map(m => '${m.match_id}: ${m.status}'));
+			const allSemisFinished = semis.every(m => m.status === "finished");
+			return allSemisFinished && match.status === "pending";
+		}
+		return false;
 	};
 
 
@@ -247,6 +257,15 @@ const TournamentLobby: React.FC = () => {
 
 		// Check if match is playable
 		if (!isMatchPlayable(match, roundIndex + 1, idx)) {
+			console.log("Checking playability for:", {
+			match_id: match.match_id,
+			round: roundIndex + 1,
+			idx,
+			status: match.status,
+			bracket: tournament.bracket.map((r, i) => ({
+				round: i + 1,
+				matches: r.map(m => ({ id: m.match_id, status: m.status })
+			)}))})
 			console.warn(`Cannot start ${match.match_id} yet. Complete previous matches first.`);
 			return;
 		}
