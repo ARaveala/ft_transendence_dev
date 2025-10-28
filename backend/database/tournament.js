@@ -344,7 +344,7 @@ function cancelTournament(tournamentId) {
 }
 
 function getUserByRole(tournamentId, role) {
-	flog.debug({ function: 'getUserByRole' }, 'Fetching tournament by ID');
+	flog.debug({ function: 'getUserByRole' , tid: tournamentId, role: role});
 		return new Promise((resolve, reject) => {
 			db.get('SELECT * FROM tournament_players WHERE tournament_id = ? AND player_role = ?',
 				[tournamentId, role], (err, row) =>{
@@ -366,7 +366,7 @@ function removePlayer(tournamentId, role) {
 	return new Promise ((resolve, reject) => {
 		getUserByRole(tournamentId, role).then(player => {
 
-		
+		flog.debug({function: "removePlayer", playerid: player.user_id});
 		db.run('DELETE FROM tournament_players WHERE user_id = ?',
 			[player.user_id], function(err) {
 				if (err) {
@@ -381,7 +381,8 @@ function removePlayer(tournamentId, role) {
 
 		)
 	})
-	})
+	.catch(reject);
+	});
 }
 
 module.exports = {
