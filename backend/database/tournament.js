@@ -322,30 +322,6 @@ function updateTournamentStatus(tournamentId, newStatus) {
 		});
 }
 
-function getMatchByGameUid(game_uid) {
-	flog.debug({ function: 'getMatchByGameUid', game_uid }, 'Fetching match by game UID');
-	return new Promise((resolve, reject) => {
-		db.get(
-			`SELECT game_uid, p1_id, p2_id
-			 FROM brackets
-			 WHERE game_uid = ?`,
-			[game_uid],
-			(err, row) => {
-				if (err) {
-					console.error('DB error fetching match:', err);
-					reject({ error: 'DB error fetch' });
-				} else if (!row) {
-					console.warn('No match found with given game_uid');
-					reject({ error: 'No match found' });
-				} else {
-					flog.info({ function: 'getMatchByGameUid', match: row }, 'Match found');
-					resolve(row);
-				}
-			}
-		);
-	});
-}
-
 
 module.exports = {
 	createTournament,

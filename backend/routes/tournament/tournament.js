@@ -582,60 +582,6 @@ async function startTournament(fastify, options){
 	});
 }
 
-async function startTournamentMatch(fastify, options){
-	const {secure, game, DBtour} = options;
-	fastify.route({
-		method: API_PROTOCOL.START_TOURNAMENT_MATCH.method,
-		url: API_PROTOCOL.START_TOURNAMENT_MATCH.path,
-		handler: async (request, reply) => {
-			const { gameId } = request.body;
-			if (!gameId) {
-				return reply.code(400).send({ status: 'ERROR', error: 'gameId required' });
-			}
-			try {
-
-				const match = await DBtour.getMatchByGameUid(gameId);
-				if (!match || !match.p1_id || !match.p2_id) {
-					return reply.code(400).send({status: 'ERROR', error: 'Match or players not found'});
-				}
-
-				const { p1_id, p2_id, game_uid } = match;
-
-				const gameObj = game.getGame(game_uid);
-				if (!gameObj) {
-					return reply.code(404).send({ status: 'ERROR', error: 'Game object not found' });
-				}
-
-				//Add players if they aren’t already in the game
-				if (!gameObj.players.has(p1_id)) {
-					game.addPlayer(game_uid, p1_id, { type: 'login', role: 'player1', ready: false, score: 0 });
-				}
-				if (!gameObj.players.has(p2_id)) {
-					game.addPlayer(game_uid, p2_id, { type: 'login', role: 'player2', ready: false, score: 0 });
-				}
-
-				// Generate player tokens
-				const playerTokens = {
-					player1: secure.generateWsToken(p1_id, game_uid),
-					player2: secure.generateWsToken(p2_id, game_uid),
-				};
-
-				gameObj.phase = 'starting';
-
-				return reply.send({
-					status: 'OK',
-					match_id: match.id || null,
-					gameId: game_uid,
-					playerTokens,
-				});
-
-			} catch (err) {
-				console.error('Error starting tournament match:', err);
-				return reply.code(500).send({ status: 'ERROR', error: 'Failed to start tournament match' });
-			}
-		}
-	});
-}
 
 //    const fullPlayers = currentTournament?.players || [];
 //
