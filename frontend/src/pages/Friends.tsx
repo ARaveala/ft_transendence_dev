@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useTranslation } from "../shared/Translation";
+import defaultAvatar from "../assets/avatars/default-avatar.png";
 import { useAuth } from "../context/AuthContext";
 
 
@@ -113,7 +114,7 @@ const Friends: React.FC = () => {
 				throw new Error(data.error || "Could not add friend.");
 			}
 
-			setFriends((prev) => [...prev, data.friend!].slice(0, MAX_FRIENDS));
+			//setFriends((prev) => [...prev, data.friend!].slice(0, MAX_FRIENDS));
 			resetAddForm();
 			setMsg(t("common.friends.added"));
 			setOpenAdd(false);
@@ -156,8 +157,8 @@ const Friends: React.FC = () => {
 
 	return (
   	<div className="flex justify-center px-6 py-6">
-    {/* Semi-transparent card for content */}
-    <div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
+    	{/* Semi-transparent card for content */}
+    	<div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
 			<h1 className="text-3xl font-bold mb-4">{t("friends.title")}</h1>
 
 			{/* Inline status */}
@@ -166,7 +167,7 @@ const Friends: React.FC = () => {
 
 			{/* Actions section */}
 			<section className="bg-gray-800/50 rounded-lg border border-gray-700 divide-y divide-gray-700">
-				{/* Add friend by username row*/}
+				{/* Add friend by username row */}
 				<SettingButton
 					label={t("friends.add.title")}
 					onClick={() => setOpenAdd((v) => !v)}
@@ -213,14 +214,23 @@ const Friends: React.FC = () => {
 					<div className="text-gray-400">{t("friends.list.empty")}</div>
 				) : (
 					<div className="space-y-3">
-						{friends.map((f) => (
+						{friends.map((f) => {
+							const avatarSrc =
+								f.avatar ??
+								(f as any).avatarFile ??
+								(f as any).avatar_file ??
+								defaultAvatar;
+							return (
 							<div key={f.user_id} className="space-y-2">
 								<div className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50 border border-gray-700">
 									<div className="flex items-center gap-3">
 										<img
-											src={f.avatar || "/default-avatar.png"}
-											alt={f.username}
+											src={avatarSrc}
+											alt={`${f.username} avatar`}
 											className="w-10 h-10 rounded-full"
+											onError={(e) => { 
+												(e.currentTarget as HTMLImageElement).src = defaultAvatar;
+											}}
 										/>
 										<div>
 											<div className="font-semibold">{f.username}</div>
@@ -275,7 +285,8 @@ const Friends: React.FC = () => {
 									</div>
 								)}
 							</div>
-						))}
+							);
+						})}
 					</div>
 				)}
 			</section>
