@@ -200,12 +200,18 @@ const TournamentLobby: React.FC = () => {
 			return;
 
 		try {
-
+			const test = tournament.tournament_id;
+			const payload = { tournament_id: test };
 			const url = API_PROTOCOL.CANCEL_TOURNAMENT.path.replace(':id', tournament.tournament_id);
-
+			console.log("is their a tournamnet id", tournament.tournament_id);
 			const res = await fetch(API_PROTOCOL.CANCEL_TOURNAMENT.path, {
 				method: API_PROTOCOL.CANCEL_TOURNAMENT.method,
-				credentials: "include", 
+				credentials: "include",
+				 headers: {
+    				'Content-Type': 'application/json'
+  				},
+				body: JSON.stringify(payload)
+				
 			});
 
 			if (!res.ok) throw new Error("Failed to cancel tournament");
