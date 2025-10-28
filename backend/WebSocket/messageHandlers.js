@@ -49,7 +49,9 @@ gameState.keys = {
 function handleMessage(ws, data) {
 	currentWs = ws; // this will have to be changed for remote play
 	const context = getGameContext(ws, data, playerinit);
+	console.log('getGameContext returned:', context);
 	const {game, gameState} = context || {};
+
 
 	if (data.type != "keys")
 		console.log("Message received: (Ignoring keypresses)", data);
@@ -174,8 +176,11 @@ function handleMessage(ws, data) {
 		case "start_loop":{
 			// if remote this should only start once player 1 and player 2 have initilized and player 1 has initilized the game
 			// then this should be updated to startloop for both player websockets
-			const player1 = [...game.players.values()].find(player => player.role === "player1");
-			const player2 = [...game.players.values()].find(player => player.role === "player2");
+			//const player1 = [...game.players.values()].find(player => player.role === "player1");
+			//const player2 = [...game.players.values()].find(player => player.role === "player2");
+
+			// !!!! Edited this to take the first two players, does not expect specific role
+			const [player1, player2] = [...game.players.values()].slice(0, 2);
 			if (!player1 || !player2)
 			{
 				console.log("Error getting players");
