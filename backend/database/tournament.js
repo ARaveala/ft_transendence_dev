@@ -335,6 +335,5 @@ module.exports = {
 	getTournamentPlayers,
 	updateTournamentStatus,
 	buildBracket,
-	getMatchByGameUid
 	
 };

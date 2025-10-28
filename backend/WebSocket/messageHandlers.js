@@ -51,8 +51,7 @@ function handleMessage(ws, data) {
 	const context = getGameContext(ws, data, playerinit);
 	console.log('getGameContext returned:', context);
 	const {game, gameState} = context || {};
-	console.log('game object:', game);
-	console.log('gameState object:', gameState);
+
 
 	if (data.type != "keys")
 		console.log("Message received: (Ignoring keypresses)", data);
