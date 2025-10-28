@@ -582,24 +582,44 @@ async function startTournament(fastify, options){
 	});
 }
 
-
-async function startTournamentMatch(fastify, options){
+async function cancelTournament(fastify, options) {
 	const {secure, DBget, DBtour, game} = options;
  	fastify.route({
-		method: API_PROTOCOL.START_TOURNAMENT_MATCH.method,
-		url: API_PROTOCOL.START_TOURNAMENT_MATCH.path,
+		method: API_PROTOCOL.CANCEL_TOURNAMENT.method,
+		url: API_PROTOCOL.CANCEL_TOURNAMENT.path,
  		handler: async (request, reply) => {
-			const match_id = request.body;
-
-			
-			try{
-				flog.info({function: 'startTournamentMatch', body: request.body}, 'starting match , showing body');
-			}catch{
-				flog.error({function: 'startTournamentMatch'});
+			flog.debug({function: "cancleTournamnet", body:request.body}, "looking at incoming body")
+			const {tournamnetId} = request.body;
+			try {
+				const token = request.cookies.auth_token;
+	 			const userId = secure.getUserIdFromToken(token);
+				await DBtour.cancelTournament(tournamnetId);
+			}
+			catch {
+				flog.error({function: "cancelTournament", errmsg: err.message}, "errorerror")
+				reply.code(500).send({status: 'ERROR', error: "error canceling tournamnet"});
 			}
 		}
 	})
 }
+
+//async function startTournamentMatch(fastify, options){
+//	const {secure, DBget, DBtour, game} = options;
+// 	fastify.route({
+//		method: API_PROTOCOL.START_TOURNAMENT_MATCH.method,
+//		url: API_PROTOCOL.START_TOURNAMENT_MATCH.path,
+// 		handler: async (request, reply) => {
+//			const match_id = request.body;
+//
+//			
+//			try{
+//				flog.info({function: 'startTournamentMatch', body: request.body}, 'starting match , showing body');
+//			}catch{
+//				flog.error({function: 'startTournamentMatch'});
+//			}
+//		}
+//	})
+//}
 
 //    const fullPlayers = currentTournament?.players || [];
 //
@@ -743,6 +763,7 @@ async function tournamentRoutes(fastify, options) {
 	await verifyPlayer(fastify, options);
 	await startTournament(fastify, options);
 	await startTournamentMatch(fastify, options);
+	await cancelTournament(fastify, options);
 	//await getTournamentState(tournamentId, userId, token);
 }
 
