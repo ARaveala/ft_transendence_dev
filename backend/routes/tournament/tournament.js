@@ -589,16 +589,19 @@ async function removeUserFromTournament(fastify, options) {
 		url: API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.path,
  		handler: async (request, reply) => {
 			flog.debug({function: "removeUserFRomTournamnet", body:request.body}, "looking at incoming body")
-			const {tournamnet_id, role} = request.body;
+			const {tournament_id, role} = request.body;
 			try {
 				const token = request.cookies.auth_token;
 	 			const userId = secure.getUserIdFromToken(token);
-				await DBtour.removeUser(tournamnet_id, role);
+				await DBtour.removePlayer(tournament_id, role);
 				//const current_gamegame
 			//	await DBtour.cancelTournament(tournamnetId);
-				reply.code(200).send({status: 'OK'});
+				const tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(tournament_id), 
+				tournament_id, await DBtour.getActiveTournamentStatus(tournament_id), false);
+
+				reply.code(200).send({status: 'OK', tournament: tournamentState});
 			}
-			catch {
+			catch (err) {
 				flog.error({function: "removeUserFromTournament", errmsg: err.message}, "errorerror")
 				reply.code(500).send({status: 'ERROR', error: "error removing from tournamnet"});
 			}
