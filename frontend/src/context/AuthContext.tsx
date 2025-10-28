@@ -9,7 +9,7 @@ interface AuthContextType {
 	tournament: TournamentState | null;
 	loginUser: (user: UserProfile) => void; // Function to log in user
 	logoutUser: () => Promise<void>; // Promise is a JavaScript object representing the eventual completion (or failure) of an asynchronous operation and its resulting value. Without Promise you could not reliably wait for the logout to complete before proceeding with other actions.
-	setTournament: (t: TournamentState | null) => void;
+	setTournament: React.Dispatch<React.SetStateAction<TournamentState | null>>;
 	refreshSession: () => Promise<void>; // Function to fetch user profile
 	loading: boolean; // Optional loading state
 	

@@ -126,7 +126,7 @@ function getTournamentPlayersWithUsernames(tournamentId) {
 	//flog.debug({ function: 'getTournamentPlayersWithUsernames' }, 'Fetching tournament players with usernames');
 	return new Promise((resolve, reject) => {
 		const query = `
-    		SELECT 
+			SELECT 
 				tp.alias,
 				tp.player_role,
 				tp.player_status,
@@ -139,13 +139,13 @@ function getTournamentPlayersWithUsernames(tournamentId) {
 			LEFT JOIN users u ON tp.user_id = u.id
 			WHERE tp.tournament_id = ?
 		`;
-    db.all(query, [tournamentId], (err, rows) => {
-    	if (err) {
-    		return reject({ error: 'DB error fetching players' });
-    	}
+	db.all(query, [tournamentId], (err, rows) => {
+		if (err) {
+			return reject({ error: 'DB error fetching players' });
+		}
 		flog.info({ function: 'getTournamentPlayersWithUsernames', players: rows }, 'Tournament players with usernames found');
-    	resolve(rows);
-    });
+		resolve(rows);
+	});
   });
 }
 
@@ -253,22 +253,22 @@ function updatePlayerReadyStatus(tournamentId, playerId, newStatus) {
 /**
 CREATE TABLE IF NOT EXISTS brackets
 (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tournament_id INTEGER,
-    p1_id INTEGER,
-    p2_id INTEGER,
-    p1_score INTEGER NOT NULL DEFAULT 0,
-    p2_score INTEGER NOT NULL DEFAULT 0,
-    winner_id INTEGER,
-    round INTEGER,
-    bracket_pos INTEGER,
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	tournament_id INTEGER,
+	p1_id INTEGER,
+	p2_id INTEGER,
+	p1_score INTEGER NOT NULL DEFAULT 0,
+	p2_score INTEGER NOT NULL DEFAULT 0,
+	winner_id INTEGER,
+	round INTEGER,
+	bracket_pos INTEGER,
 	ALTER TABLE brackets ADD COLUMN game_uid TEXT UNIQUE,
-    status TEXT NOT NULL DEFAULT 'waiting'
-        CHECK (status IN ('waiting', 'ready', 'ongoing', 'finished')),
-    FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
-    FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
+	status TEXT NOT NULL DEFAULT 'waiting'
+		CHECK (status IN ('waiting', 'ready', 'ongoing', 'finished')),
+	FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+	FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
+	FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
+	FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 
@@ -293,16 +293,16 @@ function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status)
 		}
 		flog.info({ function: 'DBbuild bracket', tournamentId, player1Id, player2Id}, 'Players added to bracket');
 		 const insertedId = this.lastID;
-	    db.get(
-	      'SELECT * FROM brackets WHERE id = ?',
-	      [insertedId],
-	      (err2, row) => {
-	        if (err2) return reject(err2);
-	        resolve(row); // now you have the full row object
-          }
-        );
-      }
-    );
+		db.get(
+		  'SELECT * FROM brackets WHERE id = ?',
+		  [insertedId],
+		  (err2, row) => {
+			if (err2) return reject(err2);
+			resolve(row); // now you have the full row object
+		  }
+		);
+	  }
+	);
   });
 }
 

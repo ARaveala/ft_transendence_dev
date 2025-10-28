@@ -187,7 +187,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
         return newErrors;
       });
 
-      onRemovePlayer(role);
+      void onRemovePlayer(role);
   };
 
   return (
@@ -215,7 +215,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
                 )}
             </span>
             
-            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+            <div className="flex flex-col sm:flex-row flex-wrap w-full gap-2 items-stretch sm:items-center">
               {/* Username */}
               <input
                 type="text"
@@ -223,7 +223,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
                 disabled={player.isSelf || isVerified}
                 value={player.isSelf || isVerified ? player.username : data.username}
                 onChange={(e) => updateField(role, "username", e.target.value)}
-                className={`p-2 border border-gray-700 rounded flex-1 ${
+                className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto ${
                   player.isSelf || isVerified
                     ? "bg-gray-900 text-gray-400 cursor-not-allowed"
                     : "bg-gray-900 text-white"
@@ -237,7 +237,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
                 disabled={player.isSelf || isVerified}
                 value={player.isSelf || isVerified ? "********" : data.password}
                 onChange={(e) => updateField(role, "password", e.target.value)}
-                className={`p-2 border border-gray-700 rounded flex-1 ${
+                className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto ${
                   player.isSelf || isVerified
                     ? "bg-gray-900 text-gray-400 cursor-not-allowed"
                     : "bg-gray-900 text-white"
@@ -255,7 +255,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
                     : data.alias || player.alias || ""
                 }
                 onChange={(e) => updateField(role, "alias", e.target.value)}
-                className={`p-2 border border-gray-700 rounded flex-1 ${
+                className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto ${
                   errors[role] ? "border-red-500" : "border-gray-300"
                 } ${
                   isAliasLocked

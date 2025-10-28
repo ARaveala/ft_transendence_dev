@@ -56,11 +56,11 @@ const LanguageToggle: React.FC<{ compact?: boolean }> = ({ compact = true }) => 
 };
 
 const HomePage: React.FC = () => {
-	const { t } = useTranslation();
+	const { t, lang } = useTranslation();
 	const [isModalOpen, setIsModalOpen] = useState(false); // Tracks if modal is open
 	const [modalMode, setModalMode] = useState<"login" | "register">("register"); // Mode of modal
 	const navigate = useNavigate();
-	const { isLoggedIn, user, logoutUser, refreshSession } = useAuth(); // Access authentication state and functions
+	const { isLoggedIn, user, refreshSession } = useAuth(); // Access authentication state and functions
 
 	//2FA states
 	const [is2faStep, setIs2faStep] = useState(false);
@@ -93,6 +93,14 @@ const HomePage: React.FC = () => {
 			throw new Error(error?.error || "Request failed");
 		}
 
+		try {
+			await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
+				method: API_PROTOCOL.CHANGE_LANGUAGE.method,
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ language: lang }),
+			});
+		} catch (_) {}
 		await refreshSession(); // New approach: refresh session to get user profile
 
 		// //fetch user profile after successful login or registration - currently not working because backend does not return user data
@@ -166,6 +174,15 @@ const HomePage: React.FC = () => {
                 throw new Error(error?.error || "2FA verification failed.");
             }
 
+			try {
+				await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
+					method: API_PROTOCOL.CHANGE_LANGUAGE.method,
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify({ language: lang }),
+				});
+			} catch (_) {}
+
             await refreshSession();
             alert(t("home.alert.loginSuccess"));
             setIs2faStep(false); // hide 2FA modal
@@ -218,15 +235,10 @@ const HomePage: React.FC = () => {
 				<div className="flex flex-col items-center gap-2">
 					<p id="welcome">
 						{t("home.greeting")}, {user?.username}!
+						<span aria-hidden="true"> 🏓</span>
 					</p>
-				<button
-					className="px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition"
-					onClick={logoutUser}
-				>
-					{t("home.cta.logout")}
-				</button>
-			</div>
-		)}
+				</div>
+			)}
 	</div>
 
 	<Modal
