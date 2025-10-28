@@ -80,6 +80,15 @@
   "auth.action.register": "Registrera",
   "auth.action.login": "Logga in",
 
+  "exit.title": "Logga ut",
+  "exit.loggingOut": "Loggar ut... Hej då!",
+  "exit.loggedOut": "Du är nu utloggad.",
+  "exit.redirectHome": "Omdirigerar till startsidan...",
+  "exit.error": "Något gick fel...",
+  "exit.goodbye": "Vi ses vid pong-bordet! 🏓",
+  "exit.alreadyLoggedOut": "Du är inte inloggad.",
+  "exit.loginPromt": "Logga in för att fortsätta",
+
   "lang.english": "Engelska",
   "lang.finnish": "Finska",
   "lang.swedish": "Svenska",

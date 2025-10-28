@@ -80,6 +80,15 @@
   "auth.action.register": "Rekisteröidy",
   "auth.action.login": "Kirjaudu",
 
+  "exit.title": "Kirjaudu ulos",
+  "exit.loggingOut": "Kirjaudutaan ulos... Näkemiin!",
+  "exit.loggedOut": "Olet kirjautunut nyt ulos.",
+  "exit.redirectHome": "Siirretään etusivulle...",
+  "exit.error": "Jokin meni pieleen...",
+  "exit.goodbye": "Pongataan myöhemmin! 🏓",
+  "exit.alreadyLoggedOut": "Et ole kirjautuneena sisään.",
+  "exit.loginPromt": "Ole hyvä ja kirjaudu sisään jatkaaksesi.",
+
   "lang.english": "Englanti",
   "lang.finnish": "Suomi",
   "lang.swedish": "Ruotsi",
