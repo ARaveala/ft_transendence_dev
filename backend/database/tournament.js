@@ -323,10 +323,10 @@ function updateTournamentStatus(tournamentId, newStatus) {
 }
 
 function cancelTournament(tournamentId) {
-	flog.debug({ function: 'DBcancelTournament' }, 'Cancelling tournament');
+	flog.debug({ function: 'DBcancelTournament' , tid: tournamentId}, 'Cancelling tournament with id of');
 		return new Promise((resolve, reject) => {
-			db.run('DELETE FROM tournaments WHERE id = ?', function onDone(err) {
-				[tournamentId]
+			db.run('DELETE FROM tournaments WHERE id = ?', [tournamentId], function onDone(err) {
+				
 				if (err) {
 					flog.error({ function: 'DBcancelTournament', err}, 'DB error canceling tournament:');
 					return reject(err);
@@ -336,11 +336,52 @@ function cancelTournament(tournamentId) {
         			return resolve({ success: false, message: 'No tournament found' });
         		}
 				flog.info({ function: 'DBcancelTournament'}, 'tournamnet canceled');
-				resolve(this.lastID);
+				resolve(this.changes);
 				//const tournamentId = this.lastID
 				  // Use tournamentId to insert players and games
 				});
 		});
+}
+
+function getUserByRole(tournamentId, role) {
+	flog.debug({ function: 'getUserByRole' }, 'Fetching tournament by ID');
+		return new Promise((resolve, reject) => {
+			db.get('SELECT * FROM tournament_players WHERE tournament_id = ? AND player_role = ?',
+				[tournamentId, role], (err, row) =>{
+				if (err) {
+					console.error('DB error:', err);
+					return reject({ error: 'DB error fetch' });
+				} else if (!row) {
+					console.warn('No tournament found with given ID');
+					return reject({ error: 'No tournament found' });
+				} else {
+					flog.info({ function: 'getUserByRole', player: row }, 'player found by role');
+					return resolve(row);
+				}
+			});
+		});
+}
+
+function removePlayer(tournamentId, role) {
+	return new Promise ((resolve, reject) => {
+		getUserByRole(tournamentId, role).then(player => {
+
+		
+		db.run('DELETE FROM tournament_players WHERE user_id = ?',
+			[player.user_id], function(err) {
+				if (err) {
+					flog.error({fucntion: 'DBremovePlayer'});
+					return reject({error: 'DB error in rmeove player'});
+				}
+				else if (this.changes === 0) {
+					return reject({error: 'DB remove player no changes made '});
+				}
+				return resolve(this.changes);
+			}
+
+		)
+	})
+	})
 }
 
 module.exports = {
@@ -356,5 +397,5 @@ module.exports = {
 	updateTournamentStatus,
 	buildBracket,
 	cancelTournament,
-	
+	removePlayer,
 };

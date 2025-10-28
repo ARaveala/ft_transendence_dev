@@ -163,7 +163,7 @@ REPORT_GAME_RESULT:{
   },
 
   CANCEL_TOURNAMENT: {
-    path: '/api/tournament/:id/cancel',
+    path: '/api/tournament/cancel',
     method: 'DELETE',
   },
 
