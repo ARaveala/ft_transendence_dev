@@ -322,6 +322,26 @@ function updateTournamentStatus(tournamentId, newStatus) {
 		});
 }
 
+function cancelTournament(tournamentId) {
+	flog.debug({ function: 'DBcancelTournament' }, 'Cancelling tournament');
+		return new Promise((resolve, reject) => {
+			db.run('DELETE FROM tournaments WHERE id = ?', function onDone(err) {
+				[tournamentId]
+				if (err) {
+					flog.error({ function: 'DBcancelTournament', err}, 'DB error canceling tournament:');
+					return reject(err);
+				}
+				if (this.changes === 0) {
+        			flog.warn({ function: 'DBcancelTournament', tournamentId }, 'No tournament found to cancel');
+        			return resolve({ success: false, message: 'No tournament found' });
+        		}
+				flog.info({ function: 'DBcancelTournament'}, 'tournamnet canceled');
+				resolve(this.lastID);
+				//const tournamentId = this.lastID
+				  // Use tournamentId to insert players and games
+				});
+		});
+}
 
 module.exports = {
 	createTournament,
@@ -335,5 +355,6 @@ module.exports = {
 	getTournamentPlayers,
 	updateTournamentStatus,
 	buildBracket,
+	cancelTournament,
 	
 };
