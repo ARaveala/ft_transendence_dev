@@ -38,7 +38,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({
       });
       
       const data: RemovePlayerResponse = await res.json();
-
+	  console.log("lets see return after remove player", data);
       if (data.status === "OK" && data.tournament) {
         onTournamentUpdated(data.tournament);
       } else {
