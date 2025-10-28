@@ -99,7 +99,7 @@ const Game: React.FC = () => {
 
 			// 3. For guest/AI opponent, join game immediately
 			if (mode === "guest" || mode === "ai") {
-				await joinGuest(newGameId, mode);
+				await joinGuestOrAi(newGameId, mode);
 				// Flow continues to GameSettings because showMiniLogin is false
 			}
 		} catch (err) {
@@ -110,19 +110,21 @@ const Game: React.FC = () => {
 		}
 	};
 
-	const joinGuest = async (id: string, type: GameMode) => {
-			const guestJoinRes = await fetch("/api/join-game", {
+	const joinGuestOrAi = async (gameId: string, mode: "guest" | "ai") => {
+			const joinGuestOrAiRes = await fetch("/api/join-game", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				credentials: "include",
 				body: JSON.stringify({
-					gameId: id,
-					type: type,
+					gameId,
+					type: mode,
 					mode: "local",
 					player_count: 2,}),
 				});
+				const data = await joinGuestOrAiRes.json();
+				console.log(joinGuestOrAiRes);
 
-			if (!guestJoinRes.ok) {
+			if (!joinGuestOrAiRes.ok) {
 				throw new Error("Failed to join guest/ai opponent.");
 			}
 		};

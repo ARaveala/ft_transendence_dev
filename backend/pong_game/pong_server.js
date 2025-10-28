@@ -153,7 +153,7 @@ function AISimulateKeyPress(state) {
 function updateGame(state, player1, player2) {
 
     // AI will simulate pressing keys
-    if (true || player2.type === "ai")
+    if (player2.type === "ai")
         AISimulateKeyPress(state);
 
 	// Move paddles
