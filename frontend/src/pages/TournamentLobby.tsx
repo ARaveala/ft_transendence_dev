@@ -200,19 +200,20 @@ const TournamentLobby: React.FC = () => {
 			return;
 
 		try {
-
-			const url = API_PROTOCOL.CANCEL_TOURNAMENT.path.replace(':id', tournament.tournament_id);
+			const payload = {tournamentId: tournament.tournament_id};
 
 			const res = await fetch(API_PROTOCOL.CANCEL_TOURNAMENT.path, {
 				method: API_PROTOCOL.CANCEL_TOURNAMENT.method,
-				credentials: "include", 
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify(payload)
 			});
 
 			if (!res.ok) throw new Error("Failed to cancel tournament");
 
 			setTournament(null);
 			setShowSetup(false);
-			await refreshSession(); // Refresh session to update user tournament status
+			await refreshSession(); // Refresh session to update tournament status
 		} catch (err) {
 			console.error("Error cancelling tournament:", err);
 		}
@@ -358,6 +359,7 @@ const TournamentLobby: React.FC = () => {
 	}
 
 	return (
+
 		<div className="flex justify-center px-6 py-6">
 			{!showSettingsModal && !currentGame && (
 			<div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
@@ -395,15 +397,17 @@ const TournamentLobby: React.FC = () => {
 
 				{/* Game settings */}
 				{showSettingsModal && (
+					<div className="w-full max-w-lg bg-gray-900/90 rounded-xl p-8 text-white shadow-2xl">
 					<GameSettings
 						onConfirm={handleSettingsConfirm}
 						onBack={() => setShowSettingsModal(false)}
 					/>
+				</div>
 				)}
 
 				{/* Start Game button */}
 				{currentGame && gameSettings && !gameStarted && (
-					<div className="flex flex-col items-center space-y-4">
+					<div className="w-full max-w-lg bg-gray-900/90 rounded-xl p-8 text-white shadow-2xl flex flex-col items-center space-y-4">
 						<button
 							onClick={() => startTournamentGame(currentGame!)}
 							className="px-10 py-4 text-xl font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
@@ -438,6 +442,7 @@ const TournamentLobby: React.FC = () => {
 			</div>
 			)}
 		</div>
+
 	);
 };
 
