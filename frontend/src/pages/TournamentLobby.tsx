@@ -297,7 +297,7 @@ const TournamentLobby: React.FC = () => {
 	
 		const payload = { gameId: match.match_id };
 		try {
-			const res = await fetch(API_PROTOCOL.START_TOURNAMENT_MATCH.path, {
+			const res = await fetch(API_PROTOCOL.START_GAME.path, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),

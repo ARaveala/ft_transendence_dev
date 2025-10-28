@@ -61,6 +61,11 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
 
+  START_GAME:  {
+		path: '/api/start-game',
+		method: 'POST',
+	},
+
   CREATE_TOURNAMENT: {
     path:'/api/tournaments',
     method: 'POST',
