@@ -724,7 +724,6 @@ async function tournamentRoutes(fastify, options) {
 	await createTournament(fastify, options);
 	await verifyPlayer(fastify, options);
 	await startTournament(fastify, options);
-	await startTournamentMatch(fastify, options);
 	//await getTournamentState(tournamentId, userId, token);
 }
 
