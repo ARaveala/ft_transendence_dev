@@ -62,6 +62,8 @@ const TournamentLobby: React.FC = () => {
 				handleGameResult(result);
 				handleMatchEnd();
 			}
+
+			refreshSession();
 		}
 		window.addEventListener("message", handleMessage);
 			return () => window.removeEventListener("message", handleMessage);
@@ -198,8 +200,12 @@ const TournamentLobby: React.FC = () => {
 			return;
 
 		try {
+
+			const url = API_PROTOCOL.CANCEL_TOURNAMENT.path.replace(':id', tournament.tournament_id);
+
 			const res = await fetch(API_PROTOCOL.CANCEL_TOURNAMENT.path, {
-			method: API_PROTOCOL.CANCEL_TOURNAMENT.method,
+				method: API_PROTOCOL.CANCEL_TOURNAMENT.method,
+				credentials: "include", 
 			});
 
 			if (!res.ok) throw new Error("Failed to cancel tournament");
