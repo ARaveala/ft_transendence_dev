@@ -371,7 +371,7 @@ CREATE TABLE IF NOT EXISTS game
 //status pending
 function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status){
 	let bracket_pos = 0;
-	if (round === 1 || 3)
+	if (round === 1 || round === 3)
 	{
 		bracket_pos = 1;
 	}
@@ -399,6 +399,55 @@ function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status)
 	);
   });
 }
+
+//function updateBracket(tournamentId, userId, bracketPos) {
+//  return new Promise((resolve, reject) => {
+//    // Step 1: Find the game with empty slot at bracketPos
+//    db.get(
+//      `SELECT id, p1_id, p2_id FROM game 
+//       WHERE tournament_id = ? AND bracket_pos = ? AND status = 'pending'`,
+//      [tournamentId, bracketPos],
+//      (err, row) => {
+//        if (err) return reject(err);
+//        if (!row) return reject(new Error('No available game slot found'));
+//
+//        const { id, p1_id, p2_id } = row;
+//
+//        // Step 2: Fill the empty slot
+//        let updateField = '';
+//        if (!p1_id) {
+//          updateField = 'p1_id';
+//        } else if (!p2_id) {
+//          updateField = 'p2_id';
+//        } else {
+//          return reject(new Error('Both player slots are already filled'));
+//        }
+//
+//        // Step 3: Update game with player
+//        db.run(
+//          `UPDATE game SET ${updateField} = ?, status = ? WHERE id = ?`,
+//          [
+//            userId,
+//            p1_id && p2_id ? 'ongoing' : 'waiting', // status becomes 'ongoing' if both are filled
+//            id,
+//          ],
+//          function (err2) {
+//            if (err2) return reject(err2);
+//
+//            // Step 4: Update player status
+//            db.run(
+//              `UPDATE tournament_players SET player_status = ? WHERE tournament_id = ? AND user_id = ?`,
+//              ['active', tournamentId, userId]
+//            );
+//
+//            return resolve({ gameId: id, slot: updateField });
+//          }
+//        );
+//      }
+//    );
+//  });
+//}
+
 
 function updateTournamentStatus(tournamentId, newStatus) {
 	flog.debug({ function: 'updateTournamnetStatus',}, 'Updating tournamnetStatus in tournament');
