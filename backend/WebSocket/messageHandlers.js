@@ -168,6 +168,7 @@ function handleMessage(ws, data) {
 			if (game.mode === "tournament"){
 					updateTournamentStats(gameId, player1.score, player2.score, "finished", winnerId)
 					.catch(err => console.error('failed to update tournamnet stats', err));
+					
 			}
 
 			break;
