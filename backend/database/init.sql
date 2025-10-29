@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS game
 	game_uid TEXT UNIQUE,
     status TEXT NOT NULL DEFAULT 'waiting'
         CHECK (status IN ('waiting', 'pending', 'ongoing', 'finished')),
-    FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
     FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
