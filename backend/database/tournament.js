@@ -263,8 +263,8 @@ function updateTournamentStats(gameId, p1Score, p2Score, status, winnerId){
 
 		db.serialize(() => { 
 			db.run(
-				'UPDATE game SET p1_score = ?, p2_score = ?, winner_id = ?, status = ? WHERE tournament_id = ?',
-			[p1Score, p2Score, winnerId, status, tournament_id], function onDone(err){
+				'UPDATE game SET p1_score = ?, p2_score = ?, winner_id = ?, status = ? WHERE tournament_id = ? AND game_uid = ?',
+			[p1Score, p2Score, winnerId, status, tournament_id, gameId], function onDone(err){
 				if (err) {
 					flog.error({fucntion: "updateTournamentStats", errmsg: err.message});
 					return reject(err);
@@ -272,10 +272,10 @@ function updateTournamentStats(gameId, p1Score, p2Score, status, winnerId){
 				// if no changes check?
 				return resolve(this.changes);
 			})
-			db.run('UPDATE tournament_players SET player_score, WHERE  game_uid = ? AND user_id = ? '
-				[p1Score, gameId, p1_id])
-			db.run('UPDATE tournament_players SET player_score, WHERE  game_uid = ? AND user_id = ? '
-				[p2Score, gameId, p2_id])
+			db.run('UPDATE tournament_players SET player_score = ? WHERE  tournament_id = ? AND user_id = ? ',
+				[p1Score, tournament_id, p1_id])
+			db.run('UPDATE tournament_players SET player_score = ? WHERE  tournament_id = ? AND user_id = ? ',
+				[p2Score, tournament_id, p2_id])
 		
 		}
 		)}
@@ -493,4 +493,5 @@ module.exports = {
 	buildBracket,
 	cancelTournament,
 	removePlayer,
+	updateTournamentStats,
 };

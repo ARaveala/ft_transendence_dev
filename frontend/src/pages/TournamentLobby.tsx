@@ -214,6 +214,7 @@ const TournamentLobby: React.FC = () => {
 				
 			});
 
+
 			if (!res.ok) throw new Error("Failed to cancel tournament");
 
 			setTournament(null);

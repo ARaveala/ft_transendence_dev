@@ -17,9 +17,9 @@ const {
 	updatePlayerGameStats,
 } = require('@db/update.js');
 
-//const {
-//	updateTournamentStats,
-//} = require('@db/tournament.js');
+const {
+	updateTournamentStats,
+} = require('@db/tournament.js');
 
 const {
 	getGame,
@@ -141,8 +141,10 @@ function handleMessage(ws, data) {
 			console.log("winner:", winner);
 			console.log("scores:", player1.score, player2.score);
 			console.log("gameID:", data.gameId);
-			console.log("game type:", game.type);
-			const winnerId = winner == 1 ? id1 : id2; 
+			console.log("game mode:", game.mode);
+			const winnerId = winner == 1 ? id1 : id2;
+			const gameId = ws ? ws.gameId || game.gameId : game.gameId;
+			console.log("game id:", gameId);
 			if (winner === 1){
 				updatePlayerGameStats(true, id1, player1.score)
 				 .catch(err => console.error('Failed to update player1 stats', err));
@@ -163,8 +165,9 @@ function handleMessage(ws, data) {
 				updatePlayerGameStats(false === 0, id1, player1.score)
 				 .catch(err => console.error('Failed to update player1 stats', err));
 			}
-			if (game.type === "tournament"){
-					updateTournamentStats(game.id, player1.score, player2.score, "finnished", winnerId);
+			if (game.mode === "tournament"){
+					updateTournamentStats(gameId, player1.score, player2.score, "finished", winnerId)
+					.catch(err => console.error('failed to update tournamnet stats', err));
 			}
 
 			break;
