@@ -222,7 +222,6 @@ async function verifyTwoFactor(fastify, options) {
                  throw new Error("Invalid user token for 2FA verification.");
             }
 
-            // Get the temporary plain text secret from memory
             const plainTextSecret = tempSetupSecrets.get(userId.id);
 
             if (!plainTextSecret) {
@@ -230,7 +229,6 @@ async function verifyTwoFactor(fastify, options) {
                 return reply.code(400).send({ error: 'No 2FA setup process started or secret expired. Please try again.' });
             }
 
-            // Verify token using the secret from memory
             const isVerified = speakeasy.totp.verify({
                 secret: plainTextSecret,
                 encoding: 'base32',
@@ -316,7 +314,7 @@ async function verifyLoginTwoFactor(fastify, options) {
                 return reply.code(401).send({ error: 'Invalid or expired session.' });
             }
 
-            const userId = decodedTempToken.id; // Primitive ID
+            const userId = decodedTempToken.id;
 
             // assumes get2FaSecret returns the plain text base32 secret saved earlier
             const plainTextSecret = await DBget.get2FaSecret(userId);
@@ -325,7 +323,6 @@ async function verifyLoginTwoFactor(fastify, options) {
                 return reply.code(400).send({ error: '2FA is not properly configured for this user.' });
             }
 
-            // Verify the code using the plain text secret from DB
             const isVerified = speakeasy.totp.verify({
                 secret: plainTextSecret,
                 encoding: 'base32',
