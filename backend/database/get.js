@@ -1,6 +1,6 @@
 const db = require('./initDB.js');
 const {logger} = require('@logger');
-const flog = logger.child({ fileContext: 'insert.js' }); // scoped logger
+const flog = logger.child({ fileContext: 'get.js' }); // scoped logger
 
 // naming can be changed 
 // get each element from database , such as score, name , status
@@ -186,9 +186,46 @@ async function miniLogin(username, password) {
         return reject({ error: 'Invalid password' });
       }
       // Return minimal info — no profile data
+	  flog.info({ function: 'miniLogin', userId: row.id}, 'mini login success ');
       resolve({ id: row.id});
     });
   });
+}
+
+async function get2FaSecret(userId) {
+    console.log('DB::Fetching 2FA secret for user ID:', userId);
+    return new Promise((resolve, reject) => {
+        db.get('SELECT mfa_secret FROM users WHERE id = ?', [userId], (err, row) => {
+            if (err) {
+                console.error('DB error fetching secret:', err);
+                reject(new Error('DB error fetching secret: ' + err.message));
+            } else if (!row) {
+                console.warn('User not found in DB for ID:', userId);
+                reject(new Error('User not found fetching secret'));
+            } else {
+                console.log('2FA secret found for user ID:', userId);
+                resolve(row.mfa_secret);
+            }
+        });
+    });
+}
+
+async function is2FaEnabled(userId) {
+	console.log('DB::Checking if 2FA is enabled for user ID:', userId);
+		return new Promise((resolve, reject) => {
+			db.get('SELECT mfa_enabled FROM users WHERE id = ?', [userId], (err, row) =>{
+				if (err) {
+					console.error('DB error:', err);
+					reject({ error: 'DB error fecth' });
+				} else if (!row) {
+					console.warn('User not found for ID:', userId);
+					reject({ error: 'User not found fecth' });
+				} else {
+					resolve(Boolean(row.mfa_enabled));
+				}
+
+			});
+		});
 }
 
 module.exports = { fetchUser, 
@@ -198,6 +235,8 @@ module.exports = { fetchUser,
 	checkUsernameAvailable,
 	checkPasswordMatch,
 	fetchUserByUsername,
+	is2FaEnabled,
+	get2FaSecret
 };
 //similar logic as below may be required
 //async function userRoutes(fastify, options) {
