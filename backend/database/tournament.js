@@ -244,14 +244,108 @@ function updatePlayerReadyStatus(tournamentId, playerId, newStatus) {
 					return reject(err);
 				}
 //				flog.info({ function: 'playerReadyStatus', tournamentId, playerId, newAlias }, 'playerReadyStatus updated in tournament');
-				resolve(this.changes);
+				return resolve(this.changes);
 				}
 			);
 		});
 }
 
+function updateTournamentStats(gameId, p1Score, p2Score, status, winnerId){
+	flog.debug({function: "updateTournamentStats", gameid: gameId, p1Score: p1Score, p2Score: p2Score, winnerId: winnerId});
+		return new Promise((resolve, reject) => {
+    		db.get('SELECT tournament_id, p1_id, p2_id FROM game WHERE game_uid = ?', [gameId], (err, row) => {
+    			if (err || !row) {
+    				flog.error({ function: "updateTournamentStats", errmsg: err?.message || 'Game not found' });
+    				return reject(err || new Error('Game not found'));
+    			}
+			const { tournament_id, p1_id, p2_id } = row;
+
+
+		db.serialize(() => { 
+			db.run(
+				'UPDATE game SET p1_score = ?, p2_score = ?, winner_id = ?, status = ? WHERE tournament_id = ?',
+			[p1Score, p2Score, winnerId, status, tournament_id], function onDone(err){
+				if (err) {
+					flog.error({fucntion: "updateTournamentStats", errmsg: err.message});
+					return reject(err);
+				}
+				// if no changes check?
+				return resolve(this.changes);
+			})
+			db.run('UPDATE tournament_players SET player_score, WHERE  game_uid = ? AND user_id = ? '
+				[p1Score, gameId, p1_id])
+			db.run('UPDATE tournament_players SET player_score, WHERE  game_uid = ? AND user_id = ? '
+				[p2Score, gameId, p2_id])
+		
+		}
+		)}
+)}
+)}
+function cancelTournament(tournamentId) {
+	flog.debug({ function: 'DBcancelTournament' , tid: tournamentId}, 'Cancelling tournament with id of');
+		return new Promise((resolve, reject) => {
+			db.run('DELETE FROM tournaments WHERE id = ?', [tournamentId], function onDone(err) {
+				
+				if (err) {
+					flog.error({ function: 'DBcancelTournament', err}, 'DB error canceling tournament:');
+					return reject(err);
+				}
+				if (this.changes === 0) {
+        			flog.warn({ function: 'DBcancelTournament', tournamentId }, 'No tournament found to cancel');
+        			return resolve({ success: false, message: 'No tournament found' });
+        		}
+				flog.info({ function: 'DBcancelTournament'}, 'tournamnet canceled');
+				resolve(this.changes);
+				//const tournamentId = this.lastID
+				  // Use tournamentId to insert players and games
+				});
+		});
+}
+
+function getUserByRole(tournamentId, role) {
+	flog.debug({ function: 'getUserByRole' , tid: tournamentId, role: role});
+		return new Promise((resolve, reject) => {
+			db.get('SELECT * FROM tournament_players WHERE tournament_id = ? AND player_role = ?',
+				[tournamentId, role], (err, row) =>{
+				if (err) {
+					console.error('DB error:', err);
+					return reject({ error: 'DB error fetch' });
+				} else if (!row) {
+					console.warn('No tournament found with given ID');
+					return reject({ error: 'No tournament found' });
+				} else {
+					flog.info({ function: 'getUserByRole', player: row }, 'player found by role');
+					return resolve(row);
+				}
+			});
+		});
+}
+
+function removePlayer(tournamentId, role) {
+	return new Promise ((resolve, reject) => {
+		getUserByRole(tournamentId, role).then(player => {
+
+		flog.debug({function: "removePlayer", playerid: player.user_id});
+		db.run('DELETE FROM tournament_players WHERE user_id = ?',
+			[player.user_id], function(err) {
+				if (err) {
+					flog.error({fucntion: 'DBremovePlayer'});
+					return reject({error: 'DB error in rmeove player'});
+				}
+				else if (this.changes === 0) {
+					return reject({error: 'DB remove player no changes made '});
+				}
+				return resolve(this.changes);
+			}
+
+		)
+	})
+	.catch(reject);
+	});
+}
+
 /**
-CREATE TABLE IF NOT EXISTS brackets
+CREATE TABLE IF NOT EXISTS game
 (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	tournament_id INTEGER,
@@ -262,7 +356,7 @@ CREATE TABLE IF NOT EXISTS brackets
 	winner_id INTEGER,
 	round INTEGER,
 	bracket_pos INTEGER,
-	ALTER TABLE brackets ADD COLUMN game_uid TEXT UNIQUE,
+	ALTER TABLE game ADD COLUMN game_uid TEXT UNIQUE,
 	status TEXT NOT NULL DEFAULT 'waiting'
 		CHECK (status IN ('waiting', 'ready', 'ongoing', 'finished')),
 	FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
@@ -285,7 +379,7 @@ function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status)
 		bracket_pos = 2;
 	}
 	return new Promise((resolve, reject) => {
-	db.run('INSERT INTO brackets (tournament_id, p1_id, p2_id, game_uid, round, status, bracket_pos) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+	db.run('INSERT INTO game (tournament_id, p1_id, p2_id, game_uid, round, status, bracket_pos) VALUES (?, ?, ?, ?, ?, ?, ?)', 
 		[tournamentId, player1Id, player2Id, gameid, round, status, bracket_pos], function onDone(err) {
 		if (err) {
 			flog.error({ function: 'DBbuild bracket', err}, 'DB error adding player to tournament:');
@@ -294,7 +388,7 @@ function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status)
 		flog.info({ function: 'DBbuild bracket', tournamentId, player1Id, player2Id}, 'Players added to bracket');
 		 const insertedId = this.lastID;
 		db.get(
-		  'SELECT * FROM brackets WHERE id = ?',
+		  'SELECT * FROM game WHERE id = ?',
 		  [insertedId],
 		  (err2, row) => {
 			if (err2) return reject(err2);
@@ -335,5 +429,6 @@ module.exports = {
 	getTournamentPlayers,
 	updateTournamentStatus,
 	buildBracket,
-	
+	cancelTournament,
+	removePlayer,
 };

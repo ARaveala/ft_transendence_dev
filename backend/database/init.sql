@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
 -- do we want to add if game was 1v1 or tournament ?
 -- no match key as we want to use this to build leaderboard
 -- leaderboard should not have same player twice , if user has top score , next score is another user
-CREATE TABLE IF NOT EXISTS brackets
+CREATE TABLE IF NOT EXISTS game
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tournament_id INTEGER,
