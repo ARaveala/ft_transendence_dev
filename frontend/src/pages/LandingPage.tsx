@@ -249,28 +249,34 @@ const HomePage: React.FC = () => {
 	/>
 	{is2faStep && (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-			<div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
-				<h2 className="text-xl font-bold mb-4">{t("home.2fa.title")}</h2>
-					<p className="mb-4">{t("home.2fa.instructions")}</p>
-						<input
-                            type="text"
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value)}
-                            className="w-full p-2 border rounded-md text-center text-2xl tracking-widest text-black"
-                            maxLength={6}
-                            placeholder="123456"
-                        />
-						<button
-                            onClick={handle2faVerifySubmit}
-                            className="w-full mt-4 px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600 transition"
-                        >
-							{t("home.2fa.verify")}
-                        </button>
-					</div>
-				</div>
-			)}
-		</CenteredContainer>
-	);
+			<div className="bg-white p-6 rounded-lg shadow-xl text-black">
+				<h2 className="text-xl font-bold mb-4">Enter Verification Code</h2>
+				<p className="mb-4">Open your authenticator app and enter the 6-digit code.</p>
+				<input
+					type="text"
+					value={otp}
+					onChange={(e) => setOtp(e.target.value)}
+					className="w-full p-2 border rounded-md text-center text-2xl tracking-widest text-black"
+                    maxLength={6}
+					placeholder="123456"
+				/>
+				<button
+					onClick={handle2faVerifySubmit}
+					className="w-full mt-4 px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600 transition"
+				>
+					Verify
+                </button>
+				<button
+					onClick={() => setIs2faStep(false)}
+					className="w-full mt-2 px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition"
+				>
+                Cancel
+            </button>
+			</div>
+		</div>
+	)}
+	</CenteredContainer> 
+);
 };
 
 export default HomePage;
