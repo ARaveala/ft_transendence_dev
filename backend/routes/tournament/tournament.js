@@ -652,56 +652,6 @@ async function cancelTournament(fastify, options) {
 //	})
 //}
 
-async function removeUserFromTournament(fastify, options) {
-	const {secure, DBget, DBtour, game} = options;
- 	fastify.route({
-		method: API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.method,
-		url: API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.path,
- 		handler: async (request, reply) => {
-			flog.debug({function: "removeUserFRomTournamnet", body:request.body}, "looking at incoming body")
-			const {tournament_id, role} = request.body;
-			try {
-				const token = request.cookies.auth_token;
-	 			const userId = secure.getUserIdFromToken(token);
-				await DBtour.removePlayer(tournament_id, role);
-				//const current_gamegame
-			//	await DBtour.cancelTournament(tournamnetId);
-				const tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(tournament_id), 
-				tournament_id, await DBtour.getActiveTournamentStatus(tournament_id), false);
-
-				reply.code(200).send({status: 'OK', tournament: tournamentState});
-			}
-			catch (err) {
-				flog.error({function: "removeUserFromTournament", errmsg: err.message}, "errorerror")
-				reply.code(500).send({status: 'ERROR', error: "error removing from tournamnet"});
-			}
-		}
-	})
-}
-
-async function cancelTournament(fastify, options) {
-	const {secure, DBget, DBtour, game} = options;
- 	fastify.route({
-		method: API_PROTOCOL.CANCEL_TOURNAMENT.method,
-		url: API_PROTOCOL.CANCEL_TOURNAMENT.path,
- 		handler: async (request, reply) => {
-			flog.debug({function: "cancleTournamnet", body: request.body}, "looking at incoming body")
-			const {tournament_id} = request.body;
-			flog.debug({function: "cancleTournamnet", tid: tournament_id}, 'checking tid');
-			try {
-				const token = request.cookies.auth_token;
-	 			const userId = secure.getUserIdFromToken(token);
-				await DBtour.cancelTournament(tournament_id);
-				reply.code(200).send({status: 'OK'});
-
-			}
-			catch(err) {
-				flog.error({function: "cancelTournament", errmsg: err.message}, "errorerror")
-				reply.code(500).send({status: 'ERROR', error: "error canceling tournamnet"});
-			}
-		}
-	})
-}
 //    const fullPlayers = currentTournament?.players || [];
 //
 //    // First round matches
@@ -800,7 +750,7 @@ async function cancelTournament(fastify, options) {
 }
  * 10 starttorunament
 
- * set up prepared game for round1 round2, logic is low rank high rank else randomize 
+ * set up prepared brackets for round1 round2, logic is low rank high rank else randomize 
  * 
  * @param {*} fastify 
  * @param {*} options
