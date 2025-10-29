@@ -501,6 +501,7 @@ async function startTournament(fastify, options){
 
 				// Round 1: seed 1 vs seed 4
 				const gameId1 = game.createGameCore({id: players[0].user_id }, 'tournament', 'local', players[0].alias);
+				game.getGame(gameId1).tid = currentTournamentId;
 				flog.debug({function : 'startTournament', gameId1}, 'game 1 is created');
 
 				game.addPlayer(gameId1, players[3].user_id, {
@@ -527,7 +528,7 @@ async function startTournament(fastify, options){
 				// Round 2
 				const gameId2 = game.createGameCore({id: players[1].user_id}, 'tournament', 'local', players[1].alias);
 				flog.debug({function : 'startTournament'}, 'game 2 is created');
-
+				game.getGame(gameId2).tid = currentTournamentId;
 				game.addPlayer(gameId2, players[2].user_id, {
 					type: 'login',
 					ws: undefined,
@@ -549,11 +550,11 @@ async function startTournament(fastify, options){
 				const match2 = await createMatches(players[1], players[2], matchSetup);
 				const gameId3 = game.createGameCore(undefined, 'tournament', 'local');
 				flog.debug({function : 'startTournament'}, 'game 3 is created');
-
+				game.getGame(gameId3).tid = currentTournamentId;
 				matchSetup = await DBtour.buildBracket(
 				  currentTournamentId,
-				  null,
-				  null,
+				  undefined,
+				  undefined,
 				  //players[0].user_id,
 				  //players[3].user_id,
 				  gameId3,
@@ -651,56 +652,6 @@ async function cancelTournament(fastify, options) {
 //	})
 //}
 
-async function removeUserFromTournament(fastify, options) {
-	const {secure, DBget, DBtour, game} = options;
- 	fastify.route({
-		method: API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.method,
-		url: API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.path,
- 		handler: async (request, reply) => {
-			flog.debug({function: "removeUserFRomTournamnet", body:request.body}, "looking at incoming body")
-			const {tournament_id, role} = request.body;
-			try {
-				const token = request.cookies.auth_token;
-	 			const userId = secure.getUserIdFromToken(token);
-				await DBtour.removePlayer(tournament_id, role);
-				//const current_gamegame
-			//	await DBtour.cancelTournament(tournamnetId);
-				const tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(tournament_id), 
-				tournament_id, await DBtour.getActiveTournamentStatus(tournament_id), false);
-
-				reply.code(200).send({status: 'OK', tournament: tournamentState});
-			}
-			catch (err) {
-				flog.error({function: "removeUserFromTournament", errmsg: err.message}, "errorerror")
-				reply.code(500).send({status: 'ERROR', error: "error removing from tournamnet"});
-			}
-		}
-	})
-}
-
-async function cancelTournament(fastify, options) {
-	const {secure, DBget, DBtour, game} = options;
- 	fastify.route({
-		method: API_PROTOCOL.CANCEL_TOURNAMENT.method,
-		url: API_PROTOCOL.CANCEL_TOURNAMENT.path,
- 		handler: async (request, reply) => {
-			flog.debug({function: "cancleTournamnet", body: request.body}, "looking at incoming body")
-			const {tournament_id} = request.body;
-			flog.debug({function: "cancleTournamnet", tid: tournament_id}, 'checking tid');
-			try {
-				const token = request.cookies.auth_token;
-	 			const userId = secure.getUserIdFromToken(token);
-				await DBtour.cancelTournament(tournament_id);
-				reply.code(200).send({status: 'OK'});
-
-			}
-			catch(err) {
-				flog.error({function: "cancelTournament", errmsg: err.message}, "errorerror")
-				reply.code(500).send({status: 'ERROR', error: "error canceling tournamnet"});
-			}
-		}
-	})
-}
 //    const fullPlayers = currentTournament?.players || [];
 //
 //    // First round matches
@@ -799,7 +750,7 @@ async function cancelTournament(fastify, options) {
 }
  * 10 starttorunament
 
- * set up prepared game for round1 round2, logic is low rank high rank else randomize 
+ * set up prepared brackets for round1 round2, logic is low rank high rank else randomize 
  * 
  * @param {*} fastify 
  * @param {*} options
