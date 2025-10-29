@@ -404,14 +404,14 @@ function updateBracket(tournamentId, userId, bracketPos) {
   return new Promise((resolve, reject) => {
     // Step 1: Find the game with empty slot at bracketPos
     db.get(
-      `SELECT id, p1_id, p2_id FROM game 
+      `SELECT id, p1_id, p2_id, game_uid FROM game 
        WHERE tournament_id = ? AND bracket_pos = ? AND status = 'pending'`,
       [tournamentId, bracketPos],
       (err, row) => {
         if (err) return reject(err);
         if (!row) return reject(new Error('No available game slot found'));
 
-        const { id, p1_id, p2_id } = row;
+        const { id, p1_id, p2_id, game_uid } = row;
 
         // Step 2: Fill the empty slot
         let updateField = '';
@@ -444,7 +444,7 @@ function updateBracket(tournamentId, userId, bracketPos) {
               ['ready', tournamentId, userId]
             );
 
-            return resolve({ gameId: id, slot: updateField });
+            return resolve({ gameId: game_uid, slot: updateField });
           }
         );
       }

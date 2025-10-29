@@ -25,6 +25,7 @@ const {
 
 const {
 	getGame,
+	addPlayer,
 } = require("@Rgame");
 // we should rename this to message deligation?
 
@@ -172,13 +173,15 @@ function handleMessage(ws, data) {
 					updateTournamentStats(gameId, player1.score, player2.score, "finished", winnerId)
 					.catch(err => console.error('failed to update tournamnet stats', err));
 					console.log("ACESS TO TOURNAMNET ID: ", game.tid);
+					const winnerData = winner == 1 ? player1 : player2
 					updateBracket(game.tid, winnerId, 2)
+					.then (result => {
+						const { gameId, slot } = result;
+						const playerRole = slot === 'p1_id' ? 'player1' : 'player2';
+						addPlayer(gameId, winnerId, {type: "login", ws: undefined, role: playerRole, alias: winnerData.alias, ready: true, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+
+					})
 					.catch(err => console.error('failed to update tournamnet stats', err));
-					//update game with same id but empty player1 if player one then player 2
-					//update bracket ....
-
-
-					
 			}
 
 			break;
