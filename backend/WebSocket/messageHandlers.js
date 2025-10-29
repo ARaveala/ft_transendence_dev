@@ -15,10 +15,12 @@ const {
 
 const {
 	updatePlayerGameStats,
+	
 } = require('@db/update.js');
 
 const {
 	updateTournamentStats,
+	updateBracket,
 } = require('@db/tournament.js');
 
 const {
@@ -166,8 +168,16 @@ function handleMessage(ws, data) {
 				 .catch(err => console.error('Failed to update player1 stats', err));
 			}
 			if (game.mode === "tournament"){
+					
 					updateTournamentStats(gameId, player1.score, player2.score, "finished", winnerId)
 					.catch(err => console.error('failed to update tournamnet stats', err));
+					console.log("ACESS TO TOURNAMNET ID: ", game.tid);
+					updateBracket(game.tid, winnerId, 2)
+					.catch(err => console.error('failed to update tournamnet stats', err));
+					//update game with same id but empty player1 if player one then player 2
+					//update bracket ....
+
+
 					
 			}
 

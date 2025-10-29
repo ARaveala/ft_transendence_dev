@@ -33,6 +33,7 @@ const games = new Map(); // gameId -> { owner, players, state, loop }
  * 				state (gamestate ) createGameState()
  * 				loop (game loop)
  * 				phase (setup/play/pause/end) need more?
+ * 				tid (tournament_id) // this may be undefined or only added on tournamnet creation 
  * 				players: (map of player details) key = playerId
  * 												values = {
  * 															type (guest/login/ai)
@@ -133,12 +134,6 @@ function createGameCore(userId, type, mode, alias) {
 		//flog.debug({function: 'createGameCore', gameId}, 'game id should be created')
 		if (userId)
 			addPlayer(gameId, userId.id, {type: "login", ws: undefined, role: "player1", alias: alias, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
-
-
-
-		//flog.debug({function: 'createGameCore'}, 'player added ');
-		//log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
-		//flog.debug({function: "createGameCore", gameid: gameId}, "aaaaaaaaaaaaaaaaaaaaa game ID");
 		return gameId;
 
 	} catch {
