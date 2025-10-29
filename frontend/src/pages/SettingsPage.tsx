@@ -86,7 +86,6 @@ const SettingsPage: React.FC = () => {
 		const avatar = user.avatarFile || availableAvatars[0];
 		setCurrentAvatar(avatar);
 		setSelectedAvatar(avatar);
-		setTwoFactor(user.twoFactor ?? false);
 	}
 	}, [user]);
 
