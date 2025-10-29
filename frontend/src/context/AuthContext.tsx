@@ -1,12 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import  { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile } from "../../shared/payloads";
+import type { TournamentState } from "../types/tournament";
 
 interface AuthContextType {
 	isLoggedIn: boolean;
 	user: UserProfile | null; //user is a property of AuthContextType which can be either a UserProfile object or null
+	tournament: TournamentState | null;
 	loginUser: (user: UserProfile) => void; // Function to log in user
 	logoutUser: () => Promise<void>; // Promise is a JavaScript object representing the eventual completion (or failure) of an asynchronous operation and its resulting value. Without Promise you could not reliably wait for the logout to complete before proceeding with other actions.
+	setTournament: React.Dispatch<React.SetStateAction<TournamentState | null>>;
 	refreshSession: () => Promise<void>; // Function to fetch user profile
 	loading: boolean; // Optional loading state
 	
@@ -17,6 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined); // Cr
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [isLoggedIn, setIsLoggedIn] = useState(false); // State to track if user is logged in.
 	const [user, setUser] = useState<UserProfile | null>(null); // State to hold user profile or null if not logged in
+	const [tournament, setTournament] = useState<TournamentState | null>(null);
 	const [loading, setLoading] = useState(true); // State to track loading status
 	const [refreshing, setRefreshing] = useState(false); // State to track if session is being refreshed
 
@@ -39,11 +43,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 			} else {
 				setUser(null);
 				setIsLoggedIn(false);
+				setTournament(null);
 			}
 		} catch (err) {
 			console.error("Failed to refresh session:", err);
 			setUser(null);
 			setIsLoggedIn(false);
+			setTournament(null);
 		}
 		finally {
 			setLoading(false);
@@ -83,11 +89,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 		finally {
 			setUser(null);
 			setIsLoggedIn(false);
+			setTournament(null);
 		}
 	};
 
 	return (
-		<AuthContext.Provider value={{ isLoggedIn, user, loading, loginUser, logoutUser, refreshSession }}>
+		<AuthContext.Provider value={{ isLoggedIn, user, tournament, setTournament, loading, loginUser, logoutUser, refreshSession }}>
 			{children}	
 		</AuthContext.Provider>
 	);

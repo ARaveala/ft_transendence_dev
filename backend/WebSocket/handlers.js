@@ -17,11 +17,23 @@ function handleGreet(ws, data){
 }
 
 function startLoop(ws, gameState, player1, player2) {
-	ws.send(JSON.stringify({type: "update_game", data: gameState.positions}));
+	ws.send(JSON.stringify({
+        type: "update_game", 
+        positions: gameState.positions,
+        visiblePowerups: gameState.visiblePowerups
+    }));
 	gameState.loop = setInterval(() => {
-		if (updateGame(gameState, player1, player2) == 1)
-			ws.send(JSON.stringify({type: "update_score", player1_score: player1.score, player2_score: player2.score}));
-		ws.send(JSON.stringify({type: "update_game", data: gameState.positions}));
+		if (updateGame(gameState, player1, player2) == 1) {
+			ws.send(JSON.stringify({
+                type: "update_score", 
+                player1_score: player1.score, 
+                player2_score: player2.score}));
+        }
+		ws.send(JSON.stringify({
+            type: "update_game", 
+            positions: gameState.positions,
+            visiblePowerups: gameState.visiblePowerups
+        }));
 	}, 1000 / gameState.fps);
 
 }
@@ -59,10 +71,10 @@ function attachPlayerToGame(ws, session) {
 
 	const game = getGame(ws.gameId);
 	//if (!game) return false; throw, make sure its being caught
-	console.log('player id from token', ws.playerId.id);
-    const player = game.players.get(ws.playerId.id);
+	console.log('player id from token', ws.playerId);
+    const player = game.players.get(ws.playerId);
 	if (!player) {
-		console.log('acces player ready state', player.ready);
+		//console.log('acces player ready state', player.ready);
 		console.log("Player not found in game, player id", player.playerId,'player itesle', player);
 		ws.send(JSON.stringify({ error: 'Player not found in game' }));
 		ws.close();

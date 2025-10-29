@@ -55,8 +55,10 @@ export interface UserProfile {
   victories: number;
   losses: number;
   totalMatches: number;
+  tournamentWins?: number;
   friends: Friend[];
   matchHistory: Match[];
+  language?: "en" | "fi" | "sv";
   //online_status: boolean;
 }
 
@@ -67,12 +69,20 @@ export interface UpdateProfilePayload {
   twoFactor?: boolean;
 }
 
+export interface UpdateTwoFactorAuthPayload {
+  twoFactor?: boolean;
+}
+
+export interface UpdateTwoFactorAuthResponse {
+  status: 'UPDATED' | 'ERROR';
+  error?: string;
+}
+
 export interface UpdateProfileResponse {
   status: 'UPDATED' | 'ERROR';
   profile?: UserProfile;
   error?: string;
 } 
-
 
 // Friends
 
@@ -111,6 +121,14 @@ export interface Player {
   score: number;
   rank: number;
   //online_status: boolean;
+}
+
+export interface LeaderboardEntry {
+  username: string;
+  avatar: string;
+  score: number;
+  rank: number;
+  online_status: boolean;
 }
 
 export type PlayerPayload = Player[];
@@ -200,54 +218,65 @@ export interface CreateTournamentPayload {
   max_players?: number;
 }
 
-export interface TournamentStateResponse {
+export interface CreateTournamentResponse {
   status: 'OK' | 'ERROR';
   error?: string;
   tournament: TournamentState;
 }
+
+export interface GetActiveTournamentPayload {
+}
+
+export interface GetActiveTournamentResponse {
+  status: 'OK' | 'ERROR';
+  error?: string;
+  tournament: TournamentState;
+}
+
+GET_ACTIVE_TOURNAMENT
 
 // type used in frontend
 
 /*export interface TournamentState {
   tournament_id: string;
   status: 'waiting' | 'ongoing' | 'finished';
+  owner: string;
   players: TournamentPlayer[];
   currentMatch?: Match;
-  bracket: Match[][];
+  bracket?: Match[][];
   winner?: TournamentPlayer;
   createdAt?: Date;
   lastUpdated?: Date
+  can_start?: boolean;
+  pending_players?: number;
 } */
 
-export interface PlayerSearchRequest {
-  query?: string;           // optional search term (used for search bar)
-  excludeIds?: string[];    // optional: players already added to the tournament
-}
-
-export interface PlayerSearchResponse {
-  status: 'OK' | 'ERROR';
-  error?: string;
-  players: TournamentPlayer[]; // filtered list of players
-}
-
 export interface VerifyPlayerPayload {
+  role: string;
   username: string;
   password: string;
+  alias: string;
 }
 
 export interface VerifyPlayerResponse {
-  valid: boolean;
+  tournament: TournamentState;
+  status: 'OK' | 'ERROR';
+  error?: string;
+}
+
+export interface RemovePlayerPayload {
+  tournament_id: string;
+  role: string;
+}
+
+export interface RemovePlayerResponse {
+  tournament: TournamentState;
+  status: 'OK' | 'ERROR';
   error?: string;
 }
 
 export interface StartTournamentPayload {
   tournament_id: string;
-  players: {
-    username: string;
-    alias: string;
-    password?: string;
-    isSelf?: boolean;
-  }[];
 }
 
 export interface StartTournamentResponse {
@@ -343,6 +372,12 @@ export interface UploadAvatarResponse {
 	status: 'UPLOADED' | 'ERROR';
 	url?: string;
 	error?: string;
+}
+
+export interface LeaderBoardResponse {
+  status: 'OK' | 'ERROR';
+  error?: string;
+  leaders: LeaderboardEntry[],
 }
 
 // over websocket??

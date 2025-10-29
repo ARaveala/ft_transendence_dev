@@ -1,5 +1,10 @@
 const WebSocket = require('ws');
 const handleMessage = require('./messageHandlers.js').handleMessage;
+
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'websockets/startUp.js' }); // scoped logger
+
+// naming can be changed 
 //const handlers = require('./handlers.js');
 let reconnect = false;
 function setUpWebSockets(server) {
@@ -70,11 +75,14 @@ function setUpWebSockets(server) {
 				console.log("Client disconnected");
 				// some kind of pause logic here 
 				const player = ws.player;//players.get(playerId);
-				console.log('checking if player exists on disconnect', player, 'is there a game id', ws.gameId, 'access anything', ws.player.ready);
+				flog.info({ function: 'setupwebsockets', playerId: ws.playerId, gameId: ws.gameId }, 'player details in trace');
+				flog.trace({ function: 'setupwebsockets', playerId: player });
+				//console.log('checking if player exists on disconnect', player, 'is there a game id', ws.gameId, 'access anything', ws.player.ready);
 				if (player) {
 					
 					player.disconnectedAt = Date.now();
-					console.log("Player disconnected:", player);
+					flog.trace({ function: 'setupwebsockets', player: player , playerDisconnect: player.disconnectedAt}, 'player disconnected at time');
+//					console.log("Player disconnected:", player);
 				//	player.ws = null;
 					handleMessage(undefined, { type: "pause", playerId: ws.playerId, gameId: ws.gameId });
 					

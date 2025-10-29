@@ -57,7 +57,7 @@ async function loginUser(fastify, options) {
             flog.info({ function: 'loginUser' }, `Incoming login attempt for user: ${username}`);
             try {
                 const result = await DBget.miniLogin(username, password);
-                if (!result || result.id === undefined) {
+                if (!result) {
                     return reply.code(401).send({ error: "Invalid username or password." });
                 }
 

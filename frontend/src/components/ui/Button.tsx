@@ -7,14 +7,15 @@ interface ButtonProps {
   className?: string;
 }
 
-const Button: React.FC<ButtonProps> = ({ children, onClick, disabled }) => {
+const Button: React.FC<ButtonProps> = ({ children, onClick, disabled, className }) => {
   return (
     <button
-      className={`inline-flex items-center justify-center px-3 py-1 rounded text-white ${
-        disabled
-          ? "bg-gray-400 cursor-not-allowed"
-          : "bg-blue-600 hover:bg-blue-800"
-      }`}
+      className={`inline-flex items-center justify-center px-3 py-1 rounded text-white transition-colors
+        ${disabled
+          ? "border border-gray-500 cursor-not-allowed opacity-50"
+          : "border border-indigo-500 bg-black hover:bg-indigo-500 hover:border-indigo-500"}
+        ${className}
+        `}
       onClick={onClick}
       disabled={disabled}
     >

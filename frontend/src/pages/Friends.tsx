@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useTranslation } from "../shared/Translation";
+import defaultAvatar from "../assets/avatars/default-avatar.png";
 import { useAuth } from "../context/AuthContext";
 
 
@@ -21,7 +22,7 @@ const MAX_FRIENDS = 20;
 
 const Friends: React.FC = () => {
 	const { t } = useTranslation();
-	const { user, refreshSession } = useAuth(); //now using AuthContext to get user info
+	const {isLoggedIn, user, loading, refreshSession } = useAuth(); //now using AuthContext to get user info
 
 	// Inline status
 	const [msg, setMsg] = useState<string | null>(null);
@@ -34,9 +35,8 @@ const Friends: React.FC = () => {
 	const [removeConfirmId, setRemoveConfirmId] = useState<string | null>(null);
 	const [removing, setRemoving] = useState(false);
 
-	// List friend
-	const [friends, setFriends] = useState<Friend[]>(user?.friends.slice(0, MAX_FRIENDS) || []);// means we use the friends from AuthContext if available. Slice to limit to MAX_FRIENDS
-	//const [loading, setLoading] = useState(!user); 
+	// List friend (from Authontext)
+	const [friends, setFriends] = useState<Friend[]>(user?.friends?.slice(0, MAX_FRIENDS) || []);// means we use the friends from AuthContext if available. Slice to limit to MAX_FRIENDS
 
 	// Add friend
 	const [username, setUsername] = useState("");
@@ -54,36 +54,20 @@ const Friends: React.FC = () => {
 		setRemoveConfirmId((cur) => (cur === friendId ? null : friendId));
 	}
 
-	// useEffect(() => { //removed as we now get friends from AuthContext
-	// 	loadFriends();
-	// }, []);
+	if (loading) return <div className="p-6">{t("friends.loading")}</div>;
+	if (!isLoggedIn) { //changed from !user to !isLoggedIn
+	return (
+		<div className="p-6 text-center text-gray-300">
+		 {t("friends.loginRequired")}
+		</div>
+	);
+	}
 
 	useEffect(() => {
-	if (user) {
-		setFriends(user.friends.slice(0, MAX_FRIENDS));
-	}
+		if (user) {
+			setFriends(user.friends?.slice(0, MAX_FRIENDS) || []);
+		}
 	}, [user]);
-
-	// async function loadFriends() {
-	// 	setLoading(true);
-	// 	setErr(null);
-	// 	setMsg(null);
-	// 	try {
-	// 		const res = await fetch(API_PROTOCOL.GET_FRIENDS.path, {
-	// 			method: API_PROTOCOL.GET_FRIENDS.method,
-	// 			headers: { "Content-Type": "application/json" },
-	// 		});
-	// 		if (!res.ok) throw new Error("Failed to get friends.");
-
-	// 		const data: Friend[] = await res.json();
-
-	// 		setFriends(data.slice(0, MAX_FRIENDS));
-	// 	} catch (e: any) {
-	// 		setErr(e?.message || "Failed to load friends.");
-	// 	} finally {
-	// 		setLoading(false);
-	// 	}
-	// }
 
 	async function handleAdd() {
 		setErr(null);
@@ -96,15 +80,22 @@ const Friends: React.FC = () => {
 				return;
 			}
 			if (friends.length >= MAX_FRIENDS) {
-				setErr(t("error.friendsMaxNum"));
+				setErr(t("error.friends.maxNum"));
 				setBusyAdd(false);
 				return;
 			}
 			if (friends.some((f) => f.username.toLowerCase() === value.toLowerCase())) {
-				setErr(t("error.friendsAlreadyFriend"));
+				setErr(t("error.friends.alreadyFriend"));
 				setBusyAdd(false);
 				return;
 			}
+
+			if (user?.username && value.toLowerCase() === user.username.toLowerCase()) {
+				setErr(t("error.friends.cannotAddSelf"));
+				setBusyAdd(false);
+				return;
+			}
+
 			const res = await fetch(API_PROTOCOL.ADD_FRIEND.path, {
 				method: API_PROTOCOL.ADD_FRIEND.method,
 				headers: { "Content-Type": "application/json" },
@@ -112,7 +103,7 @@ const Friends: React.FC = () => {
 				credentials: "include", // include cookies
 			});
 			if (res.status === 404) {
-				setErr(t("error.userNotFound"));
+				setErr(t("error.user.notFound"));
 				setBusyAdd(false);
 				return;
 			}
@@ -123,19 +114,19 @@ const Friends: React.FC = () => {
 				throw new Error(data.error || "Could not add friend.");
 			}
 
-			setFriends((prev) => [...prev, data.friend!].slice(0, MAX_FRIENDS));
+			//setFriends((prev) => [...prev, data.friend!].slice(0, MAX_FRIENDS));
 			resetAddForm();
-			setMsg(t("common.friendAdded"));
+			setMsg(t("common.friends.added"));
 			setOpenAdd(false);
 			await refreshSession(); // Refresh user data in AuthContext to update friends list there too
 		} catch (e: any) {
-			setErr(e?.message || "Could not add friend.");
+			setErr(t("error.friends.addFailed"));
 		} finally {
 			setBusyAdd(false);
 		}
 	}
 
-	async function confirmRemove(username: string) {
+	async function confirmRemove(friendId: string) {
 		setRemoving(true);
 		setErr(null);
 		setMsg(null);
@@ -143,7 +134,7 @@ const Friends: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.REMOVE_FRIEND.path, {
 				method: API_PROTOCOL.REMOVE_FRIEND.method,
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ username: username }),
+				body: JSON.stringify({ friend_id: friendId }),
 				credentials: "include",
 			});
 			if (!res.ok) throw new Error("Failed to remove friend.");
@@ -155,26 +146,19 @@ const Friends: React.FC = () => {
 
 			setFriends((prev) => prev.filter((f) => f.user_id !== friendId));
 			setRemoveConfirmId(null);
-			setMsg(t("common.friendRemoved"));
+			setMsg(t("common.friends.removed"));
 			await refreshSession(); // Refresh user data in AuthContext to update friends list there too
 		} catch (e: any) {
-			setErr(e?.message || "Could not remove friend.");
+			setErr(t("error.friends.removeFailed"));
 		} finally {
 			setRemoving(false);
 		}
 	}
 
-	//if (loading) return <div className="p-6">{t("common.loading")}</div>;
-	if (!user) {
 	return (
-		<div className="p-6 text-center text-gray-300">
-		Please log in to view your friends.
-		</div>
-	);
-	}
-
-	return (
-		<div className="p-6 max-w-4xl mx-auto">
+  	<div className="flex justify-center px-6 py-6">
+    	{/* Semi-transparent card for content */}
+    	<div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
 			<h1 className="text-3xl font-bold mb-4">{t("friends.title")}</h1>
 
 			{/* Inline status */}
@@ -183,15 +167,15 @@ const Friends: React.FC = () => {
 
 			{/* Actions section */}
 			<section className="bg-gray-800/50 rounded-lg border border-gray-700 divide-y divide-gray-700">
-				{/* Add friend by username row*/}
+				{/* Add friend by username row */}
 				<SettingButton
-					label={t("friends.addFriendUsername")}
+					label={t("friends.add.title")}
 					onClick={() => setOpenAdd((v) => !v)}
 				/>
 				{openAdd && (
 					<div className="px-4 pt-3 pb-4">
 						<label className="block mb-2 text-sm">
-							{t("friends.usernameTitle")}
+							{t("friends.item.username")}
 						</label>
 						<input
 							type="text"
@@ -215,7 +199,7 @@ const Friends: React.FC = () => {
 						</div>
 						{friends.length >= MAX_FRIENDS && (
 							<p className="text-xs text-gray-400 mt-2">
-								{t("error.friendsMaxNum")}
+								{t("error.friends.maxNum")}
 							</p>
 						)}
 					</div>
@@ -224,20 +208,29 @@ const Friends: React.FC = () => {
 
 			{/* Friends list */}
 			<section className="mt-6 bg-gray-800/50 rounded-lg border border-gray-700 p-4">
-				<h2 className="font-semibold mb-3">{t("friends.list")}</h2>
+				<h2 className="font-semibold mb-3">{t("friends.list.title")}</h2>
 
 				{friends.length === 0 ? (
-					<div className="text-gray-400">{t("friends.noFriends")}</div>
+					<div className="text-gray-400">{t("friends.list.empty")}</div>
 				) : (
 					<div className="space-y-3">
-						{friends.map((f) => (
+						{friends.map((f) => {
+							const avatarSrc =
+								f.avatar ??
+								(f as any).avatarFile ??
+								(f as any).avatar_file ??
+								defaultAvatar;
+							return (
 							<div key={f.user_id} className="space-y-2">
 								<div className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50 border border-gray-700">
 									<div className="flex items-center gap-3">
 										<img
-											src={f.avatar || "/default-avatar.png"}
-											alt={f.username}
+											src={avatarSrc}
+											alt={`${f.username} avatar`}
 											className="w-10 h-10 rounded-full"
+											onError={(e) => { 
+												(e.currentTarget as HTMLImageElement).src = defaultAvatar;
+											}}
 										/>
 										<div>
 											<div className="font-semibold">{f.username}</div>
@@ -260,7 +253,7 @@ const Friends: React.FC = () => {
 										onClick={() => toggleRemove(f.user_id)}
 										className="px-2 py-1 text-sm rounded-md text-white bg-gray-800 hover:bg-gray-700 border border-gray-700"
 									>
-										{t("friends.remove")}
+										{t("friends.item.remove")}
 									</button>
 								</div>
 
@@ -269,14 +262,14 @@ const Friends: React.FC = () => {
 									<div className="px-4 pb-4">
 										<div className="border border-red-500/30 bg-red-900/10 rounded p-4">
 											<h3 className="text-red-400 font-semibold mb-2">
-											{t("friends.removeConfirmTitle")}
+											{t("friends.confirmRemove.title")}
 											</h3>
 											<p className="text-sm text-red-200 mb-3">
-											{t("friends.removeConfirmText")}
+											{t("friends.confirmRemove.text")}
 											</p>
 											<div className="flex gap-2">
 											<PrimaryTiny
-											onClick={() => confirmRemove(f.username)}
+											onClick={() => confirmRemove(f.user_id)}
 											disabled={removing}
 											>
 											{t("common.remove")}
@@ -292,11 +285,13 @@ const Friends: React.FC = () => {
 									</div>
 								)}
 							</div>
-						))}
+							);
+						})}
 					</div>
 				)}
 			</section>
 		</div>
+	  </div>
 	);
 };
 
@@ -312,7 +307,8 @@ function SettingButton({
 			<button
 				type="button"
 				onClick={onClick}
-				className="px-3 py-1.5 text-sm rounded-md text-white bg-gray-800 hover:bg-gray-600"
+				className="px-3 py-1.5 text-sm rounded-md text-white bg-blue-600 hover:bg-blue-700"
+
 			>
 				{label}
 			</button>

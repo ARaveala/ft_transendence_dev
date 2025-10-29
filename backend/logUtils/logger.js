@@ -13,6 +13,23 @@ function log(label, message) {
   fs.appendFileSync(logFile, entry);
 }
 
+const filesToTouch = [
+  'server.log',
+  'trace.log',
+  'debug.log',
+  'info.log',
+  'warn.log',
+  'error.log',
+  'fatal.log',
+  'app.log'
+];
+
+for (const name of filesToTouch) {
+  const fp = path.join(logDir, name);
+  if (!fs.existsSync(fp)) {
+    fs.closeSync(fs.openSync(fp, 'w')); // touch file
+  }
+}
 /**
  * usage of fastify logger 
  * in any file that utalizes fastify :
@@ -35,6 +52,7 @@ function log(label, message) {
 //fastif logger settings
 const pino = require('pino');
 const transport = pino.transport;
+
 
 // this just shows how  levels are categorized
 const customLevels = {

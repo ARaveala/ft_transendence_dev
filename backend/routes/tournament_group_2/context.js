@@ -1,15 +1,17 @@
 const db = require('@db/initDB.js');
 const DBinsert = require('@db/insert.js');
-const DBdelete = require('@db/delete.js');
+const DBget = require('@db/get.js');
 const DBupdate = require('@db/update.js');
-const DBget = require('@db/get.js') //testing minilogin
 const secure = require('@security');
-//const game = require('@Rgame'); // testing
+const DBtour = require('@db/tournament.js');
+
+const game = require('@Rgame');
 module.exports = {
 	db,
 	DBinsert,
-	DBget,
-	DBdelete,
-	DBupdate,
 	secure,
+	DBget,
+	DBupdate,
+	DBtour,
+	game,
 };

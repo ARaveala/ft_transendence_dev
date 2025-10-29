@@ -1,3 +1,6 @@
+const {logger} = require('@logger');
+//const { createTournamentPlayer, getTournamentPlayerById } = require('../../database/tournament');
+const flog = logger.child({ fileContext: 'game.js' });
 // all these should be swapped for context files, either or
 // 2 different approaches
 const {
@@ -11,6 +14,7 @@ const {log} = require('@logger');
 //} = require('@security');
 
 const { API_PROTOCOL } = require('@sharedApi');
+
 
 const games = new Map(); // gameId -> { owner, players, state, loop }
 // this fucntion maybe should handle 1 user at a Time,
@@ -67,6 +71,7 @@ function createGameMap(owner, mode, type) {
     		paddleOffset: 1,
 			paddleSpeed: 0,
 			ballSpeed: 0,
+            ballSpeedUp: 1,
 			leftPaddleI: 0,
 			rightPaddleI: 1,
 			ballYI: 2,
@@ -75,7 +80,11 @@ function createGameMap(owner, mode, type) {
 			ball: { dx: 3, dy: 1 },
 			gameRunning: false,
 			keysDown: [false, false, false, false],
-			lastUpdate: undefined
+			lastUpdate: undefined,
+            powerups: false,
+            visiblePowerups: new Array(),
+            activePowerups: new Array(),
+            firstHit: false
 		}});
 	return gameId;
 }
@@ -98,13 +107,45 @@ function addPlayer(gameId, playerId, playerData) {
 //	log('ADD_PLAYER',`addPlayer called with:${gameId}, ${JSON.stringify(playerId)}, ${JSON.stringify(playerData)}`);
 //	console.log('Type of game.players:', game.players instanceof Map);
 
+	flog.debug({function: "addplayer"}, 'checking add player initilized');
 	const game = games.get(gameId);
-	if (!game) throw new Error('Game not found');
+	if (!game) {
+		flog.error({fucntion: "addplayer"}, 'error game not found');
+		throw new Error('Game not found');
+	}
 	console.log('Before adding:', Array.from(game.players.entries()));
 	game.players.set(playerId, playerData);
-	console.log('After adding:', Array.from(game.players.entries()));
+	flog.debug({function :"addplayer", players: Array.from(game.players.entries())}, 'After adding:');
 }
+//player role also send
+function createGameCore(userId, type, mode, alias) {
+	try{
+//		flog.debug({function : "createGameCore"});
 
+		flog.warn({function: "createGameCore"}, "CREATEGAMECORE HAS BEEN INITIATED");
+		//if (userId === undefined)
+		//{
+		//	if undefined no owner 
+		//}
+		//flog.debug({function: 'createGameCore', id: userId, type: type, mode: mode, alias: alias}, "entering the fucntion now ");
+		const gameId = createGameMap(userId, type, mode);
+		//flog.debug({function : "createGameCore", gameid: gameId}, 'did game id get made');
+		//flog.debug({function: 'createGameCore', gameId}, 'game id should be created')
+		if (userId)
+			addPlayer(gameId, userId.id, {type: "login", ws: undefined, role: "player1", alias: alias, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+
+
+
+		//flog.debug({function: 'createGameCore'}, 'player added ');
+		//log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
+		//flog.debug({function: "createGameCore", gameid: gameId}, "aaaaaaaaaaaaaaaaaaaaa game ID");
+		return gameId;
+
+	} catch {
+		flog.error({ function: 'createGameCore', userId: userId, type: type, mode: mode, errormsg: err.message, errtpe: err.stack}, 'Error creating game core');
+		throw new Error('Game initialization failed');
+	}
+}
 
 async function createGame(fastify, options) {
 		const {secure} = options;
@@ -115,14 +156,17 @@ async function createGame(fastify, options) {
 	   try {
 
 		const token = request.cookies.auth_token;
-		log('CREATE_GAME', `checking token ${token}`);
+		//log('CREATE_GAME', `checking token ${token}`);
 		// this also verifies the token
 		const user1 = secure.getUserIdFromToken(token); //this should throw bad session or something
-	    log('CREATE_GAME', `checking id ${user1}`);
+	    flog.warn({function: 'CREATE_GAME', userid: user1}, `checking id `);
+		const gameId = createGameCore(user1, type, mode, undefined)
+	//    flog.warn({function: 'CREATE_GAME', userid: gameId}, `checking gameid `);
+
 		// local or remote should be type, mode is vs or tournament
-		const gameId = createGameMap(user1, type, mode);
-		addPlayer(gameId, user1.id, {type: "login", ws: undefined, role: "player1", alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
-		log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
+		//const gameId = createGameMap(user1, type, mode);
+		//addPlayer(gameId, user1.id, {type: "login", ws: undefined, role: "player1", alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+		//log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
 		reply.send({ status: 'game created' , gameId});
 	   } catch (err) {
 	     reply.code(400).send({ error: 'Game initialization failed' });
@@ -164,7 +208,7 @@ async function joinGame(fastify, options) {
 					userId = 'AI' + generateRandomId();
 				}
 
-				addPlayer(gameId, userId.id, {type: type, ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+				addPlayer(gameId, userId, {type: type, ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
 				log('JOIN_GAME', `added player ${JSON.stringify(getGame(gameId))}`);
 			}
 				reply.send({ player: "player"+player_count, status: 'ready', });
@@ -174,6 +218,34 @@ async function joinGame(fastify, options) {
 
 
 	});
+}
+
+
+function startGameCore(secure, gameId) {
+		const game = getGame(gameId);
+		flog.warn({function: 'startGameCore', game: game, gameid: gameId}, 'checking that game exists ????????');
+		if (!game) return reply.code(404).send({ error: 'Game not found' });
+				if (game.players.size < 2) {
+			log('START_GAME',`not enough players to start`);
+			return reply.code(400).send({ error: 'Not enough players to start' });
+		}
+		//log('START_GAME',`debug1`);
+    	// Generate WS tokens for each player unless ai?
+		const playerTokens = {};
+		for (const [playerId, playerData] of game.players) {
+			const role = playerData.role;
+			playerTokens[role] = secure.generateWsToken(playerId, gameId);
+		}
+//		log('START_GAME',`debug2`);
+		if (Object.keys(playerTokens).length < 2){
+			log("player tokens is not the size of 2-----------------------------------");
+		}
+		game.phase = 'starting';
+		return playerTokens;
+		// do i need to also send type and mode of the game
+		//console.log("show me the tokens ", JSON.stringify(playerTokens[0], JSON.stringify(playerTokens[1])));
+
+
 }
 
 async function startGame(fastify, options) {
@@ -186,40 +258,43 @@ async function startGame(fastify, options) {
     try {
 //		log('START_GAME',`debug1`);
 		const token = request.cookies.auth_token;
-		log('STAR_GAME', `checking tokn ${token}`);
 		const userId = secure.getUserIdFromToken(token);
-		log('START_GAME',`checking userId ${JSON.stringify(userId)}`);
-		const game = getGame(gameId);
-		log('START_GAME',`checking whats in game ${JSON.stringify(game)}`);
-		if (!game) return reply.code(404).send({ error: 'Game not found' });
-		log('START_GAME', `checking comparison game.owner and id ${JSON.stringify(game.owner)} ${JSON.stringify(userId)}`);
-		if (game.owner.id !== userId.id) {
-			log('START_GAME',`not owner of game`);
-			return reply.code(403).send({ error: 'Only the owner can start the game' });
-		}
-		log('START_GAME',`debug0`);
-    	// Check players, if multiplayer this must be compared to player count
-		if (game.players.size < 2) {
-			log('START_GAME',`not enough players to start`);
-			return reply.code(400).send({ error: 'Not enough players to start' });
-		}
-		log('START_GAME',`debug1`);
-    	// Generate WS tokens for each player unless ai?
-		const playerTokens = {};
-		for (const [playerId, playerData] of game.players) {
-			const role = playerData.role;
-			playerTokens[role] = secure.generateWsToken(playerId, gameId);
-		}
-		log('START_GAME',`debug2`);
-		if (Object.keys(playerTokens).length < 2){
-			log("player tokens is not the size of 2-----------------------------------");
-		}
-		game.phase = 'starting';
+//		const game = getGame(gameId);
+//		if (!game) return reply.code(404).send({ error: 'Game not found' });
+//
+//
+//
+//		if (game.owner.id !== userId.id) {
+//			log('START_GAME',`not owner of game`);
+//			return reply.code(403).send({ error: 'Only the owner can start the game' });
+//		}
+//		log('START_GAME',`debug0`);
+//    	// Check players, if multiplayer this must be compared to player count
+//		if (game.players.size < 2) {
+//			log('START_GAME',`not enough players to start`);
+//			return reply.code(400).send({ error: 'Not enough players to start' });
+//		}
+//		log('START_GAME',`debug1`);
+//    	// Generate WS tokens for each player unless ai?
+//		const playerTokens = {};
+//		for (const [playerId, playerData] of game.players) {
+//			const role = playerData.role;
+//			playerTokens[role] = secure.generateWsToken(playerId, gameId);
+//		}
+//		log('START_GAME',`debug2`);
+//		if (Object.keys(playerTokens).length < 2){
+//			log("player tokens is not the size of 2-----------------------------------");
+//		}
+//		game.phase = 'starting';
 		// do i need to also send type and mode of the game
 		//console.log("show me the tokens ", JSON.stringify(playerTokens[0], JSON.stringify(playerTokens[1])));
+		//flog.warn({function: 'startGame', gameId}, 'is sending gameid');
+		const playerTokens = startGameCore(secure, gameId);
+		//flog.warn({fucntion: "startgame", playerTokens, playerTokens},"checking tokens valid ");
 		reply.send({ status: 'ready', gameId, playerTokens });
 		// if remote playe we would send each player seperatley to their own game.html, they would not go through the test harness anymore
 		} catch (err) {
+			flog.error({function: "startGame", errormsg: err.message, errorstack: err.stack}, "what error");
 			reply.code(400).send({ error: 'Game initialization failed' });
 		}
 
@@ -265,7 +340,9 @@ async function gameRoutes(fastify, options) {
 }
 //module.exports = gameRoutes;
 
-module.exports = {gameRoutes, startGame, joinGame, createGame, getGame, generateRandomId};
+module.exports = {gameRoutes, startGame, joinGame, createGame, getGame, generateRandomId,
+	createGameCore, addPlayer, startGameCore,
+};
 
 //front end connects to websocket like so
 /**async function gameRoutes(fastify, options) {

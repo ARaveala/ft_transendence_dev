@@ -1,5 +1,6 @@
 const { API_PROTOCOL } = require('@sharedApi');
 const {logger} = require('@logger');
+const { saveAndGetAvatarUrl, deleteOldAvatar } = require('./save_avatar.js'); // <-- Note the new import
 const flog = logger.child({ fileContext: 'profile.js' }); // scoped logger
 /**
  * 
@@ -42,9 +43,9 @@ async function getUser(fastify, options) {
 				mfa_enabled: false,
 				rank: 5,
 				score: 1200,
-				victories: 15,
+				victories: 20,
 				losses: 7,
-				totalMatches: 22,
+				matches: 22,
 				friends: [],
 				matchHistory: [
 					{ id: "m1", opponent: "Player2", result: "win", score: 21, timestamp: "2025-08-25T12:00:00" },
@@ -54,8 +55,9 @@ async function getUser(fastify, options) {
 		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
 		try {
 			const profile = await DBget.fetchUser({userId});
+			//flog.warn({function: "getProfile", totalGames: profile.total_games}, "can we see total matches updated and recived==============================");
 			const friends = await DBget.getFriendsForPlayer(userId.id);
-			flog.info({function: 'getUser', friends}, 'checking friend object');
+	//		flog.info({function: 'getUser', friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory({userId});
 			//const { password, ...safeUser } = profile;
 			mockProfile.username = profile.username;
@@ -63,9 +65,9 @@ async function getUser(fastify, options) {
 			mockProfile.mfa_enabled = profile.mfa_enabled === 1; // convert to boolean
 			mockProfile.rank = profile.rank;
 			mockProfile.score = profile.score;
-			mockProfile.wins = profile.victories;
+			mockProfile.victories = profile.wins;
 			mockProfile.losses = profile.losses;
-			mockProfile.total_games = profile.totalMatches;
+			mockProfile.totalMatches = profile.total_games;
 			mockProfile.friends = friends || [];
 			mockProfile.matchHistory = matchHistory || [];
 			//mockP
@@ -164,6 +166,83 @@ async function updatePassword(fastify, options) {
 	});
 }
 
+// Route for file upload (POST) 
+async function uploadAvatarFileRoute(fastify, options) {
+	const { DBupdate, DBget, secure } = options; 
+	fastify.route({
+		method: API_PROTOCOL.UPLOAD_AVATAR.method, // POST
+		url: API_PROTOCOL.UPLOAD_AVATAR.path,     // /api/profile/avatar
+		
+		handler: async (request, reply) => {
+			flog.info({ function: 'uploadAvatarFileRoute' }, 'Attempting avatar file upload');
+			
+			let newAvatarUrl = null; // Initialize to track the newly saved file
+			
+			try {
+				const token = request.cookies.auth_token;
+				const userId = secure.getUserIdFromToken(token);
+
+				if (!userId) {
+					reply.code(401).send({ status: 'ERROR', error: 'Unauthorized' });
+					return;
+				}
+
+				// 1. Fetch current user data to get the old avatar URL for later deletion
+				const currentUserData = await DBget.fetchUser({ userId });
+				const oldAvatarUrl = currentUserData ? currentUserData.avatar_file : null;
+
+				// Parse the file data from the multipart request
+				const data = await request.file();
+				if (!data || data.fieldname !== 'file') {
+					reply.code(400).send({ status: 'ERROR', error: 'No file received or wrong field name' });
+					return;
+				}
+				
+				// Validate file type (basic check)
+				const allowedMimes = ['image/jpeg', 'image/png', 'image/gif'];
+				if (!allowedMimes.includes(data.mimetype)) {
+					// Optionally log this attempt
+					reply.code(400).send({ status: 'ERROR', error: 'Invalid file type. Only JPEG, PNG, and GIF allowed.' });
+					return;
+}
+
+				// 2. Save the new file and get its public URL
+				newAvatarUrl = await saveAndGetAvatarUrl(data, userId.id);
+
+				// 3. Update the user's database entry with the new URL
+				const updateCheck = await DBupdate.changeAvatar(newAvatarUrl, userId.id);
+
+				if (updateCheck.error) {
+					flog.error({ error: updateCheck.error }, 'Failed to update database with new avatar URL. Attempting file rollback.');
+					
+					// Delete the newly uploaded file if DB update fails
+					await deleteOldAvatar(newAvatarUrl); 
+					
+					reply.code(500).send({ status: 'ERROR', error: 'Database update failed' });
+					return;
+				}
+
+				// 4. Delete the old file from disk (only if DB update succeeded)
+				await deleteOldAvatar(oldAvatarUrl);
+				
+				// Success response, returning the URL the frontend needs
+				reply.code(200).send({
+					status: 'UPLOADED',
+					url: newAvatarUrl, // The public URL the frontend will use
+				});
+
+			} catch (err) {
+				// If a file was saved but an error occurred outside of the DB check (e.g., file saving failed)
+				// we should attempt to clean up if newAvatarUrl was set.
+				if (newAvatarUrl) {
+					await deleteOldAvatar(newAvatarUrl); // Clean up temp file
+				}
+				flog.error({ err }, 'Error during avatar file upload (includes file system errors)');
+				reply.code(500).send({ status: 'ERROR', error: 'Server error during upload' });
+			}
+		},
+	});
+}
 
 
 async function updateAvatar(fastify, options) {
@@ -236,11 +315,50 @@ async function updateLanguage(fastify, options) {
 	});
 }
 
+async function updateTwoFactor(fastify, options) {
+	const { DBupdate, secure } = options;
+	fastify.route({
+		method: API_PROTOCOL.CHANGE_2FA.method,
+		url: API_PROTOCOL.CHANGE_2FA.path,
+		handler: async (request, reply) => {
+		//schema: { body: schemas.updateTwoFactor }, dosnt exist yet 
+		const { twoFactor } = request.body;
+		flog.debug({ function: 'updateTwoFactor', body: request.body }, 'Toggling Two Factor Authentication , inc body');
+		try {
+			
+			const token = request.cookies.auth_token;
+			const userId = secure.getUserIdFromToken(token);	
+			if (userId){
+				const check = await DBupdate.update2fa(userId.id);
+				console.log('checking check Two Factor', check)
+				//might need more in depth error handling
+				if (check.error) {
+					//update the username
+					reply.code(400).send({
+						status: 'ERROR',
+						error: 'not valid Two Factor?'// other errors?
+					})
+				}
+			}
+			reply.code(200).send({
+				status: 'UPDATED',
+			});
+		}
+		catch (err) {
+			console.log(('Error during Two Factor change:', err));
+			reply.code(500).send(err);
+		}
+	}
+	});
+}	
+
 async function profileRoutes(fastify, options) {
 	await getUser(fastify, options);
 	await updateUsername(fastify, options);
 	await updatePassword(fastify, options);
 	await updateAvatar(fastify, options);
+	await uploadAvatarFileRoute(fastify, options); // POST for file upload
 	await updateLanguage(fastify, options);
+	await updateTwoFactor(fastify, options);
 }
 module.exports = profileRoutes
