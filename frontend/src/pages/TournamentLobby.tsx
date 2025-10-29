@@ -302,7 +302,7 @@ const TournamentLobby: React.FC = () => {
 		if (!match || !gameSettings)
 			return;
 	
-		const payload = { gameId: match.match_id };
+		const payload = { gameId: match.match_id, tournamentId: tournament?.tournament_id };
 		try {
 			const res = await fetch(API_PROTOCOL.START_GAME.path, {
 				method: "POST",
