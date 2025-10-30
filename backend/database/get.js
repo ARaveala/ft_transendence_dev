@@ -193,23 +193,21 @@ async function miniLogin(username, password) {
 }
 
 async function get2FaSecret(userId) {
-	console.log('DB::Fetching 2FA secret for user ID:', userId);
-	const test = userId.id;
-		return new Promise((resolve, reject) => {
-			db.get('SELECT mfa_secret FROM users WHERE id = ?', [test], (err, row) =>{
-				if (err) {
-					console.error('DB error:', err);
-					reject({ error: 'DB error fecth' });
-				} else if (!row) {
-					console.warn('User not found for ID:', userId);
-					reject({ error: 'User not found fecth' });
-				} else {
-					console.log('2FA secret found:', row);
-					resolve(row.mfa_secret);
-				}
-
-			});
-		});
+    console.log('DB::Fetching 2FA secret for user ID:', userId);
+    return new Promise((resolve, reject) => {
+        db.get('SELECT mfa_secret FROM users WHERE id = ?', [userId], (err, row) => {
+            if (err) {
+                console.error('DB error fetching secret:', err);
+                reject(new Error('DB error fetching secret: ' + err.message));
+            } else if (!row) {
+                console.warn('User not found in DB for ID:', userId);
+                reject(new Error('User not found fetching secret'));
+            } else {
+                console.log('2FA secret found for user ID:', userId);
+                resolve(row.mfa_secret);
+            }
+        });
+    });
 }
 
 async function is2FaEnabled(userId) {
@@ -238,6 +236,7 @@ module.exports = { fetchUser,
 	checkPasswordMatch,
 	fetchUserByUsername,
 	is2FaEnabled,
+	get2FaSecret
 };
 //similar logic as below may be required
 //async function userRoutes(fastify, options) {

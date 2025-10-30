@@ -14,7 +14,7 @@ import CenteredContainer from "../components/layout/CenteredContainer";
 import MiniLogin from "../components/game/MiniLogin";
 
 type GameMode = "guest" | "login" | "ai";
-
+//	const { isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
 const Game: React.FC = () => {
 	const { isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
 	const [gameStarted, setGameStarted] = useState(false);
