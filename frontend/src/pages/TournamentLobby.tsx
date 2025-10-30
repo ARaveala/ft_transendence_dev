@@ -54,20 +54,21 @@ const TournamentLobby: React.FC = () => {
 
 	useEffect(() => {
 		function handleMessage(event: MessageEvent) {
-			if (event.origin !== "http://localhost:3000") return;
+			if (event.origin !== "http://localhost:3000")
+				return;
 			if (event.data?.type === "GAME RESULT") {
 				console.log("Received game result from iframe:", event.data.payload);
 				const result = event.data.payload;
-				setGameResult(result);
-				handleGameResult(result);
-				handleMatchEnd();
+				
+				refreshSession().then(() => {
+					setGameResult(result);
+					handleMatchEnd();
+				});
 			}
-
-			refreshSession();
 		}
 		window.addEventListener("message", handleMessage);
 			return () => window.removeEventListener("message", handleMessage);
-	}, [tournament, currentGame, gameResult]);
+	}, [tournament, currentGame]);
 
   /*
    * Creates a new tournament
@@ -103,7 +104,7 @@ const TournamentLobby: React.FC = () => {
 
 	/* Updates tournament state
 	- Called by child components when tournament setup or matches update the data */
-	const handleTournamentUpdated = (updated: TournamentState) => {
+	/*const handleTournamentUpdated = (updated: TournamentState) => {
 		setTournament(updated);
 
 		if (updated.status === "ongoing") {
@@ -191,7 +192,7 @@ const TournamentLobby: React.FC = () => {
 		setActiveGameId(null);
 		setPlayer1Token(null);
 		setPlayer2Token(null);
-	};
+	}; */
 
 	// Cancels the current tournament
 
@@ -208,7 +209,7 @@ const TournamentLobby: React.FC = () => {
 				method: API_PROTOCOL.CANCEL_TOURNAMENT.method,
 				credentials: "include",
 				 headers: {
-    				'Content-Type': 'application/json'
+					'Content-Type': 'application/json'
   				},
 				body: JSON.stringify(payload)
 				
@@ -368,9 +369,9 @@ const TournamentLobby: React.FC = () => {
 				{/* Tournament Setup */}
 				{showSetup && tournament && (
 					<TournamentSetup
-						tournament={tournament}
-						onTournamentUpdated={handleTournamentUpdated}
+						//onTournamentUpdated={handleTournamentUpdated}
 						onCancel={handleCancelTournament}
+						onTournamentStarted={() => setShowSetup(false)} 
 					/>
 				)}
 
