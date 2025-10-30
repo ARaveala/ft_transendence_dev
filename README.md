@@ -1,3 +1,10 @@
+
+  git branch -m araveala_test_gameRefresh PAUSED_araveala_test_gameRefresh
+  git fetch origin
+  git branch -u origin/PAUSED_araveala_test_gameRefresh PAUSED_araveala_test_gameRefresh
+  git remote set-head origin -a
+  
+
 ## Directories 
 File order is created inorder to try and help keep collaboration simple.
 - backend
