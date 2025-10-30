@@ -162,6 +162,25 @@ async function updatePlayerGameStats(winner, id, score) {
   });
 }
 
+async function applyTournamentId(userId, tournamentId){
+	return new Promise ((resolve, reject) =>{
+		db.run(
+			'UPDATE users SET active_tournament_id = ? WHERE id = ?',
+			[tournamentId, userId],
+			function (err) {
+				if (err) {
+					flog.error({ function: 'applyTournamentId', error: err }, 'Error updating player game stats');
+					reject({ error: 'Failed to update player game stats ', details: err});
+				} else if (this.changes === 0) {
+					flog.error({ function: 'applyTournamentId' }, 'No changes made, user not found');
+					reject({ error: 'User not found , no changes made' });
+				} else {
+					return resolve({ messgae: 'active touramnet set', tid: tournamentId})
+				}
+			}
+		)
+	})
+}
 //
 //async function updateMatchHistory(userId, matchData) {
 //	flog.debug({ function: 'updateMatchHistory', userId: userId, matchData: matchData }, 'Updating match history for user');
@@ -191,5 +210,6 @@ module.exports = { updateUserScore,
 	changeLanguage,
 	update2fa,
 	updatePlayerGameStats,
+	applyTournamentId,
 //	updateMatchHistory
 };

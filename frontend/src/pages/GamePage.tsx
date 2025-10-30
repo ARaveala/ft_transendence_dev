@@ -14,9 +14,9 @@ import CenteredContainer from "../components/layout/CenteredContainer";
 import MiniLogin from "../components/game/MiniLogin";
 
 type GameMode = "guest" | "login" | "ai";
-
+//	const { isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
 const Game: React.FC = () => {
-	const { isLoggedIn, loading} = useAuth();
+	const { isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
 	const [gameStarted, setGameStarted] = useState(false);
 	const [player1Token, setPlayer1Token] = useState<string | null>(null);
 	const [player2Token, setPlayer2Token] = useState<string | null>(null);
@@ -54,6 +54,9 @@ const Game: React.FC = () => {
 			console.log("Received game end from iframe:", event.data.payload);
 			handleGameEnd();
 			}
+
+		refreshSession();
+
 		}
 		window.addEventListener("message", handleMessage);
 			return () => window.removeEventListener("message", handleMessage);

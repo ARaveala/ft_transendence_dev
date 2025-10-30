@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS users
     score INTEGER NOT NULL DEFAULT 0,
     wins INTEGER NOT NULL DEFAULT 0,
     losses INTEGER NOT NULL DEFAULT 0,
-    total_games INTEGER NOT NULL DEFAULT 0
+    total_games INTEGER NOT NULL DEFAULT 0,
+	active_tournament_id INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE tABLE IF NOT EXISTS match_history
@@ -56,7 +57,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
 -- do we want to add if game was 1v1 or tournament ?
 -- no match key as we want to use this to build leaderboard
 -- leaderboard should not have same player twice , if user has top score , next score is another user
-CREATE TABLE IF NOT EXISTS brackets
+CREATE TABLE IF NOT EXISTS game
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tournament_id INTEGER,
@@ -70,12 +71,11 @@ CREATE TABLE IF NOT EXISTS brackets
 	game_uid TEXT UNIQUE,
     status TEXT NOT NULL DEFAULT 'waiting'
         CHECK (status IN ('waiting', 'pending', 'ongoing', 'finished')),
-    FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
     FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
 );
-
 
 
 CREATE TABLE IF NOT  EXISTS tournament_players (
