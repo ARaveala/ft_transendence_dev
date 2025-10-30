@@ -15,7 +15,7 @@ const {
 
 const {
 	updatePlayerGameStats,
-	
+	updateMatchHistory,
 } = require('@db/update.js');
 
 const {
@@ -148,10 +148,19 @@ function handleMessage(ws, data) {
 			console.log("game id:", gameId);
 			if (winner === 1){
 				updatePlayerGameStats(true, id1, player1.score)
-				 .catch(err => console.error('Failed to update player1 stats', err));
-//				if (data.type === "tournament"){
-//					updateTournamentStats(game.id, id1, player1.score, id2, player2.score);
-//				}
+					.catch(err => console.error('Failed to update player1 stats', err));
+				
+				updateMatchHistory(id1, 'win', player1.score, player1.type, id2, player2.score, player2.type)
+					.then (result => {
+						console.log("show me resluts from update match history", result);
+					})
+					.catch(err => console.error('failed to update match history', err));
+
+				updateMatchHistory(id2, 'loss', player2.score, player2.type, id1, player1.score, player1.type,)
+					.then (result => {
+						console.log("show me resluts from update match history", result);
+					})
+					.catch(err => console.error('failed to update match history', err));
 				//check login player updates
 				//if (typeof id2 === 'string' && !id2.includes('Guest')) {
 				//	updatePlayerGameStats(false, id2, player2.score)
@@ -165,6 +174,19 @@ function handleMessage(ws, data) {
 				//}
 				updatePlayerGameStats(false === 0, id1, player1.score)
 				 .catch(err => console.error('Failed to update player1 stats', err));
+				updateMatchHistory(id1, 'loss', player1.score, player1.type, id2, player2.score, player2.type)
+					.then (result => {
+						console.log("show me resluts from update match history", result);
+					})
+					.catch(err => console.error('failed to update match history', err));
+
+				updateMatchHistory(id2, 'win', player2.score, player2.type, id1, player1.score, player1.type)
+					.then (result => {
+						console.log("show me resluts from update match history", result);
+					})
+					.catch(err => console.error('failed to update match history', err));
+
+
 			}
 			if (game.mode === "tournament"){
 					
@@ -181,7 +203,7 @@ function handleMessage(ws, data) {
 					})
 					.catch(err => console.error('failed to update tournamnet stats', err));
 			}
-
+			
 			break;
 		}
 		case 'init': {

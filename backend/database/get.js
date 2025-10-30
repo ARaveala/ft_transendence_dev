@@ -104,26 +104,29 @@ async function getFriendsForPlayer( userId ) {
 	});
 }
 // can we have a schema that checks if table empty first?
-async function getMatchHistory({ userId }) {
+async function getMatchHistory(userId) {
 	//console			.log('DB::Fetching match history for user ID:', userId);
-	const test = userId.id;
+//	const test = userId.id;
 	return new Promise((resolve, reject) => {
 		db.all(
 			` 	SELECT 
-				    matches.user_id AS matchID,
-				    matches.result AS result,
-				    matches.score AS score,
-				    matches.timestamp AS timestamp, 
+				    match_history.user_id AS matchID,
+				    match_history.result AS result,
+				    match_history.user_score AS score,
+				    match_history.match_date AS timestamp,
+					users.username AS opponentUsername,
+					users.id AS userTableID,
+					match_history.opponent_id AS opid,
 				    CASE 
-				        WHEN matches.opponent_type = 'human' THEN users.username
-				        WHEN matches.opponent_type = 'guest' THEN 'Guest'
-				        WHEN matches.opponent_type = 'AI' THEN 'AI Bot'
-				    END AS opponentName
-				FROM matches
-				LEFT JOIN users ON matches.opponent_id = users.id
-				WHERE matches.user_id = ?;
+				        WHEN match_history.opponent_type = 'login' THEN users.username
+				        WHEN match_history.opponent_type = 'guest' THEN 'Guest'
+				        WHEN match_history.opponent_type = 'ai' THEN 'AI Bot'
+				    END AS opponent
+				FROM match_history
+				LEFT JOIN users ON match_history.opponent_id = users.id
+				WHERE match_history.user_id = ?;
 			`
-			,[test],
+			,[userId],
 			(err, rows) => {
 				if (err) {
 					console.error('DB error fetching match history:', err);
@@ -133,7 +136,10 @@ async function getMatchHistory({ userId }) {
 					}	
 					reject({ error: 'DB error fetching match history' });
 				} else {
-					console.log(`Found ${rows.length} matches for user ID ${userId}`);
+					//console.log(`Found ${rows.length} matches for user ID ${userId}`);
+					//console.log("whats going on with username -- ${rows.opponentUsername}");
+					//console.log("and the users.id is ${rows.userTableId}");
+					//console.log("and as opid ${rows.opid}")
 					resolve(rows || []);
 				}
 			}
