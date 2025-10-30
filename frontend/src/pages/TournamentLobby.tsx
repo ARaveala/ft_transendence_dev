@@ -238,7 +238,7 @@ const TournamentLobby: React.FC = () => {
 		if (round === 2)
 		{
 			const semis = tournament.bracket[0];
-			console.log("Status of round 1 matches:" , tournament.bracket[0].map(m => '${m.match_id}: ${m.status}'));
+			console.log("Status of round 1 matches:" , tournament.bracket[0].map(m => `${m.match_id}: ${m.status}`));
 			const allSemisFinished = semis.every(m => m.status === "finished");
 			return allSemisFinished && match.status === "pending";
 		}
@@ -263,10 +263,10 @@ const TournamentLobby: React.FC = () => {
 		const idx = tournament.bracket[roundIndex].findIndex(m => m.match_id === match.match_id);
 
 		// Check if match is playable
-		if (!isMatchPlayable(match, roundIndex + 1, idx)) {
+		if (!isMatchPlayable(match, roundIndex, idx)) {
 			console.log("Checking playability for:", {
 			match_id: match.match_id,
-			round: roundIndex + 1,
+			round: roundIndex,
 			idx,
 			status: match.status,
 			bracket: tournament.bracket.map((r, i) => ({

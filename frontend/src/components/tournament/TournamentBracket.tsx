@@ -56,7 +56,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 			return;
 	
 	const lastRound = tournament.bracket[tournament.bracket.length - 1];
-	const finalMatch = lastRound[0]; 
+	const finalMatch = lastRound[0];
 
 	 /* Determines if a match can be started:
 		- Round 1: match is "pending"
@@ -114,18 +114,22 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 					</div>
 				</div>
 			
-				{/* Horizontal line connecting final players */}
-				<svg className=" hidden md:block absolute top-8 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 md:w-72 lg-w-80 h-3">
-					<line x1="1" y1="1" x2="100%" y2="1" stroke="#6366F1" strokeWidth="2" />
+				{/* Horizontal line connecting players - Medium */}
+				<svg width="194" height="2" className="hidden md:block lg:hidden absolute left-1/2 transform -translate-x-1/2">
+					<line x1="0" y1="1" x2="194" y2="1" stroke="#6366F1" strokeWidth="2" />
+				</svg>
+				{/* Horizontal line connecting players - Large */}
+				<svg width="288" height="2" className="hidden lg:block absolute left-1/2 transform -translate-x-1/2">
+					<line x1="0" y1="1" x2="288" y2="1" stroke="#6366F1" strokeWidth="2" />
 				</svg>
 			
 				{/* Vertical line down from final player1 center */}
 				<svg width="2" height="50" className=" hidden md:block absolute top-12 left-20">
-					<line x1="1" y1="2" x2="1" y2="48" stroke="#6366F1" strokeWidth="2" />
+					<line x1="1" y1="2" x2="1" y2="50" stroke="#6366F1" strokeWidth="2" />
 				</svg>
 				{/* Vertical line down from final player2 center */}
 				<svg width="2" height="50" className="hidden md:block absolute top-12 right-20">
-					<line x1="1" y1="2" x2="1" y2="48" stroke="#6366F1" strokeWidth="2" />
+					<line x1="1" y1="2" x2="1" y2="50" stroke="#6366F1" strokeWidth="2" />
 				</svg>
 		</div>
 
