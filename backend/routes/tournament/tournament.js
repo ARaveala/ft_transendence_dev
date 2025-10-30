@@ -4,231 +4,15 @@ const {logger} = require('@logger');
 //const { createTournamentPlayer, getTournamentPlayerById } = require('../../database/tournament');
 const flog = logger.child({ fileContext: 'tournamnet.js' });
 
+//this is so i can utalize as a utility function from outside this file scope
+const  {
+//const {DBtour} = options;
+	getTournamentPlayersWithUsernames,
+	getActiveTournamentStatus,
+ 
+} = require('@db/tournament.js');
 
-//module.exports = async function tournamentRoutes(fastify, options) {
-//	const {db, secure} = options;
-//	console.log('CHECKING FUNCTION ACCESS CREATE TOURNAMNET111 ');
-//	const run = (sql, params=[]) => new Promise((res, rej) => db.run(sql, params, function(err){
-//		if (err) rej(err); else res({lastID: this.lastID, changes: this.changes});
-//	}));
-//	const get = (sql, params=[]) => new Promise((res, rej) => db.get(sql, params, (e, row) => e ? rej(e) : res(row)));
-//	const all = (sql, params=[]) => new Promise((res, rej) => db.all(sql, params, (e, rows) => e ? rej(e) : res(rows)));
-//	const tx =  async(fn) => {await run('BEGIN'); try {const r = await fn(); await run('COMMIT'); return r} catch (e) {await run('ROLLBACK'); throw e;} };
-//	const requireUser = (request, reply) => {
-//		const token = request.cookies?.auth_token;
-//		if (!token) {reply.code(401).send({error: 'Not authenticated'}); return null;}
-//		try {return secure.getUserIdFromToken(token);}
-//		catch {reply.code(401).send({error: 'Invalid token'}); return null;}
-//	};
-//	fastify.post(API_PROTOCOL.CREATE_TOURNAMENT.path, async (request, reply) => {
-//		//flog('CHECKING FUNCTION ACCESS CREATE TOURNAMNET ');
-//
-//		const userId = requireUser(request, reply);
-//		if (!userId) return;
-//		try
-//		{
-//			const {lastID} = await run(`INSERT INTO tournaments(status) VALUES ('waiting')`);
-//			reply.code(201).send({
-//				status: 'OK',
-//				tournament: {
-//					tournament_id: String(lastID),
-//					status: 'waiting',
-//					players: [],
-//					bracket: [],
-//				}
-//			});
-//		}
-//		catch (err)
-//		{
-//			fastify.log.error({err}, 'Failed to create tournament');
-//			reply.code(500).send({status: 'Error', error: 'Failed to create tournament'});
-//		}
-//	});
-//	fastify.post(API_PROTOCOL.JOIN_TOURNAMENT.path, async (request, reply) => {
-//		db.exec('PRAGMA foreign_keys = ON;');
-//
-//		const userRow = await get(`SELECT id FROM users WHERE id = ?`, [userId]);
-//		if (!userRow) return reply.code(401).send({ status: 'ERROR', error: 'User no longer exists' });
-//		const tid = Number(request.params.tid);
-//		const {alias, seed} = request.body || {};
-//		if (!alias || typeof alias !== 'string' || ![1, 2, 3, 4].includes(Number(seed)))
-//			return reply.code(400).send({status: 'ERROR', error: 'alias and seed (1-4) are required'});
-//		try {
-//			const t = await get(`SELECT id, status FROM tournaments WHERE id = ?`, [tid]);
-//			if (!t) return reply.code(404).send({status: 'ERROR', error: 'Tournament not found'});
-//			if (t.status !== 'waiting') return reply.code(409).send({status: 'ERROR', error: 'Tournament not joinable'});
-//			const u = await get(`SELECT COUNT(*) AS c FROM tournament_players WHERE tournament_id = ?`, [tid] || {c: 0});
-//			if (!u) return reply.code(400).send({status: 'ERROR', error: 'Tournament full'});
-//			const row = await get(`SELECT COUNT(*) AS c FROM tournament_players WHERE tournament_id = ?`, [tid]);
-//			const c = row?.c ?? 0;
-//			if (c >= 4) return reply.code(409).send({status: 'ERROR', error: 'Tournament full'});
-//			await run(
-//				`INSERT INTO tournament_players (tournament_id, user_id, alias, seed) VALUES (?, ?, ?, ?)`, [tid, userId, alias.trim(), Number(seed)]
-//			);
-//			reply.code(201).send({status: 'OK'});
-//		}
-//		catch (err)
-//		{
-//			const msg = String(err.message || '');
-//			if (msg.includes('UNIQUE'))
-//				return reply.code(409).send({status: 'ERROR', error: 'Alias or seed already used'});
-//			fastify.log.error({err}, 'Join failed');
-//			reply.code(500).send({status: 'ERROR', error: 'Join failed'});
-//		}
-//	});
-//	fastify.post(API_PROTOCOL.START_TOURNAMENT.path, async (request, reply) => {
-//		const userId = requireUser(request, reply);
-//		if (!userId) return;
-//		const tid = Number(request.params.tid);
-//		try
-//		{
-//			await tx(async () => {
-//				const t = await get(`SELECT id, status FROM tournaments WHERE id = ?`, [tid]);
-//				if (!t) throw Object.assign(new Error('Tournament not found'), { statusCode: 404 });
-//				if (t.status !== 'waiting') throw Object.assign(new Error('Tournament already started'), {statusCode: 409});
-//				const players = await all(
-//					`SELECT tp.user_id, tp.alias, tp.seed
-//						FROM tournament_players tp
-//					WHERE tp.tournament_id = ?
-//					ORDER BY tp.seed ASC`,
-//					[tid]
-//				);
-//				if (players.length !== 4) throw Object.assing(new Error('Tournament requires exactly 4 players'), {statusCode: 409});
-//				const bySeed = (s) => players.find(p => p.seed === s)?.user_id;
-//				const s1 = bySeed(1), s2 = bySeed(2), s3 = bySeed(3), s4 = bySeed(4);
-//				if (!s1 || !s2 || !s3 || !s4) throw Object.assign(new Error('Seeds 1-4 must be unique'), {statusCode: 409});
-//				// Semifinals
-//				await run(`INSERT INTO games (tournament_id, round, bracket_pos, p1_id, p2_id, status)
-//							VALUES (?, 1, 1, ?, ?, 'waiting')`, [tid, s1, s4]);
-//				await run(`INSERT INTO games (tournament_id, round, bracket_pos, p1_id, p2_id, status)
-//							VALUES (?, 1, 2, ?, ?, 'waiting')`, [tid, s2, s3]);
-//				// Final
-//				await run(`INSERT INTO games (tournament_id, round, bracket_pos, p1_id, p2_id, status)
-//							VALUES (?, 2, 1, NULL, NULL, 'waiting')`, [tid]);
-//				await run(`UPDATE tournaments SET status = 'ongoing' WHERE id = ?`, [tid]);
-//			});
-//			reply.send({status: 'OK'});
-//		}
-//		catch (err)
-//		{
-//			const code = err.code && Number.isInteger(err.code) ? err.code : 500;
-//			reply.code(code).send({status: 'ERROR', error: err.message || 'Failed to start tournament'});
-//		}
-//	});
-//	fastify.post(API_PROTOCOL.REPORT_GAME_RESULT.path, async (request, reply) => {
-//		const userId = requireUser(request, reply);
-//		if (!userId) return;
-//
-//		const { game_id, p1_score, p2_score } = request.body || {};
-//		if (!game_id || typeof p1_score !== 'number' || typeof p2_score !== 'number') {
-//		return reply.code(400).send({ status: 'ERROR', error: 'game_id, p1_score, p2_score required' });
-//		}
-//
-//		try {
-//		await tx(async () => {
-//			const g = await get(`SELECT * FROM games WHERE id = ?`, [game_id]);
-//			if (!g) throw Object.assign(new Error('Game not found'), { statusCode: 404 });
-//			// store result
-//			const winner = p1_score > p2_score ? g.p1_id : p2_score > p1_score ? g.p2_id : null;
-//			await run(`UPDATE games
-//						SET p1_score = ?, p2_score = ?, status = 'completed', winner_user_id = ?
-//						WHERE id = ?`,
-//					[p1_score, p2_score, winner, game_id]);
-//			// if it was a semi, slot winner into final
-//			if (g.round === 1) {
-//			const final = await get(
-//				`SELECT id, p1_id, p2_id FROM games WHERE tournament_id = ? AND round = 2 AND bracket_pos = 1`,
-//				[g.tournament_id]
-//			);
-//			if (final) {
-//				if (!final.p1_id) await run(`UPDATE games SET p1_id = ? WHERE id = ?`, [winner, final.id]);
-//				else if (!final.p2_id) await run(`UPDATE games SET p2_id = ? WHERE id = ?`, [winner, final.id]);
-//			}
-//			}
-//
-//			if (g.round === 2)
-//				await run(`UPDATE tournaments SET status = 'completed', winner_id = NULL WHERE id = ?`, [g.tournament_id]);
-//
-//		});
-//
-//		reply.send({ status: 'OK' });
-//		} catch (err) {
-//		const code = err.code && Number.isInteger(err.code) ? err.code : 500;
-//		reply.code(code).send({ status: 'ERROR', error: err.message || 'Failed to report result' });
-//		}
-//	});
-//};
-/**
- * 1.create tournament receiveing only max numbers?
- * (look at api calls)
- * readies the tournament object 
- * createds a tournament id
- * adds the creating user to the tournament as player 1
- * sends response (look at payloads)
- * @param {*} fastify 
- * @param {*} options 
- * @return export interface TournamentStateResponse {
-						  status: 'OK' | 'ERROR';
-						  error?: string;
-						  tournament: 
-						   tournament_id: string; this will be updated
-						  status: 'waiting' this will be status         | 'ongoing' | 'finished';
-						  players: TournamentPlayer[]; remove username and password ffrom response
-						  currentMatch?: Match;
-						  bracket: Match[][];
-						  winner?: TournamentPlayer;
-						  createdAt?: Date;               // not sure if this is needed
-						  lastUpdated?: Date              // not sure if this is needed 
-						}
-}
-						export interface CreateTournamentPayload {
-  max_players?: number;
-}
 
-export interface TournamentStateResponse {
-  status: 'OK' | 'ERROR';
-  error?: string;
-  tournament: TournamentState;
-}
- */
-//async function createTournamentObject(){
-//
-//}
-
-//async function getActiveTournament(fastify, options){
-// 	const {secure, game} = options;
-// 	fastify.route({
-//		path: API_PROTOCOL.GET_ACTIVE_TOURNAMENT.path, 
-//        method: API_PROTOCOL.GET_ACTIVE_TOURNAMENT.method,
-// 		handler: async (request, reply) => {
-// 			//const max_players = request.body;
-// 			//flog.debug({ function: 'createTournament' }, 'request body:', request.body);
-// 			//flog.debug({function: 'createTournament'}, 'checking max player body', max_players);
-// 			try{
-// 				const token = request.cookies.auth_token;
-// 				const userId = secure.getUserIdFromToken(token)
-// 				flog.debug({function: 'createTournament'}, 'user id is ', userId);
-// 				//useridcheck
-//				const Match[][] = [];
-// 				let tournamentState = {
-//					tournament_id: game.generateRandomId(),
-//					status: 'waiting',
-// 					players: [],
-// 					currentMatch: [],//,undefined, //Match,
-// 					bracket: Match[][], //Match[][]
-// 					winner: undefined,
-// 					createdAt: undefined,
-// 					lastUpdated: undefined
-// 				}
-// 				reply.code(200).send({status: 'OK', tournament: tournamentState});
-// 			}
-// 			catch (err){
-// 				flog.error({fucntion: 'createTournament'}, "error ::", err);
-// 			}
-// 		}
-// 	});
-// }
-//
 let currentTournamentId = null; // global variable to track current tournament id
 /**
  * consideration bank 
@@ -279,14 +63,14 @@ function buildTournamentPlayerList(players) {
 }
 
 
-async function getTournamentState(players, tournamentId, tournamentStatus) {
-	//flog.debug({function: 'getTournamentState', players: players, tid: tournamentId, status: tournamentStatus}, 'creating the tournamnet state ');
+async function getTournamentState(tournamentId) {
+	//const {DBtour} = options;
+	const players = await getTournamentPlayersWithUsernames(tournamentId);
+	const tournamentStatus = await getActiveTournamentStatus(tournamentId)
+	flog.debug({function: 'getTournamentState', players: players, tid: tournamentId, status: tournamentStatus}, '####trying to see if db functions work inside here########################## ');
 	const full_list = buildTournamentPlayerList(players);
-	//flog.debug({function: 'getTournamentState', full_list: full_list}, 'tournament state data fetched ');
-//	let status = tournamentStatus;
-//	if (typeof tournamentStatus === 'object') {
-//		status = tournamentStatus.status;
-//	}
+	flog.debug({function: 'getTournamentState', full_list: full_list}, 'tournament state data fetched ');
+
   const tournamentState = {
 	tournament_id: tournamentId,
 	status: tournamentStatus,
@@ -297,8 +81,9 @@ async function getTournamentState(players, tournamentId, tournamentStatus) {
 	createdAt: undefined,
 	lastUpdated: undefined
   };
- // flog.debug({function: 'getTournamentState', tournamentState: tournamentState}, 'tournament state built +++++++++');
+ flog.debug({function: 'getTournamentState', tournamentState: tournamentState}, 'tournament state built +++++++++');
   return tournamentState;
+//	console.log("tid is ----- ", tournamentId);
 }
 /**
  * 
@@ -308,7 +93,7 @@ async function getTournamentState(players, tournamentId, tournamentStatus) {
  * creates a baisc tournament object with creating user as player1.
  */
 async function createTournament(fastify, options){
- 	const {secure, game, DBtour} = options;
+ 	const {secure, game, DBtour, DBupdate} = options;
  	fastify.route({
  		method: API_PROTOCOL.CREATE_TOURNAMENT.method,
  		url: API_PROTOCOL.CREATE_TOURNAMENT.path,
@@ -335,9 +120,13 @@ async function createTournament(fastify, options){
 				await DBtour.createTournamentPlayer(tournamentId, userId.id, "", 1, "player1", true, true);
 				flog.debug({function: 'createTournament', tournamentId: tournamentId, userId: userId.id}, 'tournament player created ');
 				
-				const players = await DBtour.getTournamentPlayersWithUsernames(tournamentId)
-				flog.debug({function: 'createTournament', players: players}, 'tournament players ');
-				const tournamentState = await getTournamentState(players, tournamentId, tournamentStatus);
+			//	const players = await DBtour.getTournamentPlayersWithUsernames(tournamentId)
+			//	flog.debug({function: 'createTournament', players: players}, 'tournament players ');
+			//	const tournamentState = await getTournamentState(players, tournamentId, tournamentStatus);
+				const tournamentState = await getTournamentState(tournamentId);
+
+				console.log("show me the ids are clear-----", userId.id, tournamentId);
+				await DBupdate.applyTournamentId(userId.id, tournamentId);
 				
  				reply.code(200).send({status: 'OK', tournament: tournamentState});
  			}
@@ -366,8 +155,9 @@ async function verifyPlayer(fastify, options){
 					await DBtour.updatePlayerReadyStatus(currentTournamentId, userId.id, 'ready');
 					flog.debug({function: 'verifyPlayer', tid: currentTournamentId, userId: userId.id, alias: alias}, 'gettin tournament status !!!second!!!time for player1 ');
 
-					tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(currentTournamentId),
-						currentTournamentId, await DBtour.getActiveTournamentStatus(currentTournamentId));
+					tournamentState = await getTournamentState(currentTournamentId);
+//					tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(currentTournamentId),
+//						currentTournamentId, await DBtour.getActiveTournamentStatus(currentTournamentId));
 					flog.debug({function: 'verifyPlayer', tournamnetState: tournamentState}, '!!!!!!player 1 alias updated ');
 				} else {
 					const otherUserId = await DBget.miniLogin(username, password);
@@ -387,8 +177,9 @@ async function verifyPlayer(fastify, options){
 							await DBtour.updateTournamentStatus(currentTournamentId, 'ongoing');
 
 						}
-						tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(currentTournamentId), 
-						currentTournamentId, await DBtour.getActiveTournamentStatus(currentTournamentId), false);
+						tournamentState = await getTournamentState(currentTournamentId);
+//						tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(currentTournamentId), 
+//						currentTournamentId, await DBtour.getActiveTournamentStatus(currentTournamentId), false);
 						if (checkFull && checkFull.length  === 4){
 							tournamentState.can_start = true;
 						}
@@ -487,7 +278,6 @@ async function startTournament(fastify, options){
 			try {
 	 			const token = request.cookies.auth_token;
 	 			const userId = secure.getUserIdFromToken(token);
-
 				const players = await DBtour.getTournamentPlayers(currentTournamentId);
 				flog.debug({function : 'startTournament'}, 'players fetched');
 				//this will sort into order highest to lowest ERROR here 
@@ -564,8 +354,8 @@ async function startTournament(fastify, options){
 				flog.debug({function: 'startTournament', matchSetup: matchSetup}, 'on 3-------------------------show me the bakcet before sending ');
 
 				const match3 = await createMatches(null, null, matchSetup);
-				const status = await DBtour.getActiveTournamentStatus(currentTournamentId);
-				let tournamentState = await getTournamentState(players, currentTournamentId, status.status);
+				//const status = await DBtour.getActiveTournamentStatus(currentTournamentId);
+				let tournamentState = await getTournamentState(currentTournamentId);
 				flog.debug({function: 'startTournament', tournamentState: tournamentState}, "showing state before adding extra bits");
 				tournamentState.currentMatch = match1;
 				tournamentState.bracket = [[match1, match2], [match3]];
@@ -611,7 +401,7 @@ async function removeUserFromTournament(fastify, options) {
 }
 
 async function cancelTournament(fastify, options) {
-	const {secure, DBget, DBtour, game} = options;
+	const {secure, DBupdate, DBtour, game} = options;
  	fastify.route({
 		method: API_PROTOCOL.CANCEL_TOURNAMENT.method,
 		url: API_PROTOCOL.CANCEL_TOURNAMENT.path,
@@ -623,6 +413,7 @@ async function cancelTournament(fastify, options) {
 				const token = request.cookies.auth_token;
 	 			const userId = secure.getUserIdFromToken(token);
 				await DBtour.cancelTournament(tournament_id);
+				await DBupdate.applyTournamentId(userId.id, 0);
 				reply.code(200).send({status: 'OK'});
 
 			}
@@ -652,37 +443,6 @@ async function cancelTournament(fastify, options) {
 //	})
 //}
 
-//    const fullPlayers = currentTournament?.players || [];
-//
-//    // First round matches
-//    const firstRound: Match[] = [
-//      {
-//        match_id: "round1match1",
-//        player1: fullPlayers[0],
-//        player2: fullPlayers[1],
-//        winner: TBD_PLAYER,
-//        status: "pending",
-//        score: { player1: 0, player2: 0 },
-//      },
-//      {
-//        match_id: "round1match2",
-//        player1: fullPlayers[2],
-//        player2: fullPlayers[3],
-//        winner: TBD_PLAYER,
-//        status: "pending",
-//        score: { player1: 0, player2: 0 },
-//      },
-//    ];
-//
-//    const final: Match = {
-//      match_id: "finalmatch",
-//      player1: { ...TBD_PLAYER },
-//      player2: { ...TBD_PLAYER },
-//      winner: { ...TBD_PLAYER },
-//      status: "pending",
-//      score: { player1: 0, player2: 0 },
-//    };
-//
 
 /**
  * 2. maybe request all registered players
@@ -761,43 +521,15 @@ async function cancelTournament(fastify, options) {
 }
  */
 
-/**
- * 11?12. what is needed from me here ? when a game is started , a new token generation needs to happen
- * this is sent to websocket to verify , since we cant use cookies to verify with websockets , it
- * must be manually sent. 
- * @param {*} fastify 
- * @param {*} options 
- */
-//async function createTournament(fastify, options) {
-//	const {secure, ?} = options;
-//	fastify.method(API_PROTOCOL.WAHT), {
-//	//schema: updateScoreSchema??,
-//	
-//		try {
-//			// one user creates the tournament? 
-//			const token = request.cookies.auth_token;
-//			const userId = secure.getUserIdFromToken(token);
-//			// how many slots 
-//			// where does aliases go? connected t original name or do we make new cookie?
-//			// can cookie be deleted? 
-//			const result = await DBupdate.createTournamentTable({userId, score});
-//			reply.send(result); // result is tabled filled with names?
-//		} catch (err) {
-//			reply.code(500).send(err);
-//		}
-//	}
-//	//});
-//}
+
 
 async function tournamentRoutes(fastify, options) {
 	await createTournament(fastify, options);
 	await verifyPlayer(fastify, options);
 	await startTournament(fastify, options);
 	await removeUserFromTournament(fastify, options);
-	//await startTournamentMatch(fastify, options);
 	await cancelTournament(fastify, options);
-	//await getTournamentState(tournamentId, userId, token);
 }
-
+tournamentRoutes.getTournamentState = getTournamentState;
 
 module.exports = tournamentRoutes;

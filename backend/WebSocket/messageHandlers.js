@@ -30,8 +30,6 @@ const {
 // we should rename this to message deligation?
 
 const {log} = require('@logger');
-//const games = new Map(); // matchId -> gameState
-// let state = games.get(matchId);
 
 // guarding send calls
 //if (webSocket.readyState === WebSocket.OPEN) {
