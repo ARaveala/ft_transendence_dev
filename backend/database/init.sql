@@ -23,9 +23,10 @@ CREATE tABLE IF NOT EXISTS match_history
 (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	user_id INTEGER NOT NULL,
-	opponent_id INTEGER NOT NULL,
+	opponent_id INTEGER,
 	user_score INTEGER NOT NULL,
 	opponent_score INTEGER NOT NULL,
+	opponent_type TEXT NOT NULL CHECK (opponent_type IN ('login', 'guest', 'ai')),
 	result TEXT NOT NULL CHECK (result IN ('win', 'loss')),
 	match_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
