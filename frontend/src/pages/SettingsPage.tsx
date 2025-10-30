@@ -466,7 +466,8 @@ const SettingsPage: React.FC = () => {
 		try {
 			const res = await fetch(API_PROTOCOL.DELETE_PROFILE.path, {
 				method: API_PROTOCOL.DELETE_PROFILE.method,
-				headers: { "Content-Type": "application/json" },
+				//headers: { "Content-Type": "application/json" },
+				credentials: "include",
 			});
 			if (!res.ok) throw new Error("Failed to delete profile.");
 
