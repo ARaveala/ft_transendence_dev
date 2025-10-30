@@ -226,7 +226,7 @@ const TournamentLobby: React.FC = () => {
 	};
 
 	// Determines if a match is playable
-	const isMatchPlayable = (match: Match, round: number, idx: number): boolean => {
+	/*const isMatchPlayable = (match: Match, round: number, idx: number): boolean => {
 		if (!tournament?.bracket ||  match.status === "finished")
 			return false;
 
@@ -249,7 +249,7 @@ const TournamentLobby: React.FC = () => {
 			return allSemisFinished && match.status === "pending";
 		}
 		return false;
-	};
+	}; */
 
 
    /* Starts a specific match from the tournament bracket
@@ -267,21 +267,6 @@ const TournamentLobby: React.FC = () => {
 			return;
 		}
 		const idx = tournament.bracket[roundIndex].findIndex(m => m.match_id === match.match_id);
-
-		// Check if match is playable
-		if (!isMatchPlayable(match, roundIndex, idx)) {
-			console.log("Checking playability for:", {
-			match_id: match.match_id,
-			round: roundIndex,
-			idx,
-			status: match.status,
-			bracket: tournament.bracket.map((r, i) => ({
-				round: i + 1,
-				matches: r.map(m => ({ id: m.match_id, status: m.status })
-			)}))})
-			console.warn(`Cannot start ${match.match_id} yet. Complete previous matches first.`);
-			return;
-		}
 
 		// Show settings modal if not set
 		if (!gameSettings) {
@@ -392,7 +377,7 @@ const TournamentLobby: React.FC = () => {
 				{/* Tournament Bracket */}
 				{tournament && !showSetup && !showSettingsModal && !currentGame &&(
 					<TournamentBracket
-						tournament={tournament}
+
 						onStartMatch={handleStartTournamentGame}
 						onCancel={handleCancelTournament}
 						lastMatchResult={gameResult}

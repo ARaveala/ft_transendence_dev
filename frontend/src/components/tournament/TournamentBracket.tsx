@@ -2,10 +2,10 @@ import React from "react";
 import type { TournamentState, TournamentPlayer, Match } from "../../types/tournament";
 import { TBD_PLAYER } from "../../../shared/constants";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
+import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
 
 interface TournamentBracketProps {
-	tournament: TournamentState;
 	onStartMatch?: (match: Match) => void;    // callback when a match start is requested
 	onCancel?: () => void                    // callback to cancel tournament
 	lastMatchResult?: {
@@ -17,46 +17,17 @@ interface TournamentBracketProps {
 }
 
 const TournamentBracket: React.FC<TournamentBracketProps> = ({
-	tournament,
 	onStartMatch,
 	onCancel,
 	lastMatchResult
 }) => {
 
-	const firstRound = tournament.bracket?.[0] ?? [];// 2 matches with 2 players each
-	console.log("Bracket round 1:", firstRound);
+	const { tournament } = useAuth(); // Always get the up-to-date tournament state
 
-	const firstRoundUpdated = firstRound.map((match) => {
-	if (lastMatchResult?.gameId === match.match_id) {
-		return {
-			...match,
-			winner: {
-				username: lastMatchResult.winner,
-				alias: lastMatchResult.winner,
-				status: "finished",
-				role: "player",
-				isVerified: true,
-			} as TournamentPlayer,
-			loser: {
-				username: lastMatchResult.loser,
-				alias: lastMatchResult.loser,
-				status: "finished",
-				role: "player",
-				isVerified: true,
-			} as TournamentPlayer,
-			score: lastMatchResult.score,
-			status: "finished",
-		};
-	}
-	return match;
-	});
+	if (!tournament || !tournament.bracket) return null;
 
-
-	if (!tournament.bracket)
-			return;
-	
-	const lastRound = tournament.bracket[tournament.bracket.length - 1];
-	const finalMatch = lastRound[0];
+	const firstRound = tournament.bracket[0];
+	const finalMatch = tournament.bracket[1][0];
 
 	 /* Determines if a match can be started:
 		- Round 1: match is "pending"
@@ -105,12 +76,12 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 			<div className="relative flex justify-center gap-2 sm:gap-8 md:gap-48 lg:gap-72 items-center">
 				<div className="flex flex-col items-center gap-2 relative">
 					<div className="p-2 md:p-3 border-2 border-purple-600 bg-black text-white rounded-xl w-32 md:w-40 text-center text-sm md:text-base">
-						{finalMatch.player1.alias}
+						{firstRound[0].winner?.alias ?? "TBD"}
 					</div>
 				</div>
 				<div className="flex flex-col items-center gap-2 relative">
 					<div className="p-2 md:p-3 border-2 border-purple-600  bg-black text-white rounded-xl w-32 md:w-40 text-center text-sm md:text-base">
-						{finalMatch.player2.alias}
+						{firstRound[1].winner?.alias ?? "TBD"}
 					</div>
 				</div>
 			
