@@ -387,8 +387,7 @@ async function removeUserFromTournament(fastify, options) {
 				await DBtour.removePlayer(tournament_id, role);
 				//const current_gamegame
 			//	await DBtour.cancelTournament(tournamnetId);
-				const tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(tournament_id), 
-				tournament_id, await DBtour.getActiveTournamentStatus(tournament_id), false);
+				const tournamentState = await getTournamentState(tournament_id);
 
 				reply.code(200).send({status: 'OK', tournament: tournamentState});
 			}
