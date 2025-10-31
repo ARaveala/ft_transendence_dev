@@ -23,35 +23,57 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 }) => {
 
 	const { tournament } = useAuth(); // Always get the up-to-date tournament state
+	console.log("=== BRACKET RENDER ===");
+	console.log("Tournament from context:", tournament);
+	console.log("Tournament ID:", tournament?.tournament_id);
+	console.log("Tournament status:", tournament?.status);
 
 	if (!tournament || !tournament.bracket) return null;
 
 	const firstRound = tournament.bracket[0];
 	const finalMatch = tournament.bracket[1][0];
+	console.log("First round:", firstRound);
+	console.log("Match 1:", firstRound[0]);
+	console.log("Match 1 status:", firstRound[0]?.status);
+	console.log("Match 1 winner:", firstRound[0]?.winner);
+	console.log("Match 2:", firstRound[1]);
+	console.log("Match 2 status:", firstRound[1]?.status);
+	console.log("Final match:", finalMatch);
 
 	 /* Determines if a match can be started:
-		- Round 1: match is "pending"
-		- Final: both winners must be known and status "pending"
+		- Round 1, Match 1: can be played if status is "pending"
+		- Round 1, Match 2: can be played if Match 1 is "finished" and this match is "pending"
+		- Final: both Round 1 matches must be "finished" and status must be "pending"
 	 */
 	const isMatchPlayable = (match: Match, round: number, idx: number): boolean => {
+		if (match.status === "finished") {
+			return false;
+		}
 		if (!tournament?.bracket)
 			return false;
-		if (match.status === "finished")
-			return false;
+
 		if (round === 1)
 		{
 			if (idx === 0)
 				return match.status === "pending";
-			const prevMatch = tournament.bracket?.[0][idx - 1];
-			return prevMatch?.status === "finished" && match.status === "pending";
+			if (idx === 1) {
+				const match1 = firstRound[0];
+				return match1.status === "finished" && match.status === "pending";
+			}
 		}
 
 		if (round === 2) {
-				const prevRound = tournament.bracket[0]; // Round 1
-				const allPrevFinished = prevRound.every(m => m.status === "finished");
+				const allPrevFinished = firstRound.every(m => m.status === "finished");
 				return allPrevFinished && match.status === "pending";
 		}
 		return false;
+	};
+
+	const getMatchDisplay = (match: Match) => {
+		if (match.status === "finished" && match.score) {
+			return `${match.winner?.alias} (${match.score.player1}-${match.score.player2})`;
+		}
+		return match.winner?.alias ?? "TBD";
 	};
 
 	return (
@@ -60,7 +82,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 		<div className="flex flex-col items-center">
 			<h3 className="font-bold text-base md:text-lg mb-2">Winner</h3>
 			<div className="p-2 md:p-3 border-2 border-cyan-600 bg-black text-white font-semibold rounded-xl w-32 md:w-40 text-center text-sm md:text-base">
-				{finalMatch.winner?.alias ?? "TBD"}
+				{finalMatch?.winner?.alias ?? "TBD"}
 			</div>
 		</div>
 
@@ -109,7 +131,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 				disabled={!isMatchPlayable(finalMatch, 2, 0)}
 				className="-mt-4"
 			>
-				Play final
+				{finalMatch.status === "finished" ? "Final Complete" : "Play Final"}
 			</Button>
 		</div>
 
@@ -118,11 +140,21 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 			{firstRound.map((match, idx) => (
 				<div key={match.match_id} className="flex flex-col items-center gap-4 md:gap-6 relative">
 					<div className="flex gap-2 md:gap-3">
-						<div className="p-2 md:p-3 border-2 border-indigo-500 bg-black text-white rounded-xl w-32 md:w-40 text-center text-sm md:text-base">
+						<div className="p-2 md:p-3 border-2 ${match.player1.alias === match.winner?.alias ? 'border-green-500 : border-indigo-500 bg-black text-white rounded-xl w-32 md:w-40 text-center text-sm md:text-base">
 							{match.player1.alias}
+							{match.status === "finished" && match.score && (
+								<div className="text-xs text-gray-400 mt-1">
+									{match.score.player1}
+								</div>
+							)}
 						</div>
-						<div className="p-2 md:p-3 border-2 border-indigo-500 bg-black text-white rounded-xl w-32 md:w-40 text-center text-sm md:text-base">
+						<div className="p-2 md:p-3 border-2 ${match.player2.alias === match.winner?.alias ? 'border-green-500 : border-indigo-500 bg-black text-white rounded-xl w-32 md:w-40 text-center text-sm md:text-base">
 							{match.player2.alias}
+							{match.status === "finished" && match.score && (
+								<div className="text-xs text-gray-400 mt-1">
+									{match.score.player2}
+								</div>
+							)}
 						</div>
 					</div>
 					
@@ -144,7 +176,10 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 						onClick={() => onStartMatch?.(match)}
 						disabled={!isMatchPlayable(match, 1, idx)}
 					>
-						Play match {idx + 1}
+						{match.status === "finished" 
+								? `Match ${idx + 1} Complete` 
+								: `Play Match ${idx + 1}`
+							}
 					</Button>
 				</div>
 			 ))}

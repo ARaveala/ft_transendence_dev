@@ -53,22 +53,30 @@ const TournamentLobby: React.FC = () => {
 	// Listens for messages from pong iframe 
 
 	useEffect(() => {
-		function handleMessage(event: MessageEvent) {
+		async function handleMessage(event: MessageEvent) {
 			if (event.origin !== "http://localhost:3000")
 				return;
 			if (event.data?.type === "GAME RESULT") {
 				console.log("Received game result from iframe:", event.data.payload);
 				const result = event.data.payload;
 				
-				refreshSession().then(() => {
-					setGameResult(result);
+				setGameResult(result);
+					await new Promise(resolve => setTimeout(resolve, 500));
+				
+				console.log("Calling refreshSession...");
+				await refreshSession();
+				
+				console.log("Session refreshed, waiting before closing game...");
+				
+				// Another small delay to ensure state propagates
+				setTimeout(() => {
 					handleMatchEnd();
-				});
+				}, 200);
 			}
 		}
 		window.addEventListener("message", handleMessage);
 			return () => window.removeEventListener("message", handleMessage);
-	}, [tournament, currentGame]);
+	});
 
   /*
    * Creates a new tournament
@@ -102,100 +110,6 @@ const TournamentLobby: React.FC = () => {
 		}
 	};
 
-	/* Updates tournament state
-	- Called by child components when tournament setup or matches update the data */
-	/*const handleTournamentUpdated = (updated: TournamentState) => {
-		setTournament(updated);
-
-		if (updated.status === "ongoing") {
-			setShowSetup(false);
-		}
-	};
-
-	// Updates the bracket with a finished match
-	const updateTournamentBracket = (tournament: TournamentState, result: NonNullable<typeof gameResult>): TournamentState => {
-		if (!tournament.bracket)
-			return tournament;
-
-		const { gameId, winner: winnerUsername, score } = result;
-
-		// Find match in bracket
-		let roundIndex = -1;
-		let matchIndex = -1;
-		for (let r = 0; r < tournament.bracket.length; r++) {
-			matchIndex = tournament.bracket[r].findIndex(m => m.match_id === gameId);
-			if (matchIndex !== -1) {
-				roundIndex = r;
-				break;
-			}
-		}
-
-		if (roundIndex === -1) return tournament;
-
-		const finishedMatch = tournament.bracket[roundIndex][matchIndex];
-
-		// Determine winner and loser
-		const winnerPlayer = finishedMatch.player1.username === winnerUsername ? finishedMatch.player1 : finishedMatch.player2;
-
-		const matchScore = {
-			player1: score[0],
-			player2: score[1],
-		};
-
-		// Update finished match
-		const updatedFinishedMatch: Match = {
-			...finishedMatch,
-			winner: winnerPlayer,
-			score : matchScore,
-			status: "finished",
-		};
-
-		// Update bracket
-		const updatedBracket: Match[][] = tournament.bracket.map(round => [...round]);
-		updatedBracket[roundIndex][matchIndex] = updatedFinishedMatch;
-
-		// Advance winner to next round if not final
-		let newStatus: TournamentState["status"] = tournament.status;
-
-		if (roundIndex < updatedBracket.length - 1) {
-			const nextRound = updatedBracket[roundIndex + 1];
-			const nextMatch = nextRound[0];
-
-			// Determine slot in next match
-			const isMatch1 = gameId === 'match1';
-			const playerSlotKey = isMatch1 ? 'player1' : 'player2';
-
-			const updatedNextMatch: Match = {
-				...nextMatch,
-				[playerSlotKey]: winnerPlayer,
-			};
-			updatedBracket[roundIndex + 1] = [updatedNextMatch];
-		} else if (gameId === 'final') {
-			newStatus = 'finished';
-		}
-
-		return { ...tournament, bracket: updatedBracket, status: newStatus };
-	};
-
-	// Handles the result from iframe and updates context + cleans UI
-	const handleGameResult = (result: typeof gameResult) => {
-		if (!result) return;
-
-		setTournament(prev => {
-			if (!prev) return prev;
-
-			const updated = updateTournamentBracket(prev, result);
-			return updated;
-		});
-
-		setCurrentGame(null);
-		setActiveGameId(null);
-		setPlayer1Token(null);
-		setPlayer2Token(null);
-	}; */
-
-	// Cancels the current tournament
-
 	const handleCancelTournament = async () => {
 		if (!tournament)
 			return;
@@ -220,38 +134,12 @@ const TournamentLobby: React.FC = () => {
 
 			setTournament(null);
 			setShowSetup(false);
+			setGameResult(null);
 			await refreshSession(); // Refresh session to update tournament status
 		} catch (err) {
 			console.error("Error cancelling tournament:", err);
 		}
 	};
-
-	// Determines if a match is playable
-	/*const isMatchPlayable = (match: Match, round: number, idx: number): boolean => {
-		if (!tournament?.bracket ||  match.status === "finished")
-			return false;
-
-		// Round 1 matches
-		if (round === 1) {
-			if (idx === 0)                          // match 1
-				return match.status === "pending";
-
-			// Match 2
-			const firstMatch = tournament.bracket[0][0];
-			return firstMatch?.status === "finished" && match.status === "pending";
-			}
-
-		// Round 2 : Final
-		if (round === 2)
-		{
-			const semis = tournament.bracket[0];
-			console.log("Status of round 1 matches:" , tournament.bracket[0].map(m => `${m.match_id}: ${m.status}`));
-			const allSemisFinished = semis.every(m => m.status === "finished");
-			return allSemisFinished && match.status === "pending";
-		}
-		return false;
-	}; */
-
 
    /* Starts a specific match from the tournament bracket
 	- If game settings have not been set, shows settings modal */
@@ -327,6 +215,7 @@ const TournamentLobby: React.FC = () => {
 		setActiveGameId(null);
 		setPlayer1Token(null);
 		setPlayer2Token(null);
+		setGameStarted(false);
 	};
 
 	if (loading) return <div className="p-6 text-center text-gray-300">Loading tournament info...</div>;
