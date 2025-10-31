@@ -48,3 +48,8 @@ backend/data/database.sqlite-wal
 backend/data/new.sqlite-shm
 backend/data/new.sqlite-wal
 >>>>>>>>> Temporary merge branch 2
+
+
+#volumes data
+
+volumes/*
