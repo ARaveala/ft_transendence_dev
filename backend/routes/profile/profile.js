@@ -80,8 +80,9 @@ async function getUser(fastify, options) {
 			mockProfile.friends = friends || [];
 			mockProfile.matchHistory = matchHistory || [];
 			//mockP
-			console.log("show mock profile", mockProfile);
 			mockProfile.tournament = profile.active_tournament_id == 0 ? 0 : getTournamentState(profile.active_tournament_id);
+			console.log("show mock profile", mockProfile);
+			
 			//reply.send(safeUser);
 			reply.send(mockProfile);
 		} catch (err) {

@@ -1,0 +1,60 @@
+//console.log('authHook plugin loaded');
+const fp = require("fastify-plugin");
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'authHooks.js' });
+
+
+
+const { API_PROTOCOL } = require('@sharedApi');
+const { ERROR_CODES } = require('@sharedErr');
+const { UNAUTHORIZED } = ERROR_CODES;
+
+const excludedPaths = [
+	API_PROTOCOL.LOGIN_USER.path,
+	API_PROTOCOL.REGISTER_USER.path,
+	API_PROTOCOL.GET_PROFILE.path,
+]
+//if we make the routes include query strings or dynamic segments
+//const path = request.routerPath || request.raw.url;
+//if (excludedPaths.includes(path)) return;
+
+async function authHook(fastify, options) {
+  // this example below is how we could use it if i register the ocntext as an object called context
+  // om not sure if it matters which way, but this insinutaes we could attatch way more here
+  // potentailly removing all requires from top into that context file
+	//const { DBget } = options.context;
+	flog.info({function: "authHook"}, 'Entering authook');
+	const {secure} = options;
+	fastify.addHook("onRequest", async (request, reply) => {
+		if (excludedPaths.includes(request.routerPath)) {
+    		return; // Skip auth for these routes
+		}
+
+		const token = request.cookies?.authToken;
+		flog.debug({function: "authHook", token: token},'cookie requested');
+		try {
+			const result = secure.getUserIdFromTokenH(token);
+			flog.debug({function: "authHook", result: result},'id decoded');
+			if (result?.id) {
+				request.userId = result.id;
+			} else if (result.error) {
+				flog.error({function: "authHook", errMsg: result.error},'error from getuserIdFromToken');
+				const errorResponse = ERROR_CODES.UNAUTHORIZED(result.error);
+				return reply.code(errorResponse.code).send({ error: errorResponse.message });
+			}
+		} catch (err) {
+			flog.error({function: "authHook", errMsg: err.stack},'unknown error');
+			reply.code(500).send({error: 'unknown error from authHook'});
+		}
+		});
+}
+
+// culd apply a different hook here for refresh using above also 
+
+
+module.exports = fp(authHook);
+//fastify.get('/api/profile', async (request, reply) => {
+//  const userId = request.user.id; // already set by middleware
+//  const profile = await DBget.fetchUser({ userId });
+//  reply.send(profile);
+//});
