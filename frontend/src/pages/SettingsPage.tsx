@@ -256,6 +256,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
 				method: API_PROTOCOL.CHANGE_LANGUAGE.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update language.");
@@ -264,6 +265,7 @@ const SettingsPage: React.FC = () => {
 			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update language.");
 			
 			setLang(language);
+			localStorage.setItem("serverLang", language);
 			setMsg(t("common.language.updated"));
 			setOpenRow(null);
 			await refreshSession();
@@ -283,6 +285,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_USERNAME.path, {
 				method: API_PROTOCOL.CHANGE_USERNAME.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update username.");
@@ -316,6 +319,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_PASSWORD.path, {
 				method: API_PROTOCOL.CHANGE_PASSWORD.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			//if (!res.ok) throw new Error("Failed to update password.");
@@ -343,6 +347,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_AVATAR.path, {
 				method: API_PROTOCOL.CHANGE_AVATAR.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update avatar.");
@@ -409,6 +414,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_2FA.path, {
 				method: API_PROTOCOL.CHANGE_2FA.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update 2FA.");
