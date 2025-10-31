@@ -40,16 +40,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 				const data: UserProfile = await res.json();
 				setUser(data);
 				setIsLoggedIn(true);
+				//setTournament(data.tournament);
+				console.log("Tournament state aftet refresh", data.tournament);
 			} else {
 				setUser(null);
 				setIsLoggedIn(false);
-				setTournament(null);
+				//setTournament(null);
 			}
 		} catch (err) {
 			console.error("Failed to refresh session:", err);
 			setUser(null);
 			setIsLoggedIn(false);
-			setTournament(null);
+			//setTournament(null);
 		}
 		finally {
 			setLoading(false);

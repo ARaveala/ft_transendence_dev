@@ -23,22 +23,22 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 }) => {
 
 	const { tournament } = useAuth(); // Always get the up-to-date tournament state
-	console.log("=== BRACKET RENDER ===");
-	console.log("Tournament from context:", tournament);
-	console.log("Tournament ID:", tournament?.tournament_id);
-	console.log("Tournament status:", tournament?.status);
+	//console.log("=== BRACKET RENDER ===");
+	//console.log("Tournament from context:", tournament);
+	//console.log("Tournament ID:", tournament?.tournament_id);
+	//console.log("Tournament status:", tournament?.status);
 
 	if (!tournament || !tournament.bracket) return null;
 
 	const firstRound = tournament.bracket[0];
 	const finalMatch = tournament.bracket[1][0];
-	console.log("First round:", firstRound);
-	console.log("Match 1:", firstRound[0]);
-	console.log("Match 1 status:", firstRound[0]?.status);
-	console.log("Match 1 winner:", firstRound[0]?.winner);
-	console.log("Match 2:", firstRound[1]);
-	console.log("Match 2 status:", firstRound[1]?.status);
-	console.log("Final match:", finalMatch);
+	//console.log("First round:", firstRound);
+	//console.log("Match 1:", firstRound[0]);
+	//console.log("Match 1 status:", firstRound[0]?.status);
+	//console.log("Match 1 winner:", firstRound[0]?.winner);
+	//console.log("Match 2:", firstRound[1]);
+	//console.log("Match 2 status:", firstRound[1]?.status);
+	//console.log("Final match:", finalMatch);
 
 	 /* Determines if a match can be started:
 		- Round 1, Match 1: can be played if status is "pending"

@@ -58,6 +58,7 @@ export interface UserProfile {
   tournamentWins?: number;
   friends: Friend[];
   matchHistory: Match[];
+  tournament: TournamentState;
   language?: "en" | "fi" | "sv";
   //online_status: boolean;
 }

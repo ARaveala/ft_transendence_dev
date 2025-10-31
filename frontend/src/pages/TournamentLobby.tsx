@@ -61,22 +61,16 @@ const TournamentLobby: React.FC = () => {
 				const result = event.data.payload;
 				
 				setGameResult(result);
-					await new Promise(resolve => setTimeout(resolve, 500));
+				handleMatchEnd();
 				
 				console.log("Calling refreshSession...");
-				await refreshSession();
-				
-				console.log("Session refreshed, waiting before closing game...");
-				
-				// Another small delay to ensure state propagates
-				setTimeout(() => {
-					handleMatchEnd();
-				}, 200);
+				await refreshSession(); // capture updated state
+				console.log(tournament);
 			}
 		}
 		window.addEventListener("message", handleMessage);
 			return () => window.removeEventListener("message", handleMessage);
-	});
+	}, [refreshSession]);
 
   /*
    * Creates a new tournament
