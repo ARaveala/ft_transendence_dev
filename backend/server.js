@@ -2,6 +2,8 @@
 	require('module-alias/register'); // enables aliases
 	// env file
 	require('dotenv').config();
+	console.log('JWT_SECRET:', process.env.JWT_SECRET);
+
 	// Import the Fastify framework
 	// Create a Fastify instance
 	// logger is enabled for debugging purposes
@@ -16,6 +18,14 @@
 
 	// set up fucntion userRoutes , require from user.js
 	//this will be split later into multiple files we can use this now as the tetsing ground
+	const authHooks = require('@hooks/authHooks.js');
+	const authHookContext = require('@hooks/authContext.js');
+//	try {
+//		await fastify.register(authHooks, authHookContext);
+//	} catch {
+//		app.warn("SERVER error on registering hook ");
+//	}
+
 	const userRoutes = require('@routes/user.js');
 	const friendRoutes = require('@routes/friends.js');
 	const friendContext = require('@routes/context.js');
@@ -150,6 +160,15 @@
 	});
 	const start = async () => {
 
+//		try {
+			//console.log('Registering authHook...');
+//		await fastify.register(authHooks, authHookContext);
+			//console.log('Registerededed authHook...');
+		
+//} catch {
+//			app.warn("SERVER error on registering hook ");
+//		}
+
 		try {
 			log('STARTING SERVER', '---------------------------------------------');
 		//await fastify.register(require('@fastify/cors'), {
@@ -157,13 +176,13 @@
 		//});
 	//    await fastify.listen({ port: 3000 });
 		// have added for testing a local host binding to test docker ability to connect to browser
-		fastify.listen({ port: 3000, host: '0.0.0.0' }, err => {
-		if (err) {
-			fastify.log.error(err)
-			process.exit(1)
-		}
+		await fastify.listen({ port: 3000, host: '0.0.0.0' });//, err => {
+		//if (err) {
+		//	fastify.log.error(err)
+		//	process.exit(1)
+		//}
 		fastify.log.info('Server listening on port 3000')
-		});
+		//});
 		setUpWebSockets(fastify.server);
 		console.log('WebSocket server is running');
 	} catch (err) {

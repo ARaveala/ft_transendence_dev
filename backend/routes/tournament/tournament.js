@@ -70,6 +70,15 @@ async function getTournamentState(tournamentId) {
 	flog.debug({function: 'getTournamentState', players: players, tid: tournamentId, status: tournamentStatus}, '####trying to see if db functions work inside here########################## ');
 	const full_list = buildTournamentPlayerList(players);
 	flog.debug({function: 'getTournamentState', full_list: full_list}, 'tournament state data fetched ');
+//onst match1 = await createMatches(players[0], players[3], matchSetup);
+/*let matchSetup = await DBtour.buildBracket(
+				  currentTournamentId,
+				  players[0].user_id,
+				  players[3].user_id,
+				  gameId1,
+				  1, // round
+				  'pending'
+				);*/
 
   const tournamentState = {
 	tournament_id: tournamentId,
