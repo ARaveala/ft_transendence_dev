@@ -10,6 +10,7 @@ import { useTranslation } from "../shared/Translation";
 const LanguageToggle: React.FC<{ compact?: boolean }> = ({ compact = true }) => {
 	const { t, setLang } = useTranslation();
 	const { isLoggedIn } = useAuth();
+	const [formError, setFormError] = useState<string | null>(null);
 
 	async function changeLang(code: "en" | "fi" | "sv") {
 		setLang(code);
@@ -67,6 +68,8 @@ const HomePage: React.FC = () => {
 	const [tempAuthToken, setTempAuthToken] = useState<string | null>(null);
 	const [otp, setOtp] = useState("");
 
+	const [formError, setFormError] = useState<string | null>(null);
+
 	// Generic form submit handler for registration or login
 	const handleSubmit = async (data: RegisterUserPayload) => {
 		const endpoint =
@@ -100,7 +103,11 @@ const HomePage: React.FC = () => {
 				credentials: "include",
 				body: JSON.stringify({ language: lang }),
 			});
-		} catch (_) {}
+		} catch (err:any) {
+			const message = 
+				err?.message || (typeof err === "string" ? err : t("home.error.generic"));
+				setFormError(message);
+		}
 		await refreshSession(); // New approach: refresh session to get user profile
 
 		// //fetch user profile after successful login or registration - currently not working because backend does not return user data
@@ -142,17 +149,19 @@ const HomePage: React.FC = () => {
 
 		//Success: notify user, close modal, and update login state
 
-		alert(
-			modalMode === "register" 
-			? t("home.alert.registerSuccess")
-			: t("home.alert.loginSuccess")
-		);
+		//alert(
+		//	modalMode === "register" 
+		//	? t("home.alert.registerSuccess")
+		//	: t("home.alert.loginSuccess")
+		//);
 		setIsModalOpen(false);
 
 		// Redirect to profile if login or registration was successful
 		// navigate("/profile");
-		} catch (err) {
-		alert(err);
+		} catch (err: any) {
+			const message =
+				err?.message || (typeof err === "string" ? err : t("home.error.generic"));
+			setFormError(message);
 		}
 	};
 
@@ -189,8 +198,8 @@ const HomePage: React.FC = () => {
             setOtp("");
             setTempAuthToken(null);
 
-        } catch (err) {
-            alert(err);
+        } catch (err: any) {
+            setFormError(err?.message || t("home.error.generic"));
         }
     };
 
@@ -243,9 +252,13 @@ const HomePage: React.FC = () => {
 
 	<Modal
 		isOpen={isModalOpen}
-		onClose={() => setIsModalOpen(false)}
+		onClose={() => {
+			setIsModalOpen(false);
+			setFormError(null);
+		}}
 		onFormSubmit={handleSubmit}
 		mode={modalMode}
+		error={formError}
 	/>
 	{is2faStep && (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">

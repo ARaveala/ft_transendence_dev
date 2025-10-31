@@ -11,15 +11,16 @@ interface ModalProps {
 		password: string;
 	}) => void;            // Callback to send the registration data to parent
 	mode?: "register" | "login"; // new prop to indicate mode
+	error?: string | null;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFormSubmit, mode = "register" }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFormSubmit, mode = "register", error: externalError }) => {
 	const { t } = useTranslation();
 
 	// Local state to track form inputs
 	const [username, setUsername] = useState("");            // Username input
 	const [password, setPassword] = useState("");            // Password input
-	const [error, setError] = useState("");                  // Validation error message
+	const [localError, setLocalError] = useState("");         // Validation error message
 
 	// If modal is not open, don't render anything
 	if (!isOpen) return null;
@@ -36,11 +37,11 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFormSubmit, mode = "re
 
 		// Validates that username and password are provided
 		if (!username.trim() || !password.trim()) {
-			setError(t("error.auth.missingFields"));
+			setLocalError(t("error.auth.missingFields"));
 			return;
 		}
 		// Clears any previous errors
-		setError("");
+		setLocalError("");
 
 		// Calls parent's onSubmit callback with form data
 		onFormSubmit({
@@ -60,27 +61,37 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFormSubmit, mode = "re
 				</div>
 
 			<form className="px-5 pb-5 pt-3 space-y-3" onSubmit={handleSubmit}>
-				{error && <p className="text-sm text-red-400">{error}</p>}
-
 				{/* Username input */}
-				<input
-					type="text"
-					placeholder={t("auth.placeholder.username")}
-					value={username}
-					onChange={(e) => setUsername(e.target.value)}
-					className="w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					required
-				/>
+				<div>
+					<input
+						type="text"
+						placeholder={t("auth.placeholder.username")}
+						value={username}
+						onChange={(e) => setUsername(e.target.value)}
+						className="w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+						required
+					/>
+					{localError && !username.trim() && (
+						<p className="text-xs text-red-400 mt-1">{localError}</p>
+					)}
+				</div>
 
-				{/* Password input */}
-				<input
-					type="password"
-					placeholder={t("auth.placeholder.password")}
-					value={password}
-					onChange={(e) => setPassword(e.target.value)}
-					className="w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					required
-				/>
+				{/* Password i	nput */}
+				<div>
+					<input
+						type="password"
+						placeholder={t("auth.placeholder.password")}
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						className="w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+						required
+					/>
+					{(externalError || (localError && username.trim())) && (
+						<p className="text-sm text-red-400 mt-1">
+							{externalError || localError}
+						</p>
+					)}
+				</div>
 
 				{/* Submit and Close buttons */}
 				<div className="flex justify-between items-center mt-4">
