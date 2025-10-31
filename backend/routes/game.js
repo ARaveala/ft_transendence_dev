@@ -191,7 +191,7 @@ async function joinGame(fastify, options) {
 				console.log('justi usgage', verifyUser);
 				let userId;
 				if (type === "login") {
-					userId = miniLogin(username, password);
+					userId = await miniLogin(username, password);
 
 					// if fails tell user can not register here
 				}
