@@ -489,36 +489,38 @@ function getBrackets(tournamentId) {
               };
             });
 
-            const groupedBrackets = {};
+        const groupedBrackets = {};
+		games.forEach(game => {
+		if (!groupedBrackets[game.round]) {
+		    groupedBrackets[game.round] = [];
+		}
+		const winnerAlias = game.winner_id && playerMap[game.winner_id]
+		    ? playerMap[game.winner_id].alias : null;
 
-	games.forEach(game => {
-	  if (!groupedBrackets[game.round]) {
-	    groupedBrackets[game.round] = [];
-	  }
-	  groupedBrackets[game.round].push({
-	    match_id: game.game_uid,
-	    round: game.round,
-	    bracket_pos: game.bracket_pos,
-	    player1: playerMap[game.p1_id] || null,
-	    player2: playerMap[game.p2_id] || null,
-	    status: game.status,
-	    score: {
-	      player1: game.p1_score,
-	      player2: game.p2_score,
-	    },
-	  });
-		});
-		//flog.debug({ players }, 'Fetched players');
-		const bracketArray = Object.keys(groupedBrackets)
-		  .sort((a, b) => a - b)
-		  .map(round => groupedBrackets[round]);
-			flog.debug({function: 'Fetched games array',  brackket: bracketArray});
-
-		  return resolve(bracketArray);
-          }
-        );
-      }
-    );
+		  groupedBrackets[game.round].push({
+		    match_id: game.game_uid,
+		    round: game.round,
+		    bracket_pos: game.bracket_pos,
+		    player1: playerMap[game.p1_id] || null,
+		    player2: playerMap[game.p2_id] || null,
+		    status: game.status,
+			winner: winnerAlias,
+		    score: {
+		      player1: game.p1_score,
+		      player2: game.p2_score,
+		    },
+		  });
+			});
+			//flog.debug({ players }, 'Fetched players');
+			const bracketArray = Object.keys(groupedBrackets)
+			  .sort((a, b) => a - b)
+			  .map(round => groupedBrackets[round]);
+				flog.debug({function: 'Fetched games array',  brackket: bracketArray});
+			  return resolve(bracketArray);
+		      }
+		    );
+		  }
+	    );
   });
 }
 //function getBrackets(tournamentId){
