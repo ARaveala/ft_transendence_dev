@@ -15,20 +15,30 @@ export default function LanguageSync() {
 		const wasLoggedIn = prevLoggedIn.current;
 
 		if (wasLoggedIn && !isLoggedIn) {
-			if (lang !== "en") setLang("en");
 			localStorage.setItem("anonLang", "en");
 		}
 
 		if (isLoggedIn) {
-			const raw = (user as any)?.language;
-			if (isSupported(raw) && raw !== lang) {
-				setLang(raw);
-				localStorage.setItem("anonLang", raw);
+			const raw =
+				(user as any)?.language ??
+				(user as any)?.lang ??
+				(user as any)?.locale ??
+				(user as any)?.preferred_language ??
+				(user as any)?.preferredLanguage;
+
+		const fromUser = isSupported(raw) ? (raw as Lang) : null;
+		const stored = localStorage.getItem("serverLang");
+		const fromStorage = isSupported(stored) ? (stored as Lang) : null;
+
+		const target = fromUser ?? fromStorage;
+		if (target && target !== lang) {
+			setLang(target);
+			localStorage.setItem("anonLang", target);
 			}
 		}
 
 		prevLoggedIn.current = isLoggedIn;
-	}, [isLoggedIn, user?.language, lang, setLang]);
+	}, [isLoggedIn, user, lang, setLang]);
 
 	return null;
 }
