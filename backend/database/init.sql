@@ -30,7 +30,7 @@ CREATE tABLE IF NOT EXISTS match_history
 	result TEXT NOT NULL CHECK (result IN ('win', 'loss')),
 	match_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-	FOREIGN KEY (opponent_id) REFERENCES users(id) ON DELETE CASCADE
+	FOREIGN KEY (opponent_id) REFERENCES users(id) ON DELETE SET NULL
 );
 -- multidirectional friendship table, allows for sigle directional requests
 -- status can be 'pending', 'accepted', 'blocked'
@@ -40,8 +40,8 @@ CREATE TABLE IF NOT EXISTS friends (
     friend_id INTEGER NOT NULL,
 	status TEXT NOT NULL DEFAULT 'pending',
     CHECK (user_id <> friend_id),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (friend_id) REFERENCES users(id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, friend_id) -- ensures no duplicate friendships
 );
 CREATE INDEX IF NOT EXISTS idx_friend_friend_id ON friends(friend_id);

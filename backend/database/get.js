@@ -78,7 +78,7 @@ async function getFriendsForPlayer( userId ) {
 	//const test = userId.id;
 	return new Promise((resolve, reject) => {
 		db.all(
-			`SELECT users.id AS friendID,
+			`SELECT users.id AS user_id,
 				users.username AS username,
 				users.avatar_file AS avatar,
 				users.status AS status,

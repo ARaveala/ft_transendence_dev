@@ -131,6 +131,7 @@ const Friends: React.FC = () => {
 		setErr(null);
 		setMsg(null);
 		try {
+			
 			const res = await fetch(API_PROTOCOL.REMOVE_FRIEND.path, {
 				method: API_PROTOCOL.REMOVE_FRIEND.method,
 				headers: { "Content-Type": "application/json" },
