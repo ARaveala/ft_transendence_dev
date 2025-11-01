@@ -15,16 +15,21 @@ const {
 
 const {
 	updatePlayerGameStats,
+	updateMatchHistory,
 } = require('@db/update.js');
 
 const {
+	updateTournamentStats,
+	updateBracket,
+} = require('@db/tournament.js');
+
+const {
 	getGame,
+	addPlayer,
 } = require("@Rgame");
 // we should rename this to message deligation?
 
 const {log} = require('@logger');
-//const games = new Map(); // matchId -> gameState
-// let state = games.get(matchId);
 
 // guarding send calls
 //if (webSocket.readyState === WebSocket.OPEN) {
@@ -49,7 +54,9 @@ gameState.keys = {
 function handleMessage(ws, data) {
 	currentWs = ws; // this will have to be changed for remote play
 	const context = getGameContext(ws, data, playerinit);
+	//console.log('getGameContext returned:', context);
 	const {game, gameState} = context || {};
+
 
 	if (data.type != "keys")
 		console.log("Message received: (Ignoring keypresses)", data);
@@ -135,10 +142,26 @@ function handleMessage(ws, data) {
 			console.log("winner:", winner);
 			console.log("scores:", player1.score, player2.score);
 			console.log("gameID:", data.gameId);
-			
+			console.log("game mode:", game.mode);
+			const winnerId = winner == 1 ? id1 : id2;
+			const gameId = ws ? ws.gameId || game.gameId : game.gameId;
+			console.log("game id:", gameId);
 			if (winner === 1){
 				updatePlayerGameStats(true, id1, player1.score)
-				 .catch(err => console.error('Failed to update player1 stats', err));
+					.catch(err => console.error('Failed to update player1 stats', err));
+				
+				updateMatchHistory(id1, 'win', player1.score, player1.type, id2, player2.score, player2.type)
+					.then (result => {
+						console.log("show me resluts from update match history", result);
+					})
+					.catch(err => console.error('failed to update match history', err));
+
+				updateMatchHistory(id2, 'loss', player2.score, player2.type, id1, player1.score, player1.type,)
+					.then (result => {
+						console.log("show me resluts from update match history", result);
+					})
+					.catch(err => console.error('failed to update match history', err));
+				//check login player updates
 				//if (typeof id2 === 'string' && !id2.includes('Guest')) {
 				//	updatePlayerGameStats(false, id2, player2.score)
 				//	 .catch(err => console.error('Failed to update player2 stats', err));
@@ -151,7 +174,36 @@ function handleMessage(ws, data) {
 				//}
 				updatePlayerGameStats(false === 0, id1, player1.score)
 				 .catch(err => console.error('Failed to update player1 stats', err));
+				updateMatchHistory(id1, 'loss', player1.score, player1.type, id2, player2.score, player2.type)
+					.then (result => {
+						console.log("show me resluts from update match history", result);
+					})
+					.catch(err => console.error('failed to update match history', err));
+
+				updateMatchHistory(id2, 'win', player2.score, player2.type, id1, player1.score, player1.type)
+					.then (result => {
+						console.log("show me resluts from update match history", result);
+					})
+					.catch(err => console.error('failed to update match history', err));
+
+
 			}
+			if (game.mode === "tournament"){
+					
+					updateTournamentStats(gameId, player1.score, player2.score, "finished", winnerId)
+					.catch(err => console.error('failed to update tournamnet stats', err));
+					console.log("ACESS TO TOURNAMNET ID: ", game.tid);
+					const winnerData = winner == 1 ? player1 : player2
+					updateBracket(game.tid, winnerId, 2)
+					.then (result => {
+						const { gameId, slot } = result;
+						const playerRole = slot === 'p1_id' ? 'player1' : 'player2';
+						addPlayer(gameId, winnerId, {type: "login", ws: undefined, role: playerRole, alias: winnerData.alias, ready: true, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+
+					})
+					.catch(err => console.error('failed to update tournamnet stats', err));
+			}
+			
 			break;
 		}
 		case 'init': {
@@ -174,8 +226,11 @@ function handleMessage(ws, data) {
 		case "start_loop":{
 			// if remote this should only start once player 1 and player 2 have initilized and player 1 has initilized the game
 			// then this should be updated to startloop for both player websockets
-			const player1 = [...game.players.values()].find(player => player.role === "player1");
-			const player2 = [...game.players.values()].find(player => player.role === "player2");
+			//const player1 = [...game.players.values()].find(player => player.role === "player1");
+			//const player2 = [...game.players.values()].find(player => player.role === "player2");
+
+			// !!!! Edited this to take the first two players, does not expect specific role
+			const [player1, player2] = [...game.players.values()].slice(0, 2);
 			if (!player1 || !player2)
 			{
 				console.log("Error getting players");

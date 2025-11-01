@@ -80,6 +80,15 @@
   "auth.action.register": "Register",
   "auth.action.login": "Login",
 
+  "exit.title": "Logout",
+  "exit.loggingOut": "Logging out... Goodbye!",
+  "exit.loggedOut": "Your're now logged out.",
+  "exit.redirectHome": "Redirecting to the home page...",
+  "exit.error": "Something went wrong...",
+  "exit.goodbye": "Pong you later! 🏓",
+  "exit.alreadyLoggedOut": "You're not logged in.",
+  "exit.loginPromt": "Please log in from the home page.",
+
   "lang.english": "English",
   "lang.finnish": "Finnish",
   "lang.swedish": "Swedish",

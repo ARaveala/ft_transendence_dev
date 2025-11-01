@@ -38,7 +38,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({
       });
       
       const data: RemovePlayerResponse = await res.json();
-
+	  console.log("lets see return after remove player", data);
       if (data.status === "OK" && data.tournament) {
         onTournamentUpdated(data.tournament);
       } else {
@@ -141,7 +141,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({
           />
         </div>
 
-        <div className="flex gap-4 mt-6 ml-7">
+        <div className="flex gap-6 mt-6 ml-7">
           <Button onClick={onCancel} disabled={loading}>
             Cancel tournament
           </Button>

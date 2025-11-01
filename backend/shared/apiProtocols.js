@@ -120,7 +120,7 @@ const API_PROTOCOL = {
   },
 
   START_TOURNAMENT_MATCH: {
-    path: '/api/tournament/:id/start-match',
+    path: '/api/tournament/start-match',
     method: 'POST',
   },
 
@@ -163,7 +163,7 @@ REPORT_GAME_RESULT:{
   },
 
   CANCEL_TOURNAMENT: {
-    path: '/api/tournament/:id/cancel',
+    path: '/api/tournament/cancel',
     method: 'DELETE',
   },
 
