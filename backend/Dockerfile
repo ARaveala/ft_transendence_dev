@@ -41,7 +41,7 @@ RUN npm ci --omit=dev
 RUN npm i @fastify/static
 
 # Optional: sqlite CLI for debugging
-RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 curl && rm -rf /var/lib/apt/lists/*
 
 COPY . .
 RUN mkdir -p data
