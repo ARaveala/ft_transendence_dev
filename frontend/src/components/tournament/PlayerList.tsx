@@ -164,7 +164,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			if (response.status === "OK" && response.tournament) {
 			// Update the tournament in context
 				setTournament(response.tournament);
-				await refreshSession(); // optional if needed
+				//await refreshSession(); // optional if needed
 		}
 
 			const updatedPlayers = tournament.players.map(p =>
@@ -185,7 +185,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				return newErrors;
 			});
 
-			await refreshSession();
+			//await refreshSession();
 			
 		} catch (err: any) {
 			console.error("Error verifying player:", err);

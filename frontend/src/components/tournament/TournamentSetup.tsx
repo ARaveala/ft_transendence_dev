@@ -81,39 +81,6 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 					console.error("Tournament start error:", data.error);
 			}
 
-		/* Builds bracket structure: first round + placeholders for later rounds
-		const firstRound = data.tournament.bracket[0];
-
-		const bracket: Match[][] = [
-			firstRound,
-			firstRound.map(() => ({
-				match_id: "tbd",
-				player1: { ...TBD_PLAYER },
-				player2: { ...TBD_PLAYER },
-				winner: { ...TBD_PLAYER },
-				status: "pending",
-				score: { player1: 0, player2: 0 },
-			})),
-				[
-				{
-					match_id: "tbd-final",
-					player1: { ...TBD_PLAYER },
-					player2: { ...TBD_PLAYER },
-					winner: { ...TBD_PLAYER },
-					status: "pending",
-					score: { player1: 0, player2: 0 },
-				},
-			],
-		];
-
-	 // Constructs TournamentState and notifies parent
-		const updatedTournament: TournamentState = {
-			...data.tournament,
-				status: "ongoing",
-				bracket,
-				currentMatch: firstRound[0],
-		}; */
-
 		console.log("Tournament object from backend:", tournament);
 		} catch (err) {
 			console.error(err);
@@ -121,14 +88,6 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 			setLoading(false);
 		}
 	};
-
-	if (!tournament) {
-		return (
-			<div className="text-gray-300 mt-8">
-				No tournament loaded. Please create one first.
-			</div>
-		);
-	}
 
 	return (
 			<div className="mt-3 space-y-6">

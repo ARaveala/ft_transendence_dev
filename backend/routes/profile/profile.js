@@ -93,9 +93,11 @@ async function getUser(fastify, options) {
 			mockProfile.matchHistory = matchHistory || [];
 			//mockP
 			console.log("show mock profile", mockProfile);
-			mockProfile.tournament = profile.active_tournament_id == 0 ? 0 : getTournamentState(profile.active_tournament_id);
-			mockProfile.tournament.bracket = brackets.length === 0 ? [] : fullBracket;
-			flog.warn({function: "RIGHT BEFORE STATE , FROM MOCKPROFILE", brackets: mockProfile.tournament.bracket}, "999999999999999999999999999999999999999999999999999999999999999999999");
+			mockProfile.tournament = profile.active_tournament_id === 0 ? null : await getTournamentState(profile.active_tournament_id);
+			if (mockProfile.tournament) {
+				mockProfile.tournament.bracket = brackets.length === 0 ? [] : fullBracket;
+			}
+			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
 			reply.code(500).send(err);

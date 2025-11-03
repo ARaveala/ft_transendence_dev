@@ -11,6 +11,7 @@ import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useAuth } from "../context/AuthContext";
 import { CreateTournamentPayload,
 		CreateTournamentResponse,
+		TournamentResetPayload,
 		} from "../../shared/payloads";
 
 const TournamentLobby: React.FC = () => {
@@ -72,6 +73,12 @@ const TournamentLobby: React.FC = () => {
 			return () => window.removeEventListener("message", handleMessage);
 	}, [refreshSession]);
 
+	useEffect(() => {
+		if (tournament) {
+			console.log("Tournament updated:", tournament);
+		}
+	}, [tournament]);
+
   /*
    * Creates a new tournament
    *  Triggered when user clicks "Start a new tournament"
@@ -91,11 +98,15 @@ const TournamentLobby: React.FC = () => {
 		});
 
 		const data: CreateTournamentResponse = await res.json();
+		console.log('📦 Create tournament response:', data);
 
 		if (data.status === "OK") {
+			console.log('✅ Setting tournament:', data.tournament);
 			setTournament(data.tournament);
+			console.log('✅ Setting showSetup to true');
 			setShowSetup(true);         // Show setup for adding players
-			await refreshSession();     // Refresh session to update tournament state
+			//await refreshSession();     // Refresh session to update tournament state
+			console.log('✅ After refresh, tournament:', tournament);
 		} else {
 			console.error("Error creating tournament:", data.error);
 		}
@@ -123,13 +134,15 @@ const TournamentLobby: React.FC = () => {
 				
 			});
 
-
 			if (!res.ok) throw new Error("Failed to cancel tournament");
 
-			setTournament(null);
 			setShowSetup(false);
+			setShowSettingsModal(false);
 			setGameResult(null);
+			handleMatchEnd();
+
 			await refreshSession(); // Refresh session to update tournament status
+
 		} catch (err) {
 			console.error("Error cancelling tournament:", err);
 		}
@@ -212,6 +225,32 @@ const TournamentLobby: React.FC = () => {
 		setGameStarted(false);
 	};
 
+	const closeTournament = async () => {
+		if (!tournament)
+			return;
+
+		const payload: TournamentResetPayload = {tournamentID: tournament.tournament_id};
+		
+		try {
+			const res = await fetch(API_PROTOCOL.TOURNAMENT_RESET.path, {
+				method: API_PROTOCOL.TOURNAMENT_RESET.method,
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+			});
+
+			if (!res.ok) {
+				console.error("Tournament reset failed:", res.status);
+				return;
+			}
+
+			await refreshSession();
+			
+		} catch (err) {
+			console.error("Error resetting tournament:", err);
+		}
+	};
+
 	if (loading) return <div className="p-6 text-center text-gray-300">Loading tournament info...</div>;
 	if (!isLoggedIn) return <div className="p-6 text-center text-gray-300">Please log in to view tournament</div>;
 
@@ -264,7 +303,7 @@ const TournamentLobby: React.FC = () => {
 
 						onStartMatch={handleStartTournamentGame}
 						onCancel={handleCancelTournament}
-						lastMatchResult={gameResult}
+						onClose={closeTournament}
 					/>
 				)}
 			</div>

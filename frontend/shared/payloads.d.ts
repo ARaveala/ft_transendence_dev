@@ -198,21 +198,6 @@ export interface GameFinished {
   finalScorePlayer2: number;
 }
 
-/* handled through websockets??
-
-
-export interface GameStateUpdate {
-  game_id: string;                            // unique ID for the game session
-  paddle1: PaddleState;                       // position of player1 paddle
-  paddle2: PaddleState;                       // position of player2 paddle
-  ball: BallState;                            // ball position and speed
-  scorePlayer1: number;                       // score of player1
-  scorePlayer2: number;                       // score of player1
-  status: 'WAITING' |'PLAYING' | 'FINISHED';  // game status
-}
-*/
-
-
 // Tournament
 
 export interface CreateTournamentPayload {
@@ -234,7 +219,9 @@ export interface GetActiveTournamentResponse {
   tournament: TournamentState;
 }
 
-GET_ACTIVE_TOURNAMENT
+export interface TournamentResetPayload {
+	tournamentID: string;
+}
 
 // type used in frontend
 
