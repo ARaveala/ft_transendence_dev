@@ -54,11 +54,11 @@
 //	fastify.register(friendRoutes, context);
 //
 	// Register the multipart plugin (Mandatory for request.file() to work)
-	//fastify.register(require('@fastify/multipart'), {
-	//	limits: {
-	//		fileSize: 1024 * 1024 * 2, // Example limit: 2MB
-	//	}
-	//});
+	fastify.register(require('@fastify/multipart'), {
+		limits: {
+			fileSize: 1024 * 1024 * 2, // Example limit: 2MB
+		}
+	});
 
 	//const fastifyStatic = require('@fastify/static'); 
 
@@ -198,9 +198,9 @@
     await fastify.register(friendRoutes, context);
 	await fastify.register(profileRoutes, profilecontext);
 	await fastify.register(gameRoutes, context);
-    await fastify.register(require('@fastify/multipart'), {
-      limits: { fileSize: 1024 * 1024 * 2 }
-    });
+    //await fastify.register(require('@fastify/multipart'), {
+    //  limits: { fileSize: 1024 * 1024 * 2 }
+    //});
 
     await fastify.register(require('@fastify/static'), {
       root: path.join(__dirname, 'public', 'avatars'),
