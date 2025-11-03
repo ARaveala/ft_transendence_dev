@@ -12,7 +12,7 @@ function generateToken(id, username) {
 	return jwt.sign(
     { id: id, username: username },
     JWT_SECRET,
-    { expiresIn: '1h' }
+    { expiresIn: '10s' }
   );
 }
 
