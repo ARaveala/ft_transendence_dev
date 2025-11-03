@@ -2,8 +2,8 @@
 	require('module-alias/register'); // enables aliases
 	// env file
 	require('dotenv').config();
-	console.log('JWT_SECRET:', process.env.JWT_SECRET);
-	const cookie = require('@fastify/cookie');
+//	console.log('JWT_SECRET:', process.env.JWT_SECRET);
+//	const cookie = require('@fastify/cookie');
 	console.log('JWT_SECRET:', process.env.JWT_SECRET);
 	const cookie = require('@fastify/cookie');
 	// Import the Fastify framework
@@ -39,9 +39,6 @@
 //	} catch {
 //		app.warn("SERVER error on registering hook ");
 //	}
-
-	const authHooks = require('@hooks/authHooks.js');
-	const authHookContext = require('@hooks/authContext.js');
 
 
 	//async function registerAuthHook(fastify) {
@@ -81,11 +78,11 @@
 //	fastify.register(friendRoutes, context);
 //
 	// Register the multipart plugin (Mandatory for request.file() to work)
-	//fastify.register(require('@fastify/multipart'), {
-	//	limits: {
-	//		fileSize: 1024 * 1024 * 2, // Example limit: 2MB
-	//	}
-	//});
+	fastify.register(require('@fastify/multipart'), {
+		limits: {
+			fileSize: 1024 * 1024 * 2, // Example limit: 2MB
+		}
+	});
 
 	//const fastifyStatic = require('@fastify/static'); 
 	//const fastifyStatic = require('@fastify/static'); 
@@ -301,12 +298,7 @@
 //    await fastify.register(profileRoutes, profilecontext);
 //    await fastify.register(gameRoutes, context);
 
-		// have added for testing a local host binding to test docker ability to connect to browser
-		await fastify.listen({ port: 3000, host: '0.0.0.0' });//, err => {
-		//if (err) {
-		//	fastify.log.error(err)
-		//	process.exit(1)
-		//}
+
 		await fastify.listen({ port: 3000, host: '0.0.0.0' });//, err => {
 		//if (err) {
 		//	fastify.log.error(err)
