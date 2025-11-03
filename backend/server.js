@@ -162,7 +162,7 @@
 
 //		try {
 			//console.log('Registering authHook...');
-//		await fastify.register(authHooks, authHookContext);
+		await fastify.register(authHooks, authHookContext);
 			//console.log('Registerededed authHook...');
 		
 //} catch {

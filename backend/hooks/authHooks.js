@@ -30,7 +30,7 @@ async function authHook(fastify, options) {
     		return; // Skip auth for these routes
 		}
 
-		const token = request.cookies?.authToken;
+		const token = request.cookies?.auth_token;
 		flog.debug({function: "authHook", token: token},'cookie requested');
 		try {
 			const result = secure.getUserIdFromTokenH(token);
