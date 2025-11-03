@@ -12,10 +12,12 @@ import ChooseGameMode from "../components/game/ChooseGameMode";
 import GameSettings from "../components/game/GameSettings";
 import CenteredContainer from "../components/layout/CenteredContainer";
 import MiniLogin from "../components/game/MiniLogin";
+import { useTranslation } from "../shared/Translation";
 
 type GameMode = "guest" | "login" | "ai";
 //	const { isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
 const Game: React.FC = () => {
+	const { t } = useTranslation();
 	const { isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
 	const [gameStarted, setGameStarted] = useState(false);
 	const [player1Token, setPlayer1Token] = useState<string | null>(null);
@@ -51,7 +53,7 @@ const Game: React.FC = () => {
 			if (event.origin !== "http://localhost:3000") return;
 
 			if (event.data?.type === "GAME RESULT") {
-			console.log("Received game end from iframe:", event.data.payload);
+			console.log(t("game.status.receivedResult"), event.data.payload);
 			handleGameEnd();
 			}
 
@@ -63,7 +65,7 @@ const Game: React.FC = () => {
 		}, []);
 
 	const handleGameEnd = () => {
-		console.log("Game ended!");
+		console.log(t("game.status.ended"));
 		setPlayer1Token(null);
 		setPlayer2Token(null);
 		setGameId(null);
@@ -107,7 +109,7 @@ const Game: React.FC = () => {
 			}
 		} catch (err) {
 			console.error(err);
-			alert("Failed to create game. Make sure you are logged in.");
+			alert(t("error.game.create"));
 			setSelectedMode(null);
 			setGameId(null);
 		}
@@ -157,12 +159,12 @@ const Game: React.FC = () => {
 	
 			} catch (err) {
 				console.error(err);
-				alert("Failed to start game. Make sure you are logged in.");
+				alert(t("error.game.start"));
 			}
 		};
 
-if (loading) return <div>Checking login status...</div>;
-if (!isLoggedIn) return <div>Please log in to access the game.</div>;
+if (loading) return <div>{t("game.checkingLogin")}</div>;
+if (!isLoggedIn) return <div>{t("game.loginRequired")}</div>;
 
 return (
 	<CenteredContainer>
@@ -213,13 +215,13 @@ return (
 				onClick={() => handleStartGame(gameSettings)} // pass settings to startGame
 				className="px-10 py-4 text-xl font-bold text-white bg-indigo-600 rounded-lg shadow-lg hover:bg-indigo-700 transition-colors"
 				>
-				Start Game
+				{t("game.action.start")}
 			</button>
 			<button
 				onClick={() => { setGameSettings(null)}}
 				className="px-6 py-2 text-sm font-medium text-gray-800 bg-gray-300 rounded-lg hover:bg-gray-400 transition-colors"
 				>
-				Back
+				{t("game.action.back")}
 			</button>
 		</div>
 		)}
