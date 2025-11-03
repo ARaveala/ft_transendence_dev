@@ -4,6 +4,16 @@ import { API_PROTOCOL } from "../../../shared/api-protocols";
 import { VerifyPlayerPayload, VerifyPlayerResponse } from "../../../shared/payloads";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
+import { passthrough } from "msw";
+
+// Username: must start with letter, 6-12 chars, letters, numbers, underscore allowed
+const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]{5,11}$/;
+
+// Password: 8-16 chars, letters, numbers and allowed special chars
+const PASSWORD_REGEX = /^[a-zA-Z0-9!@#$%^&*()_\-+=.]{8,16}$/;
+
+// Alias: 5–10 chars, letters/numbers/_
+const ALIAS_REGEX = /^[a-zA-Z0-9_]{5,10}$/;
 
 interface PlayerListProps {
 	tournament: TournamentState;
@@ -16,17 +26,31 @@ type PlayerFormData = {
 	alias: string;
 };
 
-type FormErrors = Record<string, string>;
+type FormErrors = Record<string, {
+	username?:string;
+	password?:string;
+	alias?: string;
+}>;
+
 type FormData = Record<string, PlayerFormData>;
 
-const createEmptySlot = (role: string): TournamentPlayer => ({
-	role: role,
-	username: "",
-	alias: "",
-	status: "waiting",
-	isSelf: false,
-	isVerified: false,
-});
+const validateInput = (
+	player: TournamentPlayer,
+	data: PlayerFormData | undefined,
+	alias: string
+) => {
+	if (!ALIAS_REGEX.test(alias)) 
+		return "Alias must be 5–10 chars (letters, numbers, underscores).";
+
+	if (!player.isSelf) {
+		if (!USERNAME_REGEX.test(data?.username ?? ""))
+			return "Invalid username format";
+		if (!PASSWORD_REGEX.test(data?.password ?? ""))
+			return "Invalid password format";
+	}
+
+	return null;
+};
 
 const PlayerList: React.FC<PlayerListProps> = ({
 	tournament, onRemovePlayer,
@@ -51,44 +75,40 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				password: "",
 				alias: p.alias || "",
 				};
+				selfAlias = p.alias || '';
 
 			} else {
-			// 2. Capture the verified alias for the logged in player
-			selfAlias = p.alias || '';
+				initialFormData[p.role] = formData[p.role] || {
+					username: "",
+					password: "",
+					alias: "",
+				};
+			
 			}
 		});
+		setFormData(initialFormData);
 
-	const selfPlayerRole = tournament.players.find(p => p.isSelf)?.role;
-	if (selfPlayerRole) {
-		initialFormData[selfPlayerRole] = {
-		username: tournament.players.find(p => p.isSelf)?.username || "",
-		password: "",
-		alias: selfAlias,
-		};
-	}
-	setFormData(initialFormData);
-
-	if (!isEditingAlias) {
-		setTempAlias(selfAlias);
-	}
+		if (!isEditingAlias) {
+			setTempAlias(selfAlias);
+		}
 
 	}, [tournament.players.map(p => p.role).join("|")]);
 
 	const updateField = (role: string, field: keyof PlayerFormData, value: string) => {
-	const isSelfPlayer = tournament.players.find(p => p.role === role)?.isSelf;
+		const player = tournament.players.find((p) => p.role === role)!;
 
-	if (isSelfPlayer && field === 'alias') {
-		setTempAlias(value);
-	} else {
-		setFormData(prev => ({
-			...prev,
-			[role]: {
-			...prev[role],
-			[field]: value
-			}
-		}));
-	}
-	setErrors(prev => ({ ...prev, [role]: "" }));
+		if (player.isSelf && field === 'alias') {
+			setTempAlias(value);
+		} else {
+			setFormData(prev => ({
+				...prev,
+				[role]: {
+				...prev[role],
+				[field]: value
+				}
+			}));
+		}
+		setErrors(prev => ({ ...prev, [role]: {}}));
 	};
 
 	const isFormComplete = (role: string, player: any): boolean => {
@@ -97,8 +117,8 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			return !!tempAlias;
 	
 		}
-	const data = formData[role];
-	return !!(data?.username && data?.password && data?.alias);
+		const data = formData[role];
+		return !!(data?.username && data?.password && data?.alias);
 	};
 
 	// Handles adding and verifying a tournament player
@@ -112,10 +132,32 @@ const PlayerList: React.FC<PlayerListProps> = ({
 		let aliasToUse = player.isSelf ? tempAlias : data?.alias || '';
 
 		// Frontend validation
-		if (aliasToUse.length < 5) {
-			setErrors(prev => ({ ...prev, [role]: "Alias must be at least 5 characters" }));
+		// --- FRONTEND VALIDATION WITH FIELD-SPECIFIC ERRORS ---
+		if (!ALIAS_REGEX.test(aliasToUse)) {
+			setErrors(prev => ({
+				...prev,
+				[role]: { alias: "Alias must be 5–10 chars (letters, numbers, underscores)." }
+			}));
 			return;
+		}
+
+		if (!player.isSelf) {
+			if (!USERNAME_REGEX.test(data?.username ?? "")) {
+				setErrors(prev => ({
+					...prev,
+					[role]: { username: "Invalid username format" }
+				}));
+				return;
 			}
+
+			if (!PASSWORD_REGEX.test(data?.password ?? "")) {
+				setErrors(prev => ({
+					...prev,
+					[role]: { password: "Invalid password format" }
+				}));
+				return;
+			}
+		}
 
 		// Check alias uniqueness among verified players
 		const duplicate = tournament.players.some(
@@ -128,7 +170,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 		if (duplicate) {
 			setErrors(prev => ({ 
 				...prev,
-				[role]: "Alias must be unique"
+				[role]: {alias: "Alias must be unique" }
 			}));
 			return;
 		}
@@ -164,7 +206,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			if (response.status === "OK" && response.tournament) {
 			// Update the tournament in context
 				setTournament(response.tournament);
-				//await refreshSession(); // optional if needed
+				await refreshSession();
 		}
 
 			const updatedPlayers = tournament.players.map(p =>
@@ -191,14 +233,14 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			console.error("Error verifying player:", err);
 			setErrors(prev => ({
 				...prev,
-				[role]: err.message ||  "Network error. Please try again.",
+				[role]: {alias: err.message ||  "Network error. Please try again." }
 			}));
 		} finally {
 			setLoading(null);
 		}
 	};
 
-  const handleRemovePlayer = (role: string) => {
+  const handleRemovePlayer = async (role: string) => {
 	  setFormData(prev => {
 		const newState = { ...prev };
 		newState[role] = { username: "", password: "", alias: "" }; 
@@ -211,7 +253,8 @@ const PlayerList: React.FC<PlayerListProps> = ({
 		return newErrors;
 	  });
 
-	  void onRemovePlayer(role);
+	onRemovePlayer(role);
+	await refreshSession();
   };
 
   return (
@@ -236,7 +279,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			< div className="flex items-center gap-2">
 			  <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center">
 				{isPlayerVerified && (
-				  <span className="w-4 h-4 rounded-full bg-green-500 text-white text-[0.4rem] font-bold flex items-center justify-center">
+				  <span className="w-4 h-4 rounded-full bg-cyan-400 text-white text-[0.4rem] font-bold flex items-center justify-center">
 					✔
 				  </span>
 				)}
@@ -250,9 +293,10 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				disabled={player.isSelf || isPlayerVerified}
 				value={player.isSelf || isPlayerVerified ? player.username : data.username}
 				onChange={(e) => updateField(role, "username", e.target.value)}
-				className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto ${
-				  player.isSelf || isPlayerVerified
-					? "bg-gray-900 text-gray-400 cursor-not-allowed"
+				className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
+					${errors[role]?.username ? "border-red-500" : "border-gray-300"}
+					${player.isSelf || isPlayerVerified
+					? `${isPlayerVerified ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
 					: "bg-gray-900 text-white"
 				}`}
 			  />
@@ -264,9 +308,10 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				disabled={player.isSelf || isPlayerVerified}
 				value={player.isSelf || isPlayerVerified ? "********" : data.password}
 				onChange={(e) => updateField(role, "password", e.target.value)}
-				className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto ${
-				  player.isSelf || isPlayerVerified
-					? "bg-gray-900 text-gray-400 cursor-not-allowed"
+				className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
+					${errors[role]?.password ? "border-red-500" : "border-gray-300"}
+					${player.isSelf || isPlayerVerified
+					? `${isPlayerVerified ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
 					: "bg-gray-900 text-white"
 				}`}
 			  />
@@ -282,14 +327,15 @@ const PlayerList: React.FC<PlayerListProps> = ({
 					: data.alias || player.alias || ""
 				}
 				onChange={(e) => updateField(role, "alias", e.target.value)}
-				className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto ${
-				  errors[role] ? "border-red-500" : "border-gray-300"
-				} ${
-				  isAliasLocked
-					? "bg-gray-900 text-white cursor-not-allowed"
-					: "bg-gray-900 text-white"
-				}`}
-			  />
+				className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto 
+					${errors[role]?.alias ? "border-red-500" : "border-gray-300"} 
+					${isAliasLocked
+					? "bg-gray-900 cursor-not-allowed"
+					: "bg-gray-900"
+					}
+					${isPlayerVerified ? "text-indigo-400" : "text-white"}
+				`}
+				/>
 
 			  {/* Action Buttons (Other players) */}
 			  {!player.isSelf && !isPlayerVerified && (
@@ -304,8 +350,10 @@ const PlayerList: React.FC<PlayerListProps> = ({
 
 			  {isPlayerVerified && !player.isSelf && (
 				<Button
-				  onClick={() => handleRemovePlayer(role)} disabled={isCurrentlyLoading}
-				  className="min-w-[6.3rem]">
+				  onClick={() => handleRemovePlayer(role)}
+				  disabled={isCurrentlyLoading}
+				  className="min-w-[6.3rem]"
+				>
 				  Remove
 				</Button>
 			  )}
@@ -342,14 +390,14 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			</div>
 		   </div>
 			{/* Error Message */}
-			{errors[role] && (
-			  <span className="text-red-500 text-sm ml-7">
-				{errors[role]}
-			  </span>
-			)}
+			{errors[role]?.username && <span className="text-red-500 text-sm ml-7">{errors[role].username}</span>}
+			{errors[role]?.password && <span className="text-red-500 text-sm ml-7">{errors[role].password}</span>}
+			{errors[role]?.alias && <span className="text-red-500 text-sm ml-7">{errors[role].alias}</span>}
 
-		  </div>
+			</div>
 		);
 	  })}
 	</div>
-  )};  export default PlayerList;
+)};
+
+export default PlayerList;

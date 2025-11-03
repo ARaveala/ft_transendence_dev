@@ -271,6 +271,8 @@ const TournamentLobby: React.FC = () => {
 		</div>
 		);
 	}
+	const setupInProgress = tournament && tournament.players?.some(p => !p.isVerified);
+	const bracketVisible = tournament?.status == "ongoing" || tournament?.can_start === true;
 
 	return (
 
@@ -289,7 +291,7 @@ const TournamentLobby: React.FC = () => {
 				)}
 
 				{/* Tournament Setup */}
-				{showSetup && tournament && (
+				{setupInProgress && (
 					<TournamentSetup
 						//onTournamentUpdated={handleTournamentUpdated}
 						onCancel={handleCancelTournament}

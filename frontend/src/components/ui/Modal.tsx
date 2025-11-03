@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Button from "./Button";
 import { useTranslation } from "../../shared/Translation";
+import { passthrough } from "msw";
 
 // Props interface for the Modal component
 interface ModalProps {
@@ -11,16 +12,23 @@ interface ModalProps {
 		password: string;
 	}) => void;            // Callback to send the registration data to parent
 	mode?: "register" | "login"; // new prop to indicate mode
-	error?: string | null;
+	error?: string | null;  // backend error
+	inlineErrors?: { username?: string; password?: string };  // frontend error
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFormSubmit, mode = "register", error: externalError }) => {
+const Modal: React.FC<ModalProps> = ({
+	isOpen,
+	onClose,
+	onFormSubmit,
+	mode = "register",
+	error,
+	inlineErrors = {},
+}) => {
 	const { t } = useTranslation();
 
 	// Local state to track form inputs
 	const [username, setUsername] = useState("");            // Username input
 	const [password, setPassword] = useState("");            // Password input
-	const [localError, setLocalError] = useState("");         // Validation error message
 
 	// If modal is not open, don't render anything
 	if (!isOpen) return null;
@@ -34,14 +42,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFormSubmit, mode = "re
 	// Handles form submission
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-
-		// Validates that username and password are provided
-		if (!username.trim() || !password.trim()) {
-			setLocalError(t("error.auth.missingFields"));
-			return;
-		}
-		// Clears any previous errors
-		setLocalError("");
 
 		// Calls parent's onSubmit callback with form data
 		onFormSubmit({
@@ -71,12 +71,12 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFormSubmit, mode = "re
 						className="w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
 						required
 					/>
-					{localError && !username.trim() && (
-						<p className="text-xs text-red-400 mt-1">{localError}</p>
+					{inlineErrors.username && (
+						<p className="text-xs text-red-400 mt-1">{inlineErrors.username}</p>
 					)}
 				</div>
 
-				{/* Password i	nput */}
+				{/* Password input */}
 				<div>
 					<input
 						type="password"
@@ -86,16 +86,20 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFormSubmit, mode = "re
 						className="w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
 						required
 					/>
-					{(externalError || (localError && username.trim())) && (
+					{inlineErrors.password && (
 						<p className="text-sm text-red-400 mt-1">
-							{externalError || localError}
+							{inlineErrors.password}
 						</p>
 					)}
+					{/* Backend error (only shown if no inline errors) */}
+						{!inlineErrors.username && !inlineErrors.password && error && (
+							<p className="text-xs text-red-400 mt-1">{error}</p>
+						)}
 				</div>
 
 				{/* Submit and Close buttons */}
 				<div className="flex justify-between items-center mt-4">
-					<Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+					<Button type="submit" className="bg-indigo-600 hover:bg-blue-700">
 						{buttonText}
 					</Button>
 					<Button

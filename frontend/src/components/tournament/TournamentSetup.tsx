@@ -15,6 +15,20 @@ interface TournamentSetupProps {
 const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamentStarted }) => {
 	const { tournament, setTournament, refreshSession } = useAuth();
 	const [loading, setLoading] = useState(false);
+	const [loadingSession, setLoadingSession] = useState(true);
+
+	useEffect(() => {
+		const loadSession = async () => {
+			setLoadingSession(true);
+			await refreshSession();
+			setLoadingSession(false);
+		};
+		loadSession();
+	}, [refreshSession]);
+
+	if (loadingSession) {
+		return <div className="text-gray-300 mt-8">Loading tournament...</div>;
+	}
 
 	if (!tournament) {
 		return (
@@ -76,7 +90,9 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 			console.log("lets looky at the data sent ", data);
 			if (data.status === "OK" && data.tournament) {
 				setTournament(data.tournament);
-				if (onTournamentStarted) onTournamentStarted();
+				await refreshSession(); 
+				if (onTournamentStarted)
+					onTournamentStarted();
 			} else {
 					console.error("Tournament start error:", data.error);
 			}
@@ -89,8 +105,11 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 		}
 	};
 
+	const setupInProgress = tournament.players.some(p => !p.isVerified);
+
 	return (
 			<div className="mt-3 space-y-6">
+				{setupInProgress && (
 				<div>
 					<p className="text-gray-300 mb-4 ml-8">Players</p>
 
@@ -99,6 +118,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 						onRemovePlayer={handleRemovePlayer}
 					/>
 				</div>
+				)}
 
 				<div className="flex gap-6 mt-6 ml-7">
 					<Button onClick={onCancel} disabled={loading}>
