@@ -10,9 +10,9 @@ const { ERROR_CODES } = require('@sharedErr');
 const { UNAUTHORIZED } = ERROR_CODES;
 
 const excludedPaths = [
-	API_PROTOCOL.LOGIN_USER.path,
-	API_PROTOCOL.REGISTER_USER.path,
-	API_PROTOCOL.GET_PROFILE.path,
+	API_PROTOCOL.LOGIN_USER, //post
+	API_PROTOCOL.REGISTER_USER, //post
+	API_PROTOCOL.GET_PROFILE, //get
 ]
 //if we make the routes include query strings or dynamic segments
 //const path = request.routerPath || request.raw.url;
@@ -26,9 +26,26 @@ async function authHook(fastify, options) {
 	flog.info({function: "authHook"}, 'Entering authook');
 	const {secure} = options;
 	fastify.addHook("onRequest", async (request, reply) => {
-		if (excludedPaths.includes(request.routerPath)) {
-    		return; // Skip auth for these routes
+		const path = request.routerPath;
+		flog.debug({ function: "authHook", path, match: excludedPaths.includes(path) }, "Exclusion check");
+
+//const path = request.routerPath;
+		const method = request.method;
+
+		const isExcluded = excludedPaths.some(route =>
+		  route.path === path && route.method === method
+		);
+
+		if (isExcluded) {
+			flog.debug({ function: "authHook", routerPath: path, routerMethod: method, routeUrl: request.routeOptions?.url }, "Checking path exclusion for this path");
+			return;
 		}
+
+
+	//	if (excludedPaths.includes(request.routerPath)) {
+	//		flog.debug({ function: "authHook", routerPath: request.routerPath, routeUrl: request.routeOptions?.url }, "Checking path exclusion for this path");
+    //		return; // Skip auth for these routes
+	//	}
 
 		const token = request.cookies?.auth_token;
 		flog.debug({function: "authHook", token: token},'cookie requested');
@@ -36,7 +53,11 @@ async function authHook(fastify, options) {
 			const result = secure.getUserIdFromTokenH(token);
 			flog.debug({function: "authHook", result: result},'id decoded');
 			if (result?.id) {
-				request.userId = result.id;
+				
+				request.userId = result.id.id;
+				flog.debug({ function: "authHook", userId: request.userId }, 'userId set in hook');
+
+//				flog.debug({fucntion: "authHook", sending: result.id}, "ARE WE STEPPING INTO ATTATCHING THE ID ");
 			} else if (result.error) {
 				flog.error({function: "authHook", errMsg: result.error},'error from getuserIdFromToken');
 				const errorResponse = ERROR_CODES.UNAUTHORIZED(result.error);

@@ -34,13 +34,13 @@ function setAuthCookie(reply, token) {
   });
 }
 
-function clearAuthCookie(reply, token) {
-  reply.clearCookie('auth_token', token,{
+function clearAuthCookie(reply) {
+  reply.clearCookie('auth_token',{
 	expires: new Date(0),
 	httpOnly: true,
 	path:'/',
-	sameSite: 'lax',
-	secure: false
+	sameSite: 'lax', //this should be strict not dev
+	secure: false //this should be true when not dev
 ,	});
 }
 
