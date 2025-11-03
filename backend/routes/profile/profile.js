@@ -32,15 +32,23 @@ async function getUser(fastify, options) {
 	}, async (request, reply) => {
 		// just for testing check no fail after remove
 
-
 		const token = request.cookies.auth_token;
-		//if (!token.user.id) {
-		//  console.warn("Unauthorized access to /api/profile — no valid user ID");
-		//  reply.code(401).send({ error: "Unauthorized" });
-		//  return;
-		//}
+		if (!token) {
+		 console.warn("Unauthorized access to /api/profile — no valid user ID");
+		 reply.code(401).send({ error: "Unauthorized" });
+		 return;
+		}
+		let userId;
+		try {
+			userId = secure.getUserIdFromToken(token); // might throw if expired
+		} catch (err) {
+			console.warn(`Unauthorized access to ${request.url} — ${err.name}`);
+			return reply.code(401).send({ error: err.name });
+		}
 
-		const userId = secure.getUserIdFromToken(token);
+		if (!userId || !userId.id) {
+			return reply.code(401).send({ error: "Invalid token" });
+		}
 		const mockProfile = {
 				username: "PlayerOne",
 				avatarFile: undefined,
