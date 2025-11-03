@@ -128,82 +128,100 @@ function handleMessage(ws, data) {
 			break;
 		}
 		case 'gameOver': {
-			const players = [...game.players.entries()]; // [ [id, player], ... ]
-
-			const player1Entry = players.find(([_, p]) => p.role === 'player1');
-			const player2Entry = players.find(([_, p]) => p.role === 'player2');
-
-			const [id1, player1] = player1Entry;
-			const [id2, player2] = player2Entry;
-
-			const winner = player1.score > player2.score ? 1 : 2;
-
-			console.log("ids:", id1, id2);
-			console.log("winner:", winner);
-			console.log("scores:", player1.score, player2.score);
-			console.log("gameID:", data.gameId);
-			console.log("game mode:", game.mode);
-			const winnerId = winner == 1 ? id1 : id2;
 			const gameId = ws ? ws.gameId || game.gameId : game.gameId;
-			console.log("game id:", gameId);
-			if (winner === 1){
-				updatePlayerGameStats(true, id1, player1.score)
-					.catch(err => console.error('Failed to update player1 stats', err));
-				
-				updateMatchHistory(id1, 'win', player1.score, player1.type, id2, player2.score, player2.type)
-					.then (result => {
-						console.log("show me resluts from update match history", result);
-					})
-					.catch(err => console.error('failed to update match history', err));
+			console.log(`[WS] Game ${gameId} - Game Over received`);
+			console.log("[WS] DEBUG players in game:", [...game.players.values()]);
 
-				updateMatchHistory(id2, 'loss', player2.score, player2.type, id1, player1.score, player1.type,)
-					.then (result => {
-						console.log("show me resluts from update match history", result);
-					})
-					.catch(err => console.error('failed to update match history', err));
-				//check login player updates
-				//if (typeof id2 === 'string' && !id2.includes('Guest')) {
-				//	updatePlayerGameStats(false, id2, player2.score)
-				//	 .catch(err => console.error('Failed to update player2 stats', err));
-				//}
-			}
-			else {
-				//if (typeof id2 === 'string' && !id2.includes('Guest')) {
-				//	updatePlayerGameStats(true, id2, player2.score)
-				//	 .catch(err => console.error('Failed to update player2 stats', err));
-				//}
-				updatePlayerGameStats(false === 0, id1, player1.score)
-				 .catch(err => console.error('Failed to update player1 stats', err));
-				updateMatchHistory(id1, 'loss', player1.score, player1.type, id2, player2.score, player2.type)
-					.then (result => {
-						console.log("show me resluts from update match history", result);
-					})
-					.catch(err => console.error('failed to update match history', err));
+			const [id1, player1] = [...game.players.entries()]
+				.find(([_, p]) => p.role === 'player1');
+			const [id2, player2] = [...game.players.entries()]
+				.find(([_, p]) => p.role === 'player2');
 
-				updateMatchHistory(id2, 'win', player2.score, player2.type, id1, player1.score, player1.type)
-					.then (result => {
-						console.log("show me resluts from update match history", result);
-					})
-					.catch(err => console.error('failed to update match history', err));
+			if (!player1.alias) player1.alias = player1.type === 'login' ? `User${id1}` : player1.type === 'ai' ? 'AI Bot' : 'Guest';
+			if (!player2.alias) player2.alias = player2.type === 'login' ? `User${id2}` : player2.type === 'ai' ? 'AI Bot' : 'Guest';
 
-
-			}
-			if (game.mode === "tournament"){
-					
-					updateTournamentStats(gameId, player1.score, player2.score, "finished", winnerId)
-					.catch(err => console.error('failed to update tournamnet stats', err));
-					console.log("ACESS TO TOURNAMNET ID: ", game.tid);
-					const winnerData = winner == 1 ? player1 : player2
-					updateBracket(game.tid, winnerId, 2)
-					.then (result => {
-						const { gameId, slot } = result;
-						const playerRole = slot === 'p1_id' ? 'player1' : 'player2';
-						addPlayer(gameId, winnerId, {type: "login", ws: undefined, role: playerRole, alias: winnerData.alias, ready: true, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
-
-					})
-					.catch(err => console.error('failed to update tournamnet stats', err));
-			}
+			if (!player1.id) player1.id = id1;
+			if (!player2.id) player2.id = id2;
 			
+			console.log(`[WS] Player1: ${player1.alias} (${player1.type}), score: ${player1.score}`);
+			console.log(`[WS] Player2: ${player2.alias} (${player2.type}), score: ${player2.score}`);
+
+			const player1Won = player1.score > player2.score;
+			const winnerId = player1Won ? id1 : id2;
+			const loserId = player1Won ? id2 : id1;
+			const winner = player1Won ? player1 : player2;
+			const loser = player1Won ? player2 : player1;
+
+			console.log(`[WS] Winner: ${winner.alias} (${winner.type})`);
+  			console.log(`[WS] Loser: ${loser.alias} (${loser.type})`);
+
+			// helper function to handle stats update per player
+			const updateStatsIfLogin = async (isWinner, playerId, player, opponent) => {
+				if (player.type === 'login') {
+				console.log(`[WS] Updating stats for ${player.alias} with id ${playerId} (${isWinner ? 'WIN' : 'LOSS'})`);
+				await updatePlayerGameStats(isWinner, playerId, player.score);
+				await updateMatchHistory(
+					playerId,
+					isWinner ? 'win' : 'loss',
+					player.score,
+					player.type,
+					opponent.id,
+					opponent.score,
+					opponent.type
+				);
+				console.log(`[WS] ✅ Stats updated for ${player.alias}`);
+				} else {
+				console.log(`[WS] ⏭️ Skipping stats update for ${player.alias} (${player.type})`);
+				}
+			};
+
+			Promise.all([
+				updateStatsIfLogin(true, winnerId, winner, loser),
+				updateStatsIfLogin(false, loserId, loser, winner)
+			])
+				.then(() => {
+				console.log(`[WS] 🏁 Stats updated for Game ${gameId}`);
+				})
+				.catch(err => {
+				console.error(`[WS] ❌ Failed to update game stats for Game ${gameId}`, err);
+				});
+			if (game.mode === "tournament") {
+				console.log(`[WS] Tournament detected - updating tournament stats for Game ${gameId}`);
+				console.log(`[WS] Tournament ID: ${game.tid}`);
+
+				updateTournamentStats(gameId, player1.score, player2.score, "finished", winnerId)
+					.then(() => {
+					console.log(`[WS] ✅ Tournament stats updated for Game ${gameId}`);
+					})
+					.catch(err => {
+					console.error(`[WS] ❌ Failed to update tournament stats for Game ${gameId}`, err);
+					});
+
+				const winnerData = player1Won ? player1 : player2;
+
+				updateBracket(game.tid, winnerId, 2)
+					.then(result => {
+					const { gameId: gameId, slot } = result;
+					const playerRole = slot === 'p1_id' ? 'player1' : 'player2';
+					console.log(`[WS] 🧩 Updating bracket: adding ${winnerData.alias} as ${playerRole} in next game ${gameId}`);
+
+					addPlayer(gameId, winnerId, {
+						type: "login",
+						ws: undefined,
+						role: playerRole,
+						alias: winnerData.alias,
+						ready: true,
+						disconnectedAt: undefined,
+						pauseTimeout: undefined,
+						score: 0
+					});
+
+					console.log(`[WS] ✅ Winner ${winnerData.alias} added to next tournament game ${gameId}`);
+					})
+					.catch(err => {
+					console.error(`[WS] ❌ Failed to update tournament bracket for Tournament ${game.tid}`, err);
+					});
+				}
 			break;
 		}
 		case 'init': {
