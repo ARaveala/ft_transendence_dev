@@ -29,6 +29,9 @@ async function authHook(fastify, options) {
 		if (request.method === 'HEAD' && request.raw.url === '/') {
 		  return; // Skip auth for HEAD /
 		}
+		if (request.method === 'GET' && request.raw.url === '/status'){
+			return;
+		}
 		const path = request.routeOptions?.url || request.raw.url;
 
 		//		const path = request.routerPath;
