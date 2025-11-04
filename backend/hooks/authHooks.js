@@ -33,6 +33,8 @@ async function authHook(fastify, options) {
 
 //const path = request.routerPath;
 		const method = request.method;
+		// for tester maybe only
+		if (request.method === 'HEAD') return;
 
 		const isExcluded = excludedPaths.some(route =>
 		  route.path === path && route.method === method
