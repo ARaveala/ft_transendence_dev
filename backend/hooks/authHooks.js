@@ -26,7 +26,9 @@ async function authHook(fastify, options) {
 	flog.info({function: "authHook"}, 'Entering authook');
 	const {secure} = options;
 	fastify.addHook("onRequest", async (request, reply) => {
-		const path = request.routerPath;
+		const path = request.routeOptions?.url || request.raw.url;
+
+		//		const path = request.routerPath;
 		flog.debug({ function: "authHook", path, match: excludedPaths.includes(path) }, "Exclusion check");
 
 //const path = request.routerPath;
