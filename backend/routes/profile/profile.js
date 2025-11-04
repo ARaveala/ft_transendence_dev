@@ -2,6 +2,10 @@ const { API_PROTOCOL } = require('@sharedApi');
 const {logger} = require('@logger');
 const { saveAndGetAvatarUrl, deleteOldAvatar } = require('./save_avatar.js'); // <-- Note the new import
 const flog = logger.child({ fileContext: 'profile.js' }); // scoped logger
+
+const {
+	getTournamentState,
+} = require('@Rtour/tournament.js');
 /**
  * 
     const player = await db.getPlayerById(playerId);
@@ -43,35 +47,41 @@ async function getUser(fastify, options) {
 				mfa_enabled: false,
 				rank: 5,
 				score: 1200,
-				victories: 15,
+				victories: 20,
 				losses: 7,
-				totalMatches: 22,
+				matches: 22,
 				friends: [],
 				matchHistory: [
 					{ id: "m1", opponent: "Player2", result: "win", score: 21, timestamp: "2025-08-25T12:00:00" },
 					{ id: "m2", opponent: "Player3", result: "loss", score: 18, timestamp: "2025-08-24T15:30:00" },
 				],
+				tournament: undefined
 			};
 		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
 		try {
 			const profile = await DBget.fetchUser({userId});
+			//console.log("WHAT IS TID :", profile.active_tournament_id);
+
+			//flog.warn({function: "getProfile", totalGames: profile.total_games}, "can we see total matches updated and recived==============================");
 			const friends = await DBget.getFriendsForPlayer(userId.id);
-			flog.info({function: 'getUser', friends}, 'checking friend object');
-			const matchHistory = await DBget.getMatchHistory({userId});
+	//		flog.info({function: 'getUser', friends}, 'checking friend object');
+			const matchHistory = await DBget.getMatchHistory(userId.id);
+
+			//const tid = await DBget.getActiveTournamentId(userId);
 			//const { password, ...safeUser } = profile;
 			mockProfile.username = profile.username;
 			mockProfile.avatarFile = profile.avatar_file;
 			mockProfile.mfa_enabled = profile.mfa_enabled === 1; // convert to boolean
 			mockProfile.rank = profile.rank;
 			mockProfile.score = profile.score;
-			mockProfile.wins = profile.victories;
+			mockProfile.victories = profile.wins;
 			mockProfile.losses = profile.losses;
-			mockProfile.total_games = profile.totalMatches;
+			mockProfile.totalMatches = profile.total_games;
 			mockProfile.friends = friends || [];
 			mockProfile.matchHistory = matchHistory || [];
 			//mockP
 			console.log("show mock profile", mockProfile);
-			
+			mockProfile.tournament = profile.active_tournament_id == 0 ? 0 : getTournamentState(profile.active_tournament_id);
 			//reply.send(safeUser);
 			reply.send(mockProfile);
 		} catch (err) {

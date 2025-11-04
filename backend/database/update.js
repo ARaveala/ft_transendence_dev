@@ -144,22 +144,114 @@ async function updatePlayerGameStats(winner, id, score) {
 					flog.error({ function: 'updateGameStats' }, 'No changes made, user not found');
 					reject({ error: 'User not found , no changes made' });
 				} else {
-					resolve({ message: 'player game stats updated', userId: id, winner: winner, score: score});
-				}
-			}
-		);
-	});
+         db.get(
+            'SELECT wins, losses, score, total_games FROM users WHERE id = ?',
+            [id],
+            (err, row) => {
+              if (err) {
+                reject({ error: 'Failed to fetch updated stats', details: err });
+              } else {
+				flog.debug({function: "updategamestats", ...row}, "show me the stats");
+                resolve({ message: 'player game stats updated', userId: id, ...row });
+              }
+            }
+          );
+        }
+      }
+    );
+  });
 }
 
+async function applyTournamentId(userId, tournamentId){
+	return new Promise ((resolve, reject) =>{
+		db.run(
+			'UPDATE users SET active_tournament_id = ? WHERE id = ?',
+			[tournamentId, userId],
+			function (err) {
+				if (err) {
+					flog.error({ function: 'applyTournamentId', error: err }, 'Error updating player game stats');
+					reject({ error: 'Failed to update player game stats ', details: err});
+				} else if (this.changes === 0) {
+					flog.error({ function: 'applyTournamentId' }, 'No changes made, user not found');
+					reject({ error: 'User not found , no changes made' });
+				} else {
+					return resolve({ messgae: 'active touramnet set', tid: tournamentId})
+				}
+			}
+		)
+	})
+}
 //
-//async function updateMatchHistory(userId, matchData) {
-//	flog.debug({ function: 'updateMatchHistory', userId: userId, matchData: matchData }, 'Updating match history for user');
+async function updateMatchHistory(userId, result, userScore, userType, opponentId, opponentScore, opponentType) {
+  return new Promise((resolve, reject) => {
+	// must first make sure thet type has valid id, user1 will always be logged in
+	if (userType !== 'login') {
+    	return resolve({ message: `No match history needed for ${userType}` });
+	}
+	console.log("what is the id before all the shifty buisness", opponentId);
+	const numericOpponentId = opponentType === 'login' ? opponentId : null;
+	console.log("checking update match history that opponent id makes sense", numericOpponentId);
+	db.serialize(() => {
+      // Check how many matches the user has we rae capped at 10 at this moment
+      db.get(
+        'SELECT COUNT(*) AS count FROM match_history WHERE user_id = ?',
+        [userId],
+        (err, row) => {
+        	if (err) return reject({ error: 'Failed to count match history', details: err });
+			// Create a call back delete function in here as we wont use it anywhere else
+          const maybeDeleteOldest = (cb) => {
+            if (row.count >= 10) {
+              db.run(
+                'DELETE FROM match_history WHERE id = (SELECT id FROM match_history WHERE user_id = ? ORDER BY match_date ASC LIMIT 1)',
+                [userId],
+                cb
+              );
+            } else {
+              cb();
+            }
+          };
+
+          maybeDeleteOldest(() => {
+            //  Insert new match after if delete
+            db.run(
+              `INSERT INTO match_history 
+              (user_id, opponent_id, user_score, opponent_score, result, opponent_type, match_date) 
+              VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+              [userId, numericOpponentId, userScore, opponentScore, result, opponentType],
+              function (err) {
+                if (err) {
+                  reject({ error: 'Failed to insert match history', details: err });
+                } else {
+                  resolve({ 
+                    matchId: this.lastID,
+                    userId,
+                    opponentId,
+                    result,
+                    score: userScore,
+                    opponentScore,
+                    //timestamp: new Date().toISOString()
+					//this.chnages later
+                  });
+                }
+              }
+            );
+          });
+        }
+      );
+    });
+  });
+}
+
+//async function updateMatchHistory(userId, result, score, opponentId) {
+//	flog.debug({ function: 'updateMatchHistory', userId: userId }, 'Updating match history for user');
 //
 //	return new Promise((resolve, reject) => {
-//		// Assuming match_history is stored as a JSON string in the database
+//		db.get('FROM users WHERE id = ?',
+//		[]	
+//		)
 //		db.run(
-//			'UPDATE users SET match_history = ? WHERE id = ?',
-//			[JSON.stringify(matchData), userId],
+//			'INSERT INTO match_history = ? WHERE id = ?',
+//			[, userId],
 //			function (err) {
 //				if (err) {
 //					reject({ error: 'Failed to update match history', details: err});
@@ -180,5 +272,6 @@ module.exports = { updateUserScore,
 	changeLanguage,
 	update2fa,
 	updatePlayerGameStats,
-//	updateMatchHistory
+	applyTournamentId,
+	updateMatchHistory
 };

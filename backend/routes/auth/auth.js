@@ -6,8 +6,7 @@ const flog = logger.child({ fileContext: 'auth' }); // scoped logger
 
 const speakeasy = require('speakeasy'); // for creating 2FA secrets
 const qrcode = require('qrcode');      // creating qrcodes
-const { DBget } = require('./context');
-const tempTwoFactorSecrets = new Map(); // TMP fix for not having database secrets yet, DELETE
+const tempSetupSecrets = new Map();
 
 /**
  * @type {import('../../shared/payloads').RegisterUserPayload}
@@ -48,54 +47,42 @@ async function registerUser(fastify, options) {
 	});
 }
 
-// result change may affect frontend testing due to incorrect path
 async function loginUser(fastify, options) {
     const { DBget, secure } = options;
     fastify.route({
         method: API_PROTOCOL.LOGIN_USER.method,
         url: API_PROTOCOL.LOGIN_USER.path,
         handler: async (request, reply) => {
-			//schema: { body: schemas.LoginUser },
-
             const { username, password } = request.body;
-            log('LOGINUSER', `Incoming user data: ${JSON.stringify(request.body)}`);
+            flog.info({ function: 'loginUser' }, `Incoming login attempt for user: ${username}`);
             try {
                 const result = await DBget.miniLogin(username, password);
                 if (!result) {
                     return reply.code(401).send({ error: "Invalid username or password." });
                 }
 
-                // check if 2FA is enabled for user
-                const isTwoFactorEnabled = tempTwoFactorSecrets.has(result.id);
+                const isTwoFactorEnabled = await DBget.is2FaEnabled(result.id);
 
                 if (isTwoFactorEnabled) {
-                    log('LOGINUSER', `2FA required for user: ${result.id}`);
-
-                    // temporary token, access to 2FA login after 
+                    flog.info({ function: 'loginUser' }, `2FA required for user: ${result.id}`);
                     const tempToken = secure.generateTemporaryToken({ id: result.id, username: username, type: '2fa_pending' });
-
-                    // Send 202 response to frontend signaling that further login steps are needed
-                    reply.code(202).send({
+					reply.code(202).send({
                         message: '2FA required',
                         tempAuthToken: tempToken
                     });
-
-                } else { // old login logic before 2FA added
+                } else {
                     const token = secure.generateToken(result, username);
-                    log('LOGINUSER', `token on creation ${token}`);
+                    flog.info({ function: 'loginUser' }, `2FA not enabled. Issuing standard token for user: ${result.id}`);
                     secure.setAuthCookie(reply, token);
-                    log('LOGINUSER', `User registration result:${JSON.stringify(result)}`);
                     reply.code(200).send('ok');
                 }
-
             } catch (err) {
-                console.log(('Error during login:', err));
-                reply.code(500).send(err);
+                flog.error({ function: 'loginUser', error: err }, 'Error during login:', err);
+				reply.code(500).send(err);
             }
         }
     });
 }
-
 
 async function logoutUser(fastify, options) {
 	const { DBget, secure } = options;
@@ -192,161 +179,174 @@ async function deleteUser(fastify, option) {
 
 }
 
-/* Generates 2FA and qrcode for user when opting in for 2FA in profile
- */
+/* Generates 2FA secret and QR code, stores secret temporarily in memory */
 async function setupTwoFactor(fastify, options) {
     const { secure } = options;
     fastify.post('/api/2fa/setup', {}, async (request, reply) => {
+        flog.info({ function: 'setupTwoFactor' }, 'Starting 2FA setup process.');
         try {
             const token = request.cookies.auth_token;
-            const userId = secure.getUserIdFromToken(token); // logged in user id
+            const userId = secure.getUserIdFromToken(token); // Expects { id: ... }
+            if (!userId || userId.id === undefined) {
+                 throw new Error("Invalid user token for 2FA setup.");
+            }
 
-            const secret = speakeasy.generateSecret({ // generated secret
-                name: `Ft_Transedence (${userId.id})` // app name in authenticator
+            const secret = speakeasy.generateSecret({
+                name: `Ft_Transcendence (${userId.id})`
             });
 
-            // Tmp store the secret in a map associated with Id - secret
-            tempTwoFactorSecrets.set(userId.id, secret.base32);
-            log('2FA_SETUP:', ` Generated temporary secret for user ${userId.id}`);
+            tempSetupSecrets.set(userId.id, secret.base32);
 
-			const data_url = await qrcode.toDataURL(secret.otpauth_url);
+            flog.info({ function: 'setupTwoFactor', userId: userId.id }, `Generated temporary secret for user.`);
+
+            const data_url = await qrcode.toDataURL(secret.otpauth_url);
             reply.code(200).send({ qrCodeUrl: data_url });
+
         } catch (err) {
+            flog.error({ function: 'setupTwoFactor', error: { message: err.message, stack: err.stack } }, 'An error occurred during 2FA setup.'); // Improved error logging
             reply.code(500).send({ error: 'An error occurred during 2FA setup.' });
         }
     });
 }
 
-/* Verify the OTP token and enable 2FA for the user
- */
+/* verifies first OTP, saves PLAIN TEXT secret atm to DB, enables 2FA flag */
 async function verifyTwoFactor(fastify, options) {
     const { secure, DBupdate } = options;
     fastify.post('/api/2fa/verify', {}, async (request, reply) => {
-        const { otp } = request.body; // 6 Digit code form the user
+        const { otp } = request.body;
+        flog.info({ function: 'verifyTwoFactor' }, 'Attempting first OTP verification for setup.');
         try {
             const token = request.cookies.auth_token;
-            const userId = secure.getUserIdFromToken(token);
-
-            const secret = tempTwoFactorSecrets.get(userId.id);
-            if (!secret) {
-                return reply.code(400).send({ error: 'No 2FA setup process started. Please try again.' });
+            const userId = secure.getUserIdFromToken(token); // Expects { id: ... }
+            if (!userId || userId.id === undefined) {
+                 throw new Error("Invalid user token for 2FA verification.");
             }
 
-            // verify token
+            const plainTextSecret = tempSetupSecrets.get(userId.id);
+
+            if (!plainTextSecret) {
+                flog.warn({ function: 'verifyTwoFactor', userId: userId.id }, 'No temporary secret found for user.');
+                return reply.code(400).send({ error: 'No 2FA setup process started or secret expired. Please try again.' });
+            }
+
             const isVerified = speakeasy.totp.verify({
-                secret: secret,
+                secret: plainTextSecret,
                 encoding: 'base32',
                 token: otp
             });
 
             if (isVerified) {
-                log('2FA_VERIFY', `Successfully verified 2FA for user ${userId.id}`);
-				const enabled = await DBget.is2FaEnabled(userId.id);
-				const check = await DBupdate.update2fa(enabled, userId.id, secret);
-                // in the real database version - ->
-                // 1.save the secret to the users row
-                // 2.set 2FA boolen true
-				flog.debug({ function: 'verifyTwoFactor', check: check.message }, '2FA enabled for user in DB update');
-                //tempTwoFactorSecrets.delete(userId.id);
+                flog.info({ function: 'verifyTwoFactor', userId: userId.id }, `Successfully verified OTP. Enabling 2FA in DB.`);
+                await DBupdate.update2fa(true, userId.id, plainTextSecret); // add to DB
+                flog.debug({ function: 'verifyTwoFactor', userId: userId.id }, 'DB update attempted (plain text).');
+                tempSetupSecrets.delete(userId.id);
                 reply.code(200).send({ verified: true });
             } else {
-                log('2FA_VERIFY', `Failed verification for user ${userId.id}`);
+                flog.warn({ function: 'verifyTwoFactor', userId: userId.id }, `Failed OTP verification during setup.`);
                 reply.code(400).send({ verified: false, error: 'Invalid token.' });
             }
-
         } catch (err) {
+            flog.error({ function: 'verifyTwoFactor', error: { message: err.message, stack: err.stack } }, 'An error occurred during 2FA verification.');
             reply.code(500).send({ error: 'An error occurred during 2FA verification.' });
         }
     });
 }
 
-/* disables 2FA, atm delets the id and secret from map. real vertsion would toggle boolean
- * and delete secret from database
- */
+/* Disables 2FA in the database */
 async function disableTwoFactor(fastify, options) {
-    const { secure } = options;
+    const { secure, DBupdate } = options;
     fastify.post('/api/2fa/disable', {}, async (request, reply) => {
+        flog.info({ function: 'disableTwoFactor' }, 'Attempting to disable 2FA.');
         try {
             const token = request.cookies.auth_token;
             const userId = secure.getUserIdFromToken(token);
-
-            // deletes secret from tmp map
-            const wasDeleted = tempTwoFactorSecrets.delete(userId.id);
-
-            if (wasDeleted) {
-                log('2FA_DISABLE', `2FA disabled for user ${userId.id}`);
-                reply.code(200).send({ disabled: true });
-            } else {
-                // if for some reason it was already disabled?
-                log('2FA_DISABLE', `2FA was already disabled for user ${userId.id}`);
-                reply.code(200).send({ disabled: true, message: '2FA already disabled.' });
+             if (!userId || userId.id === undefined) {
+                 throw new Error("Invalid user token for disabling 2FA.");
             }
 
+            await DBupdate.update2fa(false, userId.id, null); // Pass null secret, false status
+
+            flog.info({ function: 'disableTwoFactor', userId: userId.id }, '2FA disabled in DB for user.');
+            tempSetupSecrets.delete(userId.id);
+            reply.code(200).send({ disabled: true });
         } catch (err) {
+            flog.error({ function: 'disableTwoFactor', error: { message: err.message, stack: err.stack } }, 'An error occurred while disabling 2FA.');
             reply.code(500).send({ error: 'An error occurred while disabling 2FA.' });
         }
     });
 }
 
-/* checks if the 2FA is currently enabled for user, used to check if tick box on or off
- * on profile pages
- */
+/* Checks the DB if 2FA is enabled for user */
 async function getTwoFactorStatus(fastify, options) {
-    const { secure, DBget} = options;
+    const { secure, DBget } = options;
     fastify.get('/api/2fa/status', {}, async (request, reply) => {
+        flog.debug({ function: 'getTwoFactorStatus' }, 'Fetching 2FA status for user');
         try {
-			flog.debug({ function: 'getTwoFactorStatus' }, 'Fetching 2FA status for user');
             const token = request.cookies.auth_token;
             const userId = secure.getUserIdFromToken(token);
-			const isEnabled = await DBget.is2FaEnabled(userId.id);// this get from db with id
-            //const isEnabled = tempTwoFactorSecrets.has(userId.id);
+             if (!userId || userId.id === undefined) {
+                 flog.warn({ function: 'getTwoFactorStatus'}, 'Invalid token, returning 2FA disabled.');
+                 return reply.code(200).send({ isEnabled: false });
+            }
+
+            const isEnabled = await DBget.is2FaEnabled(userId.id);
+
+            flog.debug({ function: 'getTwoFactorStatus', userId: userId.id, isEnabled }, 'Returning 2FA status from DB.');
             reply.code(200).send({ isEnabled });
+
         } catch (err) {
-			flog.error( {function: 'getTwoFactorStatus', error: err}, 'Error fetching 2FA status::', err);
-        	reply.code(500).send({ error: 'An error occurred while fetching 2FA status.' });
-			// reply.code(200).send({ isEnabled: false });
+            flog.error({ function: 'getTwoFactorStatus', error: { message: err.message, stack: err.stack } }, 'Error fetching 2FA status from DB:', err);
+             reply.code(200).send({ isEnabled: false });
+            // reply.code(500).send({ error: 'An error occurred while fetching 2FA status.' }); // better error?
         }
     });
 }
 
-/* 2FA check for login
- */
+/* Verifies OTP during login using PLAIN TEXT secret from DATABASE */
 async function verifyLoginTwoFactor(fastify, options) {
-    const { secure } = options;
+    const { secure, DBget } = options;
     fastify.post('/api/2fa/login-verify', {}, async (request, reply) => {
         const { otp, tempAuthToken } = request.body;
-
+        flog.info({ function: 'verifyLoginTwoFactor' }, 'Attempting 2FA login verification.');
         try {
-            // verify token
             const decodedTempToken = secure.verifyTemporaryToken(tempAuthToken);
-            if (!decodedTempToken || decodedTempToken.type !== '2fa_pending') {
+            if (!decodedTempToken || decodedTempToken.type !== '2fa_pending' || decodedTempToken.id === undefined) {
                 return reply.code(401).send({ error: 'Invalid or expired session.' });
             }
 
             const userId = decodedTempToken.id;
-            // get users 2FA secret
-            const secret = tempTwoFactorSecrets.get(userId);
-            if (!secret) {
-                return reply.code(400).send({ error: '2FA is not properly configured.' });
+
+            // assumes get2FaSecret returns the plain text base32 secret saved earlier
+            const plainTextSecret = await DBget.get2FaSecret(userId);
+            if (!plainTextSecret) {
+                flog.warn({ function: 'verifyLoginTwoFactor', userId }, '2FA secret not found in DB for user during login.');
+                return reply.code(400).send({ error: '2FA is not properly configured for this user.' });
             }
 
-            // verify the code
             const isVerified = speakeasy.totp.verify({
-                secret: secret,
+                secret: plainTextSecret,
                 encoding: 'base32',
                 token: otp
             });
 
             if (isVerified) {
-				const finalToken = secure.generateToken({ id: decodedTempToken.id }, decodedTempToken.username);
-				secure.setAuthCookie(reply, finalToken);
-				reply.code(200).send('ok');
+                flog.info({ function: 'verifyLoginTwoFactor', userId }, 'Login OTP verified. Issuing final token.');
+
+                const finalToken = secure.generateToken({ id: userId }, decodedTempToken.username);
+                secure.setAuthCookie(reply, finalToken);
+                reply.code(200).send('ok');
             } else {
+                flog.warn({ function: 'verifyLoginTwoFactor', userId }, 'Invalid login OTP provided.');
                 reply.code(401).send({ error: 'Invalid 2FA code.' });
             }
-
         } catch (err) {
-            reply.code(500).send({ error: 'An error occurred during 2FA verification.' });
+			flog.error({
+        	function: 'verifyLoginTwoFactor',
+        	errorMsg: err.message || err.error,
+        	errorStack: err.stack,
+        	rawError: err
+			}, 'Error during 2FA login verification.');
+            reply.code(500).send({ error: 'An error occurred during 2FA login verification.' });
         }
     });
 }
@@ -357,7 +357,7 @@ async function authRoutes(fastify, options) {
 	await logoutUser(fastify, options);
 	await deleteUser(fastify, options);
 	await setupTwoFactor(fastify, options);
-    await verifyTwoFactor(fastify, options);
+    await verifyTwoFactor(fastify, options);
 	await disableTwoFactor(fastify, options);
 	await getTwoFactorStatus(fastify, options);
 	await verifyLoginTwoFactor(fastify, options);

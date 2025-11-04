@@ -10,16 +10,17 @@ import type {
 	ChangePasswordPayload,
 	ChangePasswordResponse,
 	UpdateProfilePayload,
-	ChangeTwoFactorPayload,
-	ChangeTwoFactorResponse,
+	//ChangeTwoFactorPayload,
+	//ChangeTwoFactorResponse,
 	UploadAvatarResponse,
 } from "../../shared/payloads";
 import avatar1 from "../assets/avatars/avatar1.png";
 import avatar2 from "../assets/avatars/avatar2.png";
 import avatar3 from "../assets/avatars/avatar3.png";
 import avatar4 from "../assets/avatars/avatar4.png";
+import defaultAvatar from "../assets/avatars/default-avatar.png";
 
-const availableAvatars = [avatar1, avatar2, avatar3, avatar4];
+const availableAvatars = [defaultAvatar, avatar1, avatar2, avatar3, avatar4];
 
 type Row = "language" | "username" | "password" | "avatar" | "twofa" | null;
 
@@ -53,8 +54,11 @@ const SettingsPage: React.FC = () => {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	// 2FA state
-	const [twoFactor, setTwoFactor] = useState<boolean>(false);
-	const [loadingTwoFA, setLoadingTwoFA] = useState<boolean>(false); //may need to update the code to remove this with the AuthContext additio
+	const [twoFactor, setTwoFactor] = useState(false);
+	const [qrCode, setQrCode] = useState<string | null>(null);
+	const [otp, setOtp] = useState<string>("");
+	//const [twoFactor, setTwoFactor] = useState<boolean>(false);
+	//const [loadingTwoFA, setLoadingTwoFA] = useState<boolean>(false); //may need to update the code to remove this with the AuthContext additio
 
 	// Delete Profile state
 	const [deleting, setDeleting] = useState(false);
@@ -62,57 +66,35 @@ const SettingsPage: React.FC = () => {
 	const [deleteError, setDeleteError] = useState<string | null>(null);
 
 	useEffect(() => {
+
+	const fetch2faStatus = async () => {
+		try {
+        const res = await fetch('/api/2fa/status', {
+			credentials: "include"
+		});
+        const data = await res.json();
+        setTwoFactor(data.isEnabled);
+		} catch (err) {
+        console.error("Failed to fetch 2FA status", err);
+        setTwoFactor(false);
+		}
+	};
+
 	if (user) {
+		fetch2faStatus();
 		setUsername(user.username || "");
 		const avatar = user.avatarFile || availableAvatars[0];
 		setCurrentAvatar(avatar);
 		setSelectedAvatar(avatar);
-		setTwoFactor(user.twoFactor ?? false);
 	}
 	}, [user]);
-	
+
 	if (loading) {
-		return <div className="p-6 text-center text-gray-300">Loading...</div>;
+		return <div className="p-6 text-center text-gray-300">{t("settings.loading")}</div>;
 	}
-	if (!isLoggedIn) { //changed from !user to !isLoggedIn
-	return (
-		<div className="p-6 text-center text-gray-300">
-		Please log in to access settings.
-		</div>
-		);
+	if (!isLoggedIn) {
+		return <div className="p-6 text-center text-gray-300">{t("settings.loginRequired")}</div>;
 	}
-
-	//Preload current 2FA status. Should be redundant now as we use user info from AuthContext
-	// useEffect(() => {
-	// 	let cancelled = false;
-	// 	async function preloadTwoFA() {
-	// 		try {
-	// 			setLoadingTwoFA(true);
-	// 			const res = await fetch(API_PROTOCOL.GET_PROFILE.path, {
-	// 				method: API_PROTOCOL.GET_PROFILE.method,
-	// 				headers: { "Content-Type": "application/json" },
-	// 			});
-	// 			if (!res.ok) return;
-
-	// 			const data = await res.json();
-	// 			if (!cancelled && typeof data?.twoFactor === "boolean") {
-	// 				setTwoFactor(data.twoFactor);
-	// 			}
-
-	// 			if (!cancelled) {
-	// 				const serverAvatar = (data?.avatarFile || data?.avatar) as string | undefined;
-	// 				if (serverAvatar) {
-	// 					setCurrentAvatar(serverAvatar);
-	// 					setSelectedAvatar(serverAvatar);
-	// 				}
-	// 			}
-	// 		} finally {
-	// 			if (!cancelled) setLoadingTwoFA(false);
-	// 		}
-	// 	}
-	// 	preloadTwoFA();
-	// 	return () => { cancelled = true; };
-	// }, []);
 
 	// Clear forms
 	function resetUsernameForm() {
@@ -141,10 +123,16 @@ const SettingsPage: React.FC = () => {
 		}
 	}
 
+	function reset2faForm() {
+		setQrCode(null);
+		setOtp("");
+	}
+
 	function closeAndReset(row: Exclude<Row, null>) {
 		if (row === "username") resetUsernameForm();
 		if (row === "password") resetPasswordForm();
 		if (row === "avatar") resetAvatarForm();
+		if (row === "twofa") reset2faForm();
 		setOpenRow(null);
 	}
 
@@ -173,6 +161,7 @@ const SettingsPage: React.FC = () => {
 		if (openRow === "username") setUsernameInput("");
 		if (openRow === "password") resetPasswordForm();
 		if (openRow === "avatar") resetAvatarForm();
+		if (openRow === "twofa") reset2faForm();
 
 		if (row === "avatar") {
 			if (currentAvatar) setSelectedAvatar(currentAvatar);
@@ -184,6 +173,7 @@ const SettingsPage: React.FC = () => {
 		if (row === "password") {
 			resetPasswordForm();
 		}
+		if (row === "twofa") reset2faForm();
 
 		setOpenRow(row);
 	}
@@ -204,7 +194,7 @@ const SettingsPage: React.FC = () => {
 
 		const okType = ["image/png", "image/jpeg", "image/webp"].includes(f.type);
 		if (!okType) { 
-			setErr(t("error.avatarType"));
+			setErr(t("error.avatar.type"));
 			setUploadFile(null);
 			setUploadPreview(null);
 			if (fileInputRef.current) fileInputRef.current.value = "";
@@ -214,7 +204,7 @@ const SettingsPage: React.FC = () => {
 
 		const maxBytes = 2 * 1024 * 1024;
 		if (f.size > maxBytes) {
-			setErr(t("error.avatarTooLarge"));
+			setErr(t("error.avatar.tooLarge"));
 			setUploadFile(null);
 			setUploadPreview(null);
 			if (fileInputRef.current) fileInputRef.current.value = "";
@@ -266,6 +256,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
 				method: API_PROTOCOL.CHANGE_LANGUAGE.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update language.");
@@ -274,11 +265,12 @@ const SettingsPage: React.FC = () => {
 			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update language.");
 			
 			setLang(language);
-			setMsg(t("common.languageUpdated"));
+			localStorage.setItem("serverLang", language);
+			setMsg(t("common.language.updated"));
 			setOpenRow(null);
 			await refreshSession();
 		} catch (e: any) {
-			setErr(e?.message || "Could not update language.");
+			setErr(t("error.language.updateFailed"));
 		} finally {
 			setBusy(false);
 		}
@@ -288,11 +280,12 @@ const SettingsPage: React.FC = () => {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
 			const value = usernameInput.trim();
-			if (value.length < 3 || value.length > 15) throw new Error(t("error.usernameLength"));
+			if (value.length < 3 || value.length > 15) throw new Error(t("error.username.length"));
 			const payload: ChangeUsernamePayload = { username: value };
 			const res = await fetch(API_PROTOCOL.CHANGE_USERNAME.path, {
 				method: API_PROTOCOL.CHANGE_USERNAME.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update username.");
@@ -300,14 +293,14 @@ const SettingsPage: React.FC = () => {
 			const data = (await res.json()) as ChangeUsernameResponse;
 			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update username.");
 
-			setMsg(t("common.usernameUpdated"));
+			setMsg(t("common.username.updated"));
 			resetUsernameForm();
 			setUsernameInput("");
 			setOpenRow(null);
 			await refreshSession();
 			setUsername(value);
 		} catch (e: any) {
-			setErr(e?.message || "Could not update username.");
+			setErr(t("error.username.updateFailed"));
 		} finally {
 			setBusy(false);
 		}
@@ -316,9 +309,9 @@ const SettingsPage: React.FC = () => {
 	async function savePassword() {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
-			if (newPassword.length < 8) throw new Error(t("error.passwordLength"));
-			if (newPassword !== confirmNewPassword) throw new Error(t("error.passwordMatch"));
-			if (!currentPassword) throw new Error (t("error.passwordRequired"));
+			if (newPassword.length < 8) throw new Error(t("error.password.length"));
+			if (newPassword !== confirmNewPassword) throw new Error(t("error.password.match"));
+			if (!currentPassword) throw new Error (t("error.password.required"));
 			const payload: ChangePasswordPayload = {
 				current_password: currentPassword,
 				new_password: newPassword,
@@ -326,21 +319,22 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_PASSWORD.path, {
 				method: API_PROTOCOL.CHANGE_PASSWORD.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			//if (!res.ok) throw new Error("Failed to update password.");
 
 			const data = (await res.json()) as ChangePasswordResponse;
 			if (!res.ok || data.status !== "UPDATED") {
-				throw new Error(t("error.currentPasswordIncorrect"));
+				throw new Error(t("error.password.currentIncorrect"));
 			}
 
-			setMsg(t("common.passwordUpdated"));
+			setMsg(t("common.password.updated"));
 			resetPasswordForm();
 			setOpenRow(null);
 			setCurrentPassword(""); setNewPassword(""); setConfirmNewPassword("");
 		} catch (e: any) {
-			setErr(e?.message || "Could not update password.");
+			setErr(t("error.password.updateFailed"));
 		} finally {
 			setBusy(false);
 		}
@@ -353,6 +347,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_AVATAR.path, {
 				method: API_PROTOCOL.CHANGE_AVATAR.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update avatar.");
@@ -364,11 +359,11 @@ const SettingsPage: React.FC = () => {
 			}
 			setUploadFile(null);
 			if (fileInputRef.current) fileInputRef.current.value = "";
-			setMsg(t("common.avatarUpdated"));
+			setMsg(t("common.avatar.updated"));
 			setOpenRow(null);
 			await refreshSession();
 		} catch (e: any) {
-			setErr(e?.message || "Could not update avatar.");
+			setErr(t("error.avatar.updateFailed"));
 		} finally {
 			setBusy(false);
 		}
@@ -399,16 +394,17 @@ const SettingsPage: React.FC = () => {
 			if (fileInputRef.current) fileInputRef.current.value= "";
 
 			setAvatarDirty(false);
-			setMsg(t("common.avatarUpdated"));
+			setMsg(t("common.avatar.updated"));
 			setOpenRow(null);
 			await refreshSession();
 		} catch (e: any) {
-			setErr(e?.message || "Could not upload avatar.");
+			setErr(t("error.avatar.updateFailed"));
 		} finally {
 			setUploadBusy(false);
 		}
 	}
 
+	/*
 	async function saveTwoFactor() {
 		setBusy(true);
 		setMsg(null);
@@ -418,6 +414,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_2FA.path, {
 				method: API_PROTOCOL.CHANGE_2FA.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update 2FA.");
@@ -425,15 +422,49 @@ const SettingsPage: React.FC = () => {
 			const data = (await res.json()) as ChangeTwoFactorResponse;
 			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update 2FA.");
 
-			setMsg(twoFactor ? t("common.twofaEnabled") : t("common.twofaDisabled"));
+			setMsg(twoFactor ? t("common.twofa.enabled") : t("common.twofa.disabled"));
 			setOpenRow(null);
 			await refreshSession();
 		} catch (e: any) {
-			setErr(e?.message || "Could not change 2FA.");
+			setErr(t("error.twofa.updateFailed"));
 		} finally {
 			setBusy(false);
 		}
 	}
+	*/
+
+	//2FA handlers
+	const handle2faCheckboxChange = async () => {
+		if (!twoFactor && !qrCode) { // enabling 2FA
+			try {
+				const res = await fetch('/api/2fa/setup', { method: 'POST', credentials: "include" });
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.error || "Could not start 2FA setup.");
+				if (data.qrCodeUrl) { setQrCode(data.qrCodeUrl); }
+			} catch (err: any) { console.error("Failed to setup 2FA", err); alert(err.message || "Could not start 2FA setup."); }
+		}
+		else if (twoFactor) { //  disabling 2FA
+			if (window.confirm("Are you sure you want to disable 2FA?")) {
+				try {
+					const res = await fetch('/api/2fa/disable', { method: 'POST', credentials: "include" });
+					const data = await res.json();
+					if (!res.ok) throw new Error(data.error || "Failed to disable 2FA.");
+					if (data.disabled) { alert("2FA disabled."); setTwoFactor(false); setOpenRow(null); await refreshSession(); }
+				} catch (err: any) { alert(err.message || "Failed to disable 2FA."); }
+			}
+		}
+	};
+
+	const handleVerify2fa = async () => {
+		if (otp.length !== 6) { alert("Please enter a 6-digit code."); return; }
+		try {
+			const res = await fetch('/api/2fa/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: "include", body: JSON.stringify({ otp }) });
+			const data = await res.json();
+			if (!res.ok) throw new Error(data.error || "Failed to verify 2FA.");
+			if (data.verified) { alert("2FA enabled successfully!"); setTwoFactor(true); setQrCode(null); setOtp(""); setOpenRow(null); await refreshSession(); }
+			else { alert(data.error || "Invalid code, please try again."); }
+		} catch (err: any) { alert(err.message || "Failed to verify 2FA."); }
+	};
 
 	async function handleDeleteProfile() {
 		setDeleting(true);
@@ -441,14 +472,15 @@ const SettingsPage: React.FC = () => {
 		try {
 			const res = await fetch(API_PROTOCOL.DELETE_PROFILE.path, {
 				method: API_PROTOCOL.DELETE_PROFILE.method,
-				headers: { "Content-Type": "application/json" },
+				//headers: { "Content-Type": "application/json" },
+				credentials: "include",
 			});
 			if (!res.ok) throw new Error("Failed to delete profile.");
 
 			setDeleted(true);
 			await refreshSession();
 		} catch (err:any) {
-			setDeleteError(err?.message || "Deletion failed.");
+			setDeleteError(t("error.delete.removeFailed"));
 		} finally {
 			setDeleting(false);
 		}
@@ -470,12 +502,12 @@ const SettingsPage: React.FC = () => {
 			<section className ="bg-gray-800/50 rounded-lg border border-gray-700 divide-y divide-gray-700">
 				{/* Change Language row */}
 				<SettingButton
-					label={t("settings.changeLanguage")}
+					label={t("settings.title.language")}
 					onClick={() => toggle("language")}
 				/>
 				{openRow === "language" && (
 					<div className="px-4 pt-3 pb-4">
-						<label className="block mb-2 text-sm">{t("settings.languageSelect")}</label>
+						<label className="block mb-2 text-sm">{t("settings.item.language")}</label>
 						<select
 							value={language}
 							onChange={(e) => setLanguage(e.target.value as "en" | "fi" | "sv")}
@@ -494,19 +526,19 @@ const SettingsPage: React.FC = () => {
 
 				{/* Change Username row */}
 				<SettingButton
-					label={t("settings.changeUsername")}
+					label={t("settings.title.username")}
 					onClick={() => toggle("username")}
 				/>
 				{openRow === "username" && (
 					<div className="px-4 pt-3 pb-4">
-						<label className="block mb-2 text-sm">{t("settings.usernameEnter")}</label>
+						<label className="block mb-2 text-sm">{t("settings.item.newUsername")}</label>
 						<input
 							type="text"
 							name="settings-username"
 							value={usernameInput}
 							onChange={(e) => setUsernameInput(e.target.value)}
 							className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm"
-							placeholder={t("settings.usernameEnter")}
+							placeholder={t("settings.username.notice")}
 							autoComplete="off"
 						/>
 						<div className="mt-3 flex gap-2">
@@ -518,12 +550,12 @@ const SettingsPage: React.FC = () => {
 
 				{/* Change Password row */}
 				<SettingButton
-					label={t("settings.changePassword")}
+					label={t("settings.title.password")}
 					onClick={() => toggle("password")}
 				/>
 				{openRow === "password" && (
 					<div className="px-4 pt-3 pb-4">
-						<label className="block mb-2 text-sm">{t("settings.passwordCurrent")}</label>
+						<label className="block mb-2 text-sm">{t("settings.item.passwordCurrent")}</label>
 						<input
 							type="password"
 							name="settings-current-password"
@@ -534,15 +566,15 @@ const SettingsPage: React.FC = () => {
 							onChange={(e) => setCurrentPassword(e.target.value)}
 							className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm"
 						/>
-						<label className="block mt-3 mb-2 text-sm">{t("settings.passwordNew")}</label>
+						<label className="block mt-3 mb-2 text-sm">{t("settings.item.passwordNew")}</label>
 						<input
 							type="password"
 							value={newPassword}
 							onChange={(e) => setNewPassword(e.target.value)}
 							className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm"
-							placeholder={t("notice.passwordLength")}
+							placeholder={t("settings.password.notice")}
 						/>
-						<label className="block mt-3 mb-2 text-sm">{t("settings.passwordConfirm")}</label>
+						<label className="block mt-3 mb-2 text-sm">{t("settings.item.passwordConfirm")}</label>
 						<input
 							type="password"
 							value={confirmNewPassword}
@@ -558,15 +590,15 @@ const SettingsPage: React.FC = () => {
 
 				{/* Change Avatar row */}
 				<SettingButton
-					label={t("settings.changeAvatar")}
+					label={t("settings.title.avatar")}
 					onClick={() => toggle("avatar")}
 				/>
 				{openRow === "avatar" && (
 					<div className="px-4 pt-3 pb-4">
-						<label className="block mb-2 text-sm">{t("settings.avatarSelect")}</label>
+						<label className="block mb-2 text-sm">{t("settings.item.avatarSelect")}</label>
 
 						<div className="mb-3">
-							<label className="block mb-1 text-sm">{t("settings.avatarCustomAvatar")}</label>
+							<label className="block mb-1 text-sm">{t("settings.item.avatarCustomAvatar")}</label>
 							<input
 								ref={fileInputRef}
 								type="file"
@@ -606,12 +638,12 @@ const SettingsPage: React.FC = () => {
 								</button>
 							</div>
 
-							<p className="mt-1 text-xs text-gray-400">{t("settings.avatarUploadHint")}</p>
+							<p className="mt-1 text-xs text-gray-400">{t("settings.item.avatarUploadHint")}</p>
 						</div>
 
 						{/* Built-in avatar */}
-						<p className="text-sm mb-2">{t("settings.avatarBuiltIn")}</p>
-						<div className="grid grid-cols-4 gap-3">
+						<p className="text-sm mb-2">{t("settings.item.avatarBuiltIn")}</p>
+						<div className="grid grid-cols-5 gap-2">
 							{availableAvatars.map((av) => (
 								<button
 									key={av}
@@ -638,47 +670,61 @@ const SettingsPage: React.FC = () => {
 						</div>
 					</div>
 				)}
-
-				{/* 2FA row */}
-				<SettingButton
-					label={t("settings.change2fa")}
-					onClick={() => toggle("twofa")}
-				/>
-				{openRow === "twofa" && (
-					<div className="px-4 pt-3 pb-4">
-						<label className="block mb-2 text-sm">{t("settings.twofaDescription")}</label>
-
-						<label className="inline-flex items-center gap-2">
-							<input
-								type="checkbox"
-								checked={twoFactor}
-								onChange={() => setTwoFactor((v) => !v)}
-								disabled={busy || loadingTwoFA}
-							/>
-							<span className="text-sm">{t("settings.twofaLabel")}</span>
-						</label>
-
-						<div className="mt-3 flex gap-2">
-							<PrimaryTiny onClick={saveTwoFactor} disabled={busy || loadingTwoFA}>
-								{t("common.save")}
-							</PrimaryTiny>
-							<SecondaryTiny onClick={() => setOpenRow(null)} disabled={busy}>
-								{t("common.cancel")}
-							</SecondaryTiny>
-						</div>
+						{/*2FA*/}
+						<SettingButton label={t("settings.change2fa")} onClick={() => toggle("twofa")} />
+						{openRow === "twofa" && (
+							<div className="px-4 pt-3 pb-4">
+								{/* Your interactive checkbox */}
+								<label className="flex items-center gap-2 mb-4">
+									<input
+									type="checkbox"
+									checked={twoFactor}
+									onChange={handle2faCheckboxChange}
+									disabled={!!qrCode}
+									/>
+									<span className="text-sm">{t("settings.twofaLabel", "Enable Two-Factor Authentication")}</span>
+								</label>
+						{qrCode && (
+							<div className="mt-4 p-4 border rounded-lg bg-gray-50 text-gray-900">
+								<h3 className="font-semibold text-lg">{t("settings.twofaEnableTitle", "Enable Two-Factor Authentication")}</h3>
+								<p className="text-sm mt-1">{t("settings.twofaScanQR", "1. Scan this QR code with your authenticator app.")}</p>
+								<img src={qrCode} alt="2FA QR Code" className="my-3 mx-auto bg-white p-1" />
+								<p className="text-sm">{t("settings.twofaEnterCode", "2. Enter the 6-digit code from your app below.")}</p>
+								<div className="flex items-center mt-2">
+									<input
+										type="text"
+										className="border p-2 rounded-md w-32 text-center text-black"
+										placeholder="123456"
+										value={otp}
+										onChange={(e) => setOtp(e.target.value.replace(/\D/g,''))}
+										maxLength={6}
+									/>
+									<PrimaryTiny onClick={handleVerify2fa} disabled={busy}>
+										{t("common.verifyEnable", "Verify & Enable")}
+									</PrimaryTiny>
+								</div>
+							</div>
+						)}
+						{!qrCode && (
+                            <div className="mt-3 flex gap-2">
+							    <SecondaryTiny onClick={() => closeAndReset("twofa")} disabled={busy}>
+								    {t("common.cancel")}
+							    </SecondaryTiny>
+                            </div>
+                        )}
 					</div>
-				)}	
+				)}
 			</section>
 
 			{/* Danger Zone */}
 			<section className="mt-6 border border-red-500/30 bg-red-900/10 rounded-lg p-4">
-				<h2 className="text-red-400 font-semibold mb-2">{t("settings.danger")}</h2>
+				<h2 className="text-red-400 font-semibold mb-2">{t("settings.title.delete")}</h2>
 				<p className="text-sm text-red-200 mb-3">
-					{t("settings.deleteText")}
+					{t("settings.delete.text")}
 				</p>
 
 				{deleteError && <p className="text-red-300 text-sm mb-2">{deleteError}</p>}
-				{deleted && <p className="text-red-300 text-sm mb-2">{t("common.deletedText")}</p>}
+				{deleted && <p className="text-red-300 text-sm mb-2">{t("common.delete.success")}</p>}
 				<button
 					type="button"
 					onClick={handleDeleteProfile}
@@ -691,7 +737,7 @@ const SettingsPage: React.FC = () => {
 							 : "bg-red-600 hover:bg-red-700"
 					}`}
 				>
-					{deleted ? t("common.deleted") : deleting ? "Deleting..." : t("settings.delete")}
+					{deleted ? t("common.deleted") : deleting ? "Deleting..." : t("settings.item.delete")}
 				</button>
 			</section>
 		</div>
