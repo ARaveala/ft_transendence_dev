@@ -84,7 +84,9 @@
 			fileSize: 1024 * 1024 * 2, // Example limit: 2MB
 		}
 	});
-
+	fastify.get('/', async (req, reply) => {
+  		reply.send({ status: 'ok' });
+	});
 	//const fastifyStatic = require('@fastify/static'); 
 	//const fastifyStatic = require('@fastify/static'); 
 
