@@ -40,6 +40,11 @@ async function addFriend(fastify, options) {
 	});
 }
 
+/**
+ * 
+ * @param {*} fastify 
+ * @param {*} options comes from contex.js
+ */
 async function removeFriend(fastify, options) {
 	const {DBdelete} = options;
 	fastify.route ({
