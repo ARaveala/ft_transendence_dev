@@ -34,6 +34,7 @@ async function authHook(fastify, options) {
 //const path = request.routerPath;
 		const method = request.method;
 		// for tester maybe only
+		flog.warn({fucntion : 'authHook', method: method}, "lets see if we catch the head method");
 		if (request.method === 'HEAD') return;
 
 		const isExcluded = excludedPaths.some(route =>
