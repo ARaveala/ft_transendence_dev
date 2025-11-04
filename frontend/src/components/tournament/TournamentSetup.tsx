@@ -16,6 +16,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 	const { tournament, setTournament, refreshSession } = useAuth();
 	const [loading, setLoading] = useState(false);
 	const [loadingSession, setLoadingSession] = useState(true);
+	const [aliasChanged, setAliasChanged] = useState(false);
 
 	useEffect(() => {
 		const loadSession = async () => {
@@ -121,6 +122,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 					<PlayerList
 						tournament={tournament}
 						onRemovePlayer={handleRemovePlayer}
+						onAliasChanged={setAliasChanged}
 					/>
 				</div>
 				)}
@@ -132,7 +134,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 
 					<Button
 						onClick={handleStartTournament}
-						disabled={!tournamentCanStart || loading}
+						disabled={!tournamentCanStart || loading || aliasChanged}
 					>
 						{loading
 							? "Processing..."

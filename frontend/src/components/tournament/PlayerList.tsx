@@ -17,6 +17,7 @@ const ALIAS_REGEX = /^[a-zA-Z0-9_]{5,10}$/;
 interface PlayerListProps {
 	tournament: TournamentState;
 	onRemovePlayer: (role: string) => void;                // remove a player from the list
+	onAliasChanged?: (val: boolean) => void;
 }
 
 type PlayerFormData = {
@@ -36,7 +37,7 @@ type FormData = Record<string, PlayerFormData>;
 const emptyPlayerForm = (): PlayerFormData => ({ username: "", password: "", alias: "" });
 
 const PlayerList: React.FC<PlayerListProps> = ({
-	tournament, onRemovePlayer,
+	tournament, onRemovePlayer, onAliasChanged
 	}) => {
 	const { setTournament, refreshSession } = useAuth();
 	const [formData, setFormData] = useState<FormData>({});
@@ -45,36 +46,50 @@ const PlayerList: React.FC<PlayerListProps> = ({
 	const [isEditingAlias, setIsEditingAlias] = useState<boolean>(false);
 	const [tempAlias, setTempAlias] = useState('');
 
+	const self = tournament.players.find(p => p.isSelf);
+	const backendAlias = self?.alias ?? "";
+
+	const aliasChanged =
+		isEditingAlias ||
+		tempAlias !== backendAlias ||
+		!ALIAS_REGEX.test(tempAlias);
+
+
 	useEffect(() => {
-		const initial: FormData = {};
-		let selfAlias = '';
+		setFormData(prev => {
+		const next: FormData = { ...prev };
 
 		tournament.players.forEach(p => {
-			if (p.isSelf) {
-				// If editing, uses the existing local state value (which was set to "")
-				initial[p.role] = formData[p.role] || {
-				username: p.username || "",
-				password: "",
-				alias: p.alias || "",
-				};
-				selfAlias = p.alias || '';
-
-			} else {
-				initial[p.role] = formData[p.role] || {
-					username: "",
-					password: "",
-					alias: "",
-				};
-			
+			if (!next[p.role]) {
+				if (p.isSelf) {
+					next[p.role] = {
+						username: p.username || "",
+						password: "",
+						alias: p.alias || "",
+					};
+				} else {
+					next[p.role] = {
+						username: "",
+						password: "",
+						alias: "",
+					};
+				}
 			}
 		});
-		setFormData(initial);
 
-		if (!isEditingAlias && tempAlias === "") {
-			setTempAlias(selfAlias || "");
+		return next;
+		});
+
+		// Initialize tempAlias only when not editing and when it hasn't been set yet
+		const self = tournament.players.find(p => p.isSelf);
+		if (!isEditingAlias && tempAlias === "" && self?.alias) {
+			setTempAlias(self.alias);
 		}
 
-	}, [tournament.players.map(p => p.role).join("|")]);
+		// note: tempAlias is not reset when player list changes
+		// so user edits are preserved until they explicitly save
+
+	}, [tournament.players, isEditingAlias]);
 
 	const updateField = (role: string, field: keyof PlayerFormData, value: string) => {
 		const player = tournament.players.find((p) => p.role === role)!;
@@ -149,7 +164,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			localErrors.alias = "Alias must be unique.";
 		}
 
-		// If ANY frontend error exists -> stop
+		// If any frontend error exists -> stops
 		if (Object.keys(localErrors).length > 0) {
 			setErrors(prev => ({
 				...prev,
@@ -158,7 +173,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			return;
 		}
 
-		// Clear previous errors
+		// Clears previous errors
 		setErrors(prev => {
 			const newErr = { ...prev };
 			delete newErr[role];
@@ -217,6 +232,12 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			if (player.isSelf) {
 				// Exit editing mode for the logged in player on success
 				setIsEditingAlias(false);
+				// ensures tempAlias matches saved backend alias
+				// but let's set it proactively if response contains the tournament player alias:
+				const updatedSelf = response?.tournament?.players?.find((p: TournamentPlayer) => p.isSelf);
+				if (updatedSelf?.alias) {
+					setTempAlias(updatedSelf.alias);
+				}
 			}
 			
 		} catch (err: any) {
@@ -240,31 +261,40 @@ const PlayerList: React.FC<PlayerListProps> = ({
 
 	onRemovePlayer(role);
 	await refreshSession();
-  };
+	};
+	
+	// Helper to determine if a player's fields are locked in the UI
+	// Uses backend status === "ready" as the indicator that the backend considers the player ready
+	const renderPlayers = tournament.players.map((player) => {
+		const role = player.role;
+		const isCurrentlyLoading = loading === role;
 
-  return (
-	<div className="space-y-3">
-		{tournament.players.map((player) => {
-			const role = player.role;
-			const isCurrentlyLoading = loading === role;
+		// Use backend status === "ready" as the single source of truth for "ready"
+		const verifiedPlayer = tournament.players.find(p => p.role === role);
+		const isPlayerReady = verifiedPlayer?.status === "ready";
 
-			const verifiedPlayer = tournament.players.find(p => p.role === role);
-			const isPlayerVerified = verifiedPlayer?.isVerified ?? false;
-			
-			const isSelfVerifiedButLocked = player.isSelf && isPlayerVerified && !isEditingAlias && !!player.alias;
-			const isOtherPlayerLocked = !player.isSelf && isPlayerVerified;
-			const isAliasLocked = isOtherPlayerLocked || isSelfVerifiedButLocked; 
+		const isSelfReadyButLocked =
+		player.isSelf && isPlayerReady && !isEditingAlias && !!player.alias;
 
-			const data = formData[role] || { username: "", password: "", alias: "" };
-			const fieldErrs = errors[role] || {};
+		const isOtherPlayerLocked =
+		!player.isSelf && isPlayerReady;
 
-		return (
-		  <div
+		const isAliasLocked = isOtherPlayerLocked || isSelfReadyButLocked;
+
+		const data = formData[role] || { username: "", password: "", alias: "" };
+		const fieldErrs = errors[role] || {};
+
+	useEffect(() => {
+		if (onAliasChanged) onAliasChanged(aliasChanged);
+	}, [aliasChanged, onAliasChanged]);
+	
+	return (
+		<div
 			key={role}
 			className="flex flex-col gap-1">
 			< div className="flex items-center gap-2">
 			  <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center">
-				{isPlayerVerified && (
+				{isPlayerReady && (
 				  <span className="w-4 h-4 rounded-full bg-cyan-400 text-white text-[0.4rem] font-bold flex items-center justify-center">
 					✔
 				  </span>
@@ -276,13 +306,13 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			  <input
 				type="text"
 				placeholder="Username"
-				disabled={player.isSelf || isPlayerVerified}
-				value={player.isSelf || isPlayerVerified ? player.username : data.username}
+				disabled={player.isSelf || isPlayerReady}
+				value={player.isSelf || isPlayerReady ? player.username : data.username}
 				onChange={(e) => updateField(role, "username", e.target.value)}
 				className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
 					 ${fieldErrs.username ? "border-red-500" : "border-gray-300"}
-					${player.isSelf || isPlayerVerified
-					? `${isPlayerVerified ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
+					${player.isSelf || isPlayerReady
+					? `${isPlayerReady ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
 					: "bg-gray-900 text-white"
 				}`}
 			  />
@@ -291,13 +321,13 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			  <input
 				type="password"
 				placeholder="Password"
-				disabled={player.isSelf || isPlayerVerified}
-				value={player.isSelf || isPlayerVerified ? "********" : data.password}
+				disabled={player.isSelf || isPlayerReady}
+				value={player.isSelf || isPlayerReady ? "********" : data.password}
 				onChange={(e) => updateField(role, "password", e.target.value)}
 				className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
 					${fieldErrs.password ? "border-red-500" : "border-gray-300"}
-					${player.isSelf || isPlayerVerified
-					? `${isPlayerVerified ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
+					${player.isSelf || isPlayerReady
+					? `${isPlayerReady ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
 					: "bg-gray-900 text-white"
 				}`}
 			  />
@@ -319,12 +349,12 @@ const PlayerList: React.FC<PlayerListProps> = ({
 					? "bg-gray-900 cursor-not-allowed"
 					: "bg-gray-900"
 					}
-					${isPlayerVerified ? "text-indigo-400" : "text-white"}
+					${isPlayerReady ? "text-indigo-400" : "text-white"}
 				`}
 				/>
 
 			  {/* Action Buttons (Other players) */}
-			  {!player.isSelf && !isPlayerVerified && (
+			  {!player.isSelf && !isPlayerReady && (
 				<Button
 				  onClick={() => handleAddPlayer(role, player)}
 				  disabled={isCurrentlyLoading}
@@ -334,7 +364,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				</Button>
 			  )}
 
-			  {isPlayerVerified && !player.isSelf && (
+			  {isPlayerReady && !player.isSelf && (
 				<Button
 				  onClick={() => handleRemovePlayer(role)}
 				  disabled={isCurrentlyLoading}
@@ -351,7 +381,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				  {/* Set/Edit Alias button */}
 				  <Button
 					onClick={() => {
-					 if (isPlayerVerified && !isEditingAlias) {
+					 if (isPlayerReady && !isEditingAlias) {
 						setIsEditingAlias(true);
 						setTempAlias(player.alias || "");
 					  } else {
@@ -365,11 +395,11 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				  >
 					{isCurrentlyLoading
 					  ? "Saving..."
-					  : !isPlayerVerified
-					  ? "Set Alias"
-					  : isEditingAlias // If verified, check if editing
-					  ? "Save Alias" 
-					  : "Edit Alias"}
+					  : !isPlayerReady
+						? "Set Alias"
+						: (isEditingAlias  || aliasChanged)
+							? "Save Alias" 
+							: "Edit Alias"}
 				  </Button>
 				</div>
 			  )}
@@ -381,8 +411,13 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			{fieldErrs.alias && <span className="text-red-500 text-sm">{fieldErrs.alias}</span>}
 			</div>
 		);
-	  })}
-	</div>
-)};
+	  });
+
+	return (
+		<div className="space-y-3">
+			{renderPlayers}
+		</div>
+  	);
+};
 
 export default PlayerList;
