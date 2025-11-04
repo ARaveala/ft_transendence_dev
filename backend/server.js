@@ -83,7 +83,7 @@
 			fileSize: 1024 * 1024 * 2, // Example limit: 2MB
 		}
 	});
-	fastify = require('fastify')({
+	fastify.require('fastify')({
   		disableHeadRoute: false // 👈 This enables automatic HEAD handling
 	});
 
