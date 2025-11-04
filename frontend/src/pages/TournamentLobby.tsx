@@ -70,7 +70,7 @@ const TournamentLobby: React.FC = () => {
 			}
 		}
 		window.addEventListener("message", handleMessage);
-			return () => window.removeEventListener("message", handleMessage);
+		return () => window.removeEventListener("message", handleMessage);
 	}, [refreshSession]);
 
 	useEffect(() => {
@@ -101,12 +101,9 @@ const TournamentLobby: React.FC = () => {
 		console.log('📦 Create tournament response:', data);
 
 		if (data.status === "OK") {
-			console.log('✅ Setting tournament:', data.tournament);
+			console.log('Setting tournament:', data.tournament);
 			setTournament(data.tournament);
-			console.log('✅ Setting showSetup to true');
-			setShowSetup(true);         // Show setup for adding players
 			//await refreshSession();     // Refresh session to update tournament state
-			console.log('✅ After refresh, tournament:', tournament);
 		} else {
 			console.error("Error creating tournament:", data.error);
 		}
@@ -136,7 +133,6 @@ const TournamentLobby: React.FC = () => {
 
 			if (!res.ok) throw new Error("Failed to cancel tournament");
 
-			setShowSetup(false);
 			setShowSettingsModal(false);
 			setGameResult(null);
 			handleMatchEnd();
@@ -152,7 +148,8 @@ const TournamentLobby: React.FC = () => {
 	- If game settings have not been set, shows settings modal */
 
 	const handleStartTournamentGame = async (match: Match) => {
-		if (!tournament || !tournament.bracket) return;
+		if (!tournament || !tournament.bracket)
+			return;
 
 		// Find the round and index for this match
 		const roundIndex = tournament.bracket.findIndex(r =>
@@ -251,10 +248,6 @@ const TournamentLobby: React.FC = () => {
 		}
 	};
 
-	if (loading) return <div className="p-6 text-center text-gray-300">Loading tournament info...</div>;
-	if (!isLoggedIn) return <div className="p-6 text-center text-gray-300">Please log in to view tournament</div>;
-
-
 	//  Handle AuthContext states first
 	if (loading) {
 		return (
@@ -271,8 +264,14 @@ const TournamentLobby: React.FC = () => {
 		</div>
 		);
 	}
-	const setupInProgress = tournament && tournament.players?.some(p => !p.isVerified);
-	const bracketVisible = tournament?.status == "ongoing" || tournament?.can_start === true;
+	const setupInProgress = tournament && (
+		tournament.status?.status === "waiting" || 
+		(tournament.status?.status === "ongoing" && (!tournament.bracket || tournament.bracket.length === 0)));
+
+	const bracketVisible = tournament && 
+		tournament.status?.status == "ongoing" && 
+		tournament.bracket && 
+		tournament.bracket.length > 0;
 
 	return (
 
@@ -281,8 +280,8 @@ const TournamentLobby: React.FC = () => {
 			<div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
 				<TournamentHeader />
 
-				{/* Start New Tournament Button */}
-				{!tournament && !showSetup && (
+				{/* Start New Tournament Button - Shown when no tournament exists */}
+				{!tournament && (
 					<div className="flex flex-col items-center mt-8">
 						<Button  onClick={handleCreateTournament}>
 							Start a new tournament
@@ -290,19 +289,17 @@ const TournamentLobby: React.FC = () => {
 					</div>
 				)}
 
-				{/* Tournament Setup */}
+				{/* Tournament Setup - Shown when tournament status is "waiting" */}
 				{setupInProgress && (
 					<TournamentSetup
-						//onTournamentUpdated={handleTournamentUpdated}
 						onCancel={handleCancelTournament}
-						onTournamentStarted={() => setShowSetup(false)} 
+						onTournamentStarted={() => {}} 
 					/>
 				)}
 
-				{/* Tournament Bracket */}
-				{tournament && !showSetup && !showSettingsModal && !currentGame &&(
+				{/* Tournament Bracket - Shown when tournament status is "ongoing" */}
+				{bracketVisible &&(
 					<TournamentBracket
-
 						onStartMatch={handleStartTournamentGame}
 						onCancel={handleCancelTournament}
 						onClose={closeTournament}
@@ -316,7 +313,10 @@ const TournamentLobby: React.FC = () => {
 					<div className="w-full max-w-lg bg-gray-900/90 rounded-xl p-8 text-white shadow-2xl">
 					<GameSettings
 						onConfirm={handleSettingsConfirm}
-						onBack={() => setShowSettingsModal(false)}
+						onBack={() => {
+							setShowSettingsModal(false);
+							setCurrentGame(null);
+						}}
 					/>
 				</div>
 				)}
@@ -331,8 +331,10 @@ const TournamentLobby: React.FC = () => {
 							Start Game
 						</button>
 						<button
-							onClick={() => setGameSettings(null)}
-							className="px-6 py-2 text-sm font-medium text-gray-800 bg-gray-300 rounded-lg hover:bg-gray-400 transition-colors"
+							onClick={() => { setGameSettings(null);
+								setCurrentGame(null);
+							}}
+								className="px-6 py-2 text-sm font-medium text-gray-800 bg-gray-300 rounded-lg hover:bg-gray-400 transition-colors"
 						>
 							Back
 						</button>

@@ -149,12 +149,14 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
 					<Button
 						onClick={() => onStartMatch?.(match)}
-						disabled={!isMatchPlayable(match, 1, idx)}
-					>
-						{match.status === "finished" 
-								? `Match ${idx + 1} completed` 
-								: `Play Match ${idx + 1}`
-							}
+						disabled={match.status === "finished" || !isMatchPlayable(match, 1, idx)}
+						className={
+							match.status === "finished" 
+								? "bg-gray-900 text-gray-400 cursor-not-allowed"
+								: "bg-indigo-600 hover:bg-indigo-700"
+						}
+						>
+							Play Match {idx + 1}
 					</Button>
 				</div>
 			 ))}

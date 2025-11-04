@@ -88,8 +88,8 @@ const PlayerList: React.FC<PlayerListProps> = ({
 		});
 		setFormData(initialFormData);
 
-		if (!isEditingAlias) {
-			setTempAlias(selfAlias);
+		if (!isEditingAlias && tempAlias === "") {
+			setTempAlias(selfAlias || "");
 		}
 
 	}, [tournament.players.map(p => p.role).join("|")]);
@@ -112,13 +112,17 @@ const PlayerList: React.FC<PlayerListProps> = ({
 	};
 
 	const isFormComplete = (role: string, player: any): boolean => {
+		const data = formData[role];
+
 		if (player.isSelf) {
-		// Check for alias validity in either the temp state or the verified state
-			return !!tempAlias;
+			return ALIAS_REGEX.test(tempAlias);
 	
 		}
-		const data = formData[role];
-		return !!(data?.username && data?.password && data?.alias);
+		return (
+		USERNAME_REGEX.test(data?.username ?? "") &&
+		PASSWORD_REGEX.test(data?.password ?? "") &&
+		ALIAS_REGEX.test(data?.alias ?? "")
+		);
 	};
 
 	// Handles adding and verifying a tournament player
@@ -132,7 +136,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 		let aliasToUse = player.isSelf ? tempAlias : data?.alias || '';
 
 		// Frontend validation
-		// --- FRONTEND VALIDATION WITH FIELD-SPECIFIC ERRORS ---
+		
 		if (!ALIAS_REGEX.test(aliasToUse)) {
 			setErrors(prev => ({
 				...prev,
@@ -266,7 +270,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			const verifiedPlayer = tournament.players.find(p => p.role === role);
 			const isPlayerVerified = verifiedPlayer?.isVerified ?? false;
 			
-			const isSelfVerifiedButLocked = player.isSelf && isPlayerVerified && !isEditingAlias;
+			const isSelfVerifiedButLocked = player.isSelf && isPlayerVerified && !isEditingAlias && !!player.alias;
 			const isOtherPlayerLocked = !player.isSelf && isPlayerVerified;
 			const isAliasLocked = isOtherPlayerLocked || isSelfVerifiedButLocked; 
 

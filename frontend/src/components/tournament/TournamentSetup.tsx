@@ -105,7 +105,12 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 		}
 	};
 
-	const setupInProgress = tournament.players.some(p => !p.isVerified);
+	const setupInProgress = tournament && (
+		tournament.status?.status === "waiting" || 
+		(tournament.status?.status === "ongoing" && (!tournament.bracket || tournament.bracket.length === 0)));
+
+	const tournamentCanStart =  tournament && (
+		(tournament.status?.status === "ongoing" && (!tournament.bracket || tournament.bracket.length === 0)));
 
 	return (
 			<div className="mt-3 space-y-6">
@@ -127,7 +132,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 
 					<Button
 						onClick={handleStartTournament}
-						disabled={!tournament.can_start || loading}
+						disabled={!tournamentCanStart || loading}
 					>
 						{loading
 							? "Processing..."
