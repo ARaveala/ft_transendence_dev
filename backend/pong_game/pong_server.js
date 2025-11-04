@@ -152,7 +152,7 @@ function AISimulateKeyPress(keysDown) {
 function updateGame(state, player1, player2) {
 
     // AI will simulate pressing keys. "true" condition is for testing, remove later
-    if (true || player2.type === "ai") {
+    if (player2.type === "ai") {
         // create a copy of state every second
         const now = new Date();
         if (lastAIStateUpdate == undefined || now - lastAIStateUpdate >= 1000) {

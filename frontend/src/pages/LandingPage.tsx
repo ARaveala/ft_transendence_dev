@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Modal from "../components/ui/Modal";
 import { API_PROTOCOL } from "../../shared/api-protocols";
@@ -6,6 +6,8 @@ import type { RegisterUserPayload } from "../../shared/payloads";
 import { useAuth } from "../context/AuthContext";
 import CenteredContainer from "../components/layout/CenteredContainer"; // <-- Import it
 import { useTranslation } from "../shared/Translation";
+
+const setServerLang = (code: "en" | "fi" | "sv") => localStorage.setItem("serverLang", code);
 
 const LanguageToggle: React.FC<{ compact?: boolean }> = ({ compact = true }) => {
 	const { t, setLang } = useTranslation();
@@ -22,6 +24,7 @@ const LanguageToggle: React.FC<{ compact?: boolean }> = ({ compact = true }) => 
 					credentials: "include",
 					body: JSON.stringify({ language: code }),
 				});
+				localStorage.setItem("serverLang", code);
 			} catch {}
 		}
 	}
@@ -56,11 +59,23 @@ const LanguageToggle: React.FC<{ compact?: boolean }> = ({ compact = true }) => 
 };
 
 const HomePage: React.FC = () => {
-	const { t } = useTranslation();
+	const { t, lang, setLang } = useTranslation();
 	const [isModalOpen, setIsModalOpen] = useState(false); // Tracks if modal is open
 	const [modalMode, setModalMode] = useState<"login" | "register">("register"); // Mode of modal
 	const navigate = useNavigate();
-	const { isLoggedIn, user, logoutUser, refreshSession } = useAuth(); // Access authentication state and functions
+	const { isLoggedIn, user, refreshSession } = useAuth(); // Access authentication state and functions
+
+	//Force english landing page when logged out
+	const forcedOnce = useRef(false);
+	useEffect(() => {
+		if (!isLoggedIn && !forcedOnce.current) {
+			forcedOnce.current = true;
+			if (lang !== "en") {
+				setLang("en");
+				localStorage.setItem("anonLang", "en");
+			}
+		}
+	}, [isLoggedIn]);
 
 	//2FA states
 	const [is2faStep, setIs2faStep] = useState(false);
@@ -71,11 +86,18 @@ const HomePage: React.FC = () => {
 	const handleSubmit = async (data: RegisterUserPayload) => {
 		const endpoint =
 			modalMode === "register" ? API_PROTOCOL.REGISTER_USER : API_PROTOCOL.LOGIN_USER;
+		
+		type RegisterPayload = RegisterUserPayload & { language?: "en" | "fi" | "sv" };
+		const payload =
+			modalMode === "register"
+				? ({ ...data, language: lang } as RegisterUserPayload)
+				: data;
+
 		try {
 		const res = await fetch(endpoint.path, {
 			method: endpoint.method,
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(data),
+			body: JSON.stringify(payload),
 			credentials: "include", // include cookies in request
 		});
 
@@ -93,7 +115,19 @@ const HomePage: React.FC = () => {
 			throw new Error(error?.error || "Request failed");
 		}
 
-		await refreshSession(); // New approach: refresh session to get user profile
+		if (modalMode === "register") {
+			try {
+				await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
+					method: API_PROTOCOL.CHANGE_LANGUAGE.method,
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify({ language: lang }),
+				});
+				localStorage.setItem("serverLang", lang);
+			} catch (_ ){}
+		}
+
+		await refreshSession();
 
 		// //fetch user profile after successful login or registration - currently not working because backend does not return user data
 		//await new Promise((resolve) => setTimeout(resolve, 1000)); // short delay
@@ -166,6 +200,15 @@ const HomePage: React.FC = () => {
                 throw new Error(error?.error || "2FA verification failed.");
             }
 
+			//try {
+			//	await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
+			//		method: API_PROTOCOL.CHANGE_LANGUAGE.method,
+			//		headers: { "Content-Type": "application/json" },
+			//		credentials: "include",
+			//		body: JSON.stringify({ language: lang }),
+			//	});
+			//} catch (_) {}
+
             await refreshSession();
             alert(t("home.alert.loginSuccess"));
             setIs2faStep(false); // hide 2FA modal
@@ -218,15 +261,10 @@ const HomePage: React.FC = () => {
 				<div className="flex flex-col items-center gap-2">
 					<p id="welcome">
 						{t("home.greeting")}, {user?.username}!
+						<span aria-hidden="true"> 🏓</span>
 					</p>
-				<button
-					className="px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition"
-					onClick={logoutUser}
-				>
-					{t("home.cta.logout")}
-				</button>
-			</div>
-		)}
+				</div>
+			)}
 	</div>
 
 	<Modal
@@ -237,28 +275,34 @@ const HomePage: React.FC = () => {
 	/>
 	{is2faStep && (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-			<div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
-				<h2 className="text-xl font-bold mb-4">{t("home.2fa.title")}</h2>
-					<p className="mb-4">{t("home.2fa.instructions")}</p>
-						<input
-                            type="text"
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value)}
-                            className="w-full p-2 border rounded-md text-center text-2xl tracking-widest text-black"
-                            maxLength={6}
-                            placeholder="123456"
-                        />
-						<button
-                            onClick={handle2faVerifySubmit}
-                            className="w-full mt-4 px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600 transition"
-                        >
-							{t("home.2fa.verify")}
-                        </button>
-					</div>
-				</div>
-			)}
-		</CenteredContainer>
-	);
+			<div className="bg-white p-6 rounded-lg shadow-xl text-black">
+				<h2 className="text-xl font-bold mb-4">Enter Verification Code</h2>
+				<p className="mb-4">Open your authenticator app and enter the 6-digit code.</p>
+				<input
+					type="text"
+					value={otp}
+					onChange={(e) => setOtp(e.target.value)}
+					className="w-full p-2 border rounded-md text-center text-2xl tracking-widest text-black"
+                    maxLength={6}
+					placeholder="123456"
+				/>
+				<button
+					onClick={handle2faVerifySubmit}
+					className="w-full mt-4 px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600 transition"
+				>
+					Verify
+                </button>
+				<button
+					onClick={() => setIs2faStep(false)}
+					className="w-full mt-2 px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition"
+				>
+                Cancel
+            </button>
+			</div>
+		</div>
+	)}
+	</CenteredContainer> 
+);
 };
 
 export default HomePage;

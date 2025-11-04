@@ -78,7 +78,7 @@ async function getFriendsForPlayer( userId ) {
 	//const test = userId.id;
 	return new Promise((resolve, reject) => {
 		db.all(
-			`SELECT users.id AS friendID,
+			`SELECT users.id AS user_id,
 				users.username AS username,
 				users.avatar_file AS avatar,
 				users.status AS status,
@@ -104,26 +104,29 @@ async function getFriendsForPlayer( userId ) {
 	});
 }
 // can we have a schema that checks if table empty first?
-async function getMatchHistory({ userId }) {
+async function getMatchHistory(userId) {
 	//console			.log('DB::Fetching match history for user ID:', userId);
-	const test = userId.id;
+//	const test = userId.id;
 	return new Promise((resolve, reject) => {
 		db.all(
 			` 	SELECT 
-				    matches.user_id AS matchID,
-				    matches.result AS result,
-				    matches.score AS score,
-				    matches.timestamp AS timestamp, 
+				    match_history.user_id AS matchID,
+				    match_history.result AS result,
+				    match_history.user_score AS score,
+				    match_history.match_date AS timestamp,
+					users.username AS opponentUsername,
+					users.id AS userTableID,
+					match_history.opponent_id AS opid,
 				    CASE 
-				        WHEN matches.opponent_type = 'human' THEN users.username
-				        WHEN matches.opponent_type = 'guest' THEN 'Guest'
-				        WHEN matches.opponent_type = 'AI' THEN 'AI Bot'
-				    END AS opponentName
-				FROM matches
-				LEFT JOIN users ON matches.opponent_id = users.id
-				WHERE matches.user_id = ?;
+				        WHEN match_history.opponent_type = 'login' THEN users.username
+				        WHEN match_history.opponent_type = 'guest' THEN 'Guest'
+				        WHEN match_history.opponent_type = 'ai' THEN 'AI Bot'
+				    END AS opponent
+				FROM match_history
+				LEFT JOIN users ON match_history.opponent_id = users.id
+				WHERE match_history.user_id = ?;
 			`
-			,[test],
+			,[userId],
 			(err, rows) => {
 				if (err) {
 					console.error('DB error fetching match history:', err);
@@ -133,7 +136,10 @@ async function getMatchHistory({ userId }) {
 					}	
 					reject({ error: 'DB error fetching match history' });
 				} else {
-					console.log(`Found ${rows.length} matches for user ID ${userId}`);
+					//console.log(`Found ${rows.length} matches for user ID ${userId}`);
+					//console.log("whats going on with username -- ${rows.opponentUsername}");
+					//console.log("and the users.id is ${rows.userTableId}");
+					//console.log("and as opid ${rows.opid}")
 					resolve(rows || []);
 				}
 			}
@@ -193,23 +199,21 @@ async function miniLogin(username, password) {
 }
 
 async function get2FaSecret(userId) {
-	console.log('DB::Fetching 2FA secret for user ID:', userId);
-	const test = userId.id;
-		return new Promise((resolve, reject) => {
-			db.get('SELECT mfa_secret FROM users WHERE id = ?', [test], (err, row) =>{
-				if (err) {
-					console.error('DB error:', err);
-					reject({ error: 'DB error fecth' });
-				} else if (!row) {
-					console.warn('User not found for ID:', userId);
-					reject({ error: 'User not found fecth' });
-				} else {
-					console.log('2FA secret found:', row);
-					resolve(row.mfa_secret);
-				}
-
-			});
-		});
+    console.log('DB::Fetching 2FA secret for user ID:', userId);
+    return new Promise((resolve, reject) => {
+        db.get('SELECT mfa_secret FROM users WHERE id = ?', [userId], (err, row) => {
+            if (err) {
+                console.error('DB error fetching secret:', err);
+                reject(new Error('DB error fetching secret: ' + err.message));
+            } else if (!row) {
+                console.warn('User not found in DB for ID:', userId);
+                reject(new Error('User not found fetching secret'));
+            } else {
+                console.log('2FA secret found for user ID:', userId);
+                resolve(row.mfa_secret);
+            }
+        });
+    });
 }
 
 async function is2FaEnabled(userId) {
@@ -238,6 +242,7 @@ module.exports = { fetchUser,
 	checkPasswordMatch,
 	fetchUserByUsername,
 	is2FaEnabled,
+	get2FaSecret
 };
 //similar logic as below may be required
 //async function userRoutes(fastify, options) {

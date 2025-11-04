@@ -10,8 +10,8 @@ import type {
 	ChangePasswordPayload,
 	ChangePasswordResponse,
 	UpdateProfilePayload,
-	ChangeTwoFactorPayload,
-	ChangeTwoFactorResponse,
+	//ChangeTwoFactorPayload,
+	//ChangeTwoFactorResponse,
 	UploadAvatarResponse,
 } from "../../shared/payloads";
 import avatar1 from "../assets/avatars/avatar1.png";
@@ -54,8 +54,11 @@ const SettingsPage: React.FC = () => {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	// 2FA state
-	const [twoFactor, setTwoFactor] = useState<boolean>(false);
-	const [loadingTwoFA, setLoadingTwoFA] = useState<boolean>(false); //may need to update the code to remove this with the AuthContext additio
+	const [twoFactor, setTwoFactor] = useState(false);
+	const [qrCode, setQrCode] = useState<string | null>(null);
+	const [otp, setOtp] = useState<string>("");
+	//const [twoFactor, setTwoFactor] = useState<boolean>(false);
+	//const [loadingTwoFA, setLoadingTwoFA] = useState<boolean>(false); //may need to update the code to remove this with the AuthContext additio
 
 	// Delete Profile state
 	const [deleting, setDeleting] = useState(false);
@@ -63,15 +66,29 @@ const SettingsPage: React.FC = () => {
 	const [deleteError, setDeleteError] = useState<string | null>(null);
 
 	useEffect(() => {
+
+	const fetch2faStatus = async () => {
+		try {
+        const res = await fetch('/api/2fa/status', {
+			credentials: "include"
+		});
+        const data = await res.json();
+        setTwoFactor(data.isEnabled);
+		} catch (err) {
+        console.error("Failed to fetch 2FA status", err);
+        setTwoFactor(false);
+		}
+	};
+
 	if (user) {
+		fetch2faStatus();
 		setUsername(user.username || "");
 		const avatar = user.avatarFile || availableAvatars[0];
 		setCurrentAvatar(avatar);
 		setSelectedAvatar(avatar);
-		setTwoFactor(user.twoFactor ?? false);
 	}
 	}, [user]);
-	
+
 	if (loading) {
 		return <div className="p-6 text-center text-gray-300">{t("settings.loading")}</div>;
 	}
@@ -106,10 +123,16 @@ const SettingsPage: React.FC = () => {
 		}
 	}
 
+	function reset2faForm() {
+		setQrCode(null);
+		setOtp("");
+	}
+
 	function closeAndReset(row: Exclude<Row, null>) {
 		if (row === "username") resetUsernameForm();
 		if (row === "password") resetPasswordForm();
 		if (row === "avatar") resetAvatarForm();
+		if (row === "twofa") reset2faForm();
 		setOpenRow(null);
 	}
 
@@ -138,6 +161,7 @@ const SettingsPage: React.FC = () => {
 		if (openRow === "username") setUsernameInput("");
 		if (openRow === "password") resetPasswordForm();
 		if (openRow === "avatar") resetAvatarForm();
+		if (openRow === "twofa") reset2faForm();
 
 		if (row === "avatar") {
 			if (currentAvatar) setSelectedAvatar(currentAvatar);
@@ -149,6 +173,7 @@ const SettingsPage: React.FC = () => {
 		if (row === "password") {
 			resetPasswordForm();
 		}
+		if (row === "twofa") reset2faForm();
 
 		setOpenRow(row);
 	}
@@ -231,6 +256,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
 				method: API_PROTOCOL.CHANGE_LANGUAGE.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update language.");
@@ -239,6 +265,7 @@ const SettingsPage: React.FC = () => {
 			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update language.");
 			
 			setLang(language);
+			localStorage.setItem("serverLang", language);
 			setMsg(t("common.language.updated"));
 			setOpenRow(null);
 			await refreshSession();
@@ -258,6 +285,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_USERNAME.path, {
 				method: API_PROTOCOL.CHANGE_USERNAME.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update username.");
@@ -291,6 +319,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_PASSWORD.path, {
 				method: API_PROTOCOL.CHANGE_PASSWORD.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			//if (!res.ok) throw new Error("Failed to update password.");
@@ -318,6 +347,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_AVATAR.path, {
 				method: API_PROTOCOL.CHANGE_AVATAR.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update avatar.");
@@ -374,6 +404,7 @@ const SettingsPage: React.FC = () => {
 		}
 	}
 
+	/*
 	async function saveTwoFactor() {
 		setBusy(true);
 		setMsg(null);
@@ -383,6 +414,7 @@ const SettingsPage: React.FC = () => {
 			const res = await fetch(API_PROTOCOL.CHANGE_2FA.path, {
 				method: API_PROTOCOL.CHANGE_2FA.method,
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 			if (!res.ok) throw new Error("Failed to update 2FA.");
@@ -399,6 +431,40 @@ const SettingsPage: React.FC = () => {
 			setBusy(false);
 		}
 	}
+	*/
+
+	//2FA handlers
+	const handle2faCheckboxChange = async () => {
+		if (!twoFactor && !qrCode) { // enabling 2FA
+			try {
+				const res = await fetch('/api/2fa/setup', { method: 'POST', credentials: "include" });
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.error || "Could not start 2FA setup.");
+				if (data.qrCodeUrl) { setQrCode(data.qrCodeUrl); }
+			} catch (err: any) { console.error("Failed to setup 2FA", err); alert(err.message || "Could not start 2FA setup."); }
+		}
+		else if (twoFactor) { //  disabling 2FA
+			if (window.confirm("Are you sure you want to disable 2FA?")) {
+				try {
+					const res = await fetch('/api/2fa/disable', { method: 'POST', credentials: "include" });
+					const data = await res.json();
+					if (!res.ok) throw new Error(data.error || "Failed to disable 2FA.");
+					if (data.disabled) { alert("2FA disabled."); setTwoFactor(false); setOpenRow(null); await refreshSession(); }
+				} catch (err: any) { alert(err.message || "Failed to disable 2FA."); }
+			}
+		}
+	};
+
+	const handleVerify2fa = async () => {
+		if (otp.length !== 6) { alert("Please enter a 6-digit code."); return; }
+		try {
+			const res = await fetch('/api/2fa/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: "include", body: JSON.stringify({ otp }) });
+			const data = await res.json();
+			if (!res.ok) throw new Error(data.error || "Failed to verify 2FA.");
+			if (data.verified) { alert("2FA enabled successfully!"); setTwoFactor(true); setQrCode(null); setOtp(""); setOpenRow(null); await refreshSession(); }
+			else { alert(data.error || "Invalid code, please try again."); }
+		} catch (err: any) { alert(err.message || "Failed to verify 2FA."); }
+	};
 
 	async function handleDeleteProfile() {
 		setDeleting(true);
@@ -406,7 +472,8 @@ const SettingsPage: React.FC = () => {
 		try {
 			const res = await fetch(API_PROTOCOL.DELETE_PROFILE.path, {
 				method: API_PROTOCOL.DELETE_PROFILE.method,
-				headers: { "Content-Type": "application/json" },
+				//headers: { "Content-Type": "application/json" },
+				credentials: "include",
 			});
 			if (!res.ok) throw new Error("Failed to delete profile.");
 
@@ -603,36 +670,50 @@ const SettingsPage: React.FC = () => {
 						</div>
 					</div>
 				)}
-
-				{/* 2FA row */}
-				<SettingButton
-					label={t("settings.title.twofa")}
-					onClick={() => toggle("twofa")}
-				/>
-				{openRow === "twofa" && (
-					<div className="px-4 pt-3 pb-4">
-						<label className="block mb-2 text-sm">{t("settings.twofa.text")}</label>
-
-						<label className="inline-flex items-center gap-2">
-							<input
-								type="checkbox"
-								checked={twoFactor}
-								onChange={() => setTwoFactor((v) => !v)}
-								disabled={busy || loadingTwoFA}
-							/>
-							<span className="text-sm">{t("settings.item.twofa")}</span>
-						</label>
-
-						<div className="mt-3 flex gap-2">
-							<PrimaryTiny onClick={saveTwoFactor} disabled={busy || loadingTwoFA}>
-								{t("common.save")}
-							</PrimaryTiny>
-							<SecondaryTiny onClick={() => setOpenRow(null)} disabled={busy}>
-								{t("common.cancel")}
-							</SecondaryTiny>
-						</div>
+						{/*2FA*/}
+						<SettingButton label={t("settings.change2fa")} onClick={() => toggle("twofa")} />
+						{openRow === "twofa" && (
+							<div className="px-4 pt-3 pb-4">
+								{/* Your interactive checkbox */}
+								<label className="flex items-center gap-2 mb-4">
+									<input
+									type="checkbox"
+									checked={twoFactor}
+									onChange={handle2faCheckboxChange}
+									disabled={!!qrCode}
+									/>
+									<span className="text-sm">{t("settings.twofaLabel", "Enable Two-Factor Authentication")}</span>
+								</label>
+						{qrCode && (
+							<div className="mt-4 p-4 border rounded-lg bg-gray-50 text-gray-900">
+								<h3 className="font-semibold text-lg">{t("settings.twofaEnableTitle", "Enable Two-Factor Authentication")}</h3>
+								<p className="text-sm mt-1">{t("settings.twofaScanQR", "1. Scan this QR code with your authenticator app.")}</p>
+								<img src={qrCode} alt="2FA QR Code" className="my-3 mx-auto bg-white p-1" />
+								<p className="text-sm">{t("settings.twofaEnterCode", "2. Enter the 6-digit code from your app below.")}</p>
+								<div className="flex items-center mt-2">
+									<input
+										type="text"
+										className="border p-2 rounded-md w-32 text-center text-black"
+										placeholder="123456"
+										value={otp}
+										onChange={(e) => setOtp(e.target.value.replace(/\D/g,''))}
+										maxLength={6}
+									/>
+									<PrimaryTiny onClick={handleVerify2fa} disabled={busy}>
+										{t("common.verifyEnable", "Verify & Enable")}
+									</PrimaryTiny>
+								</div>
+							</div>
+						)}
+						{!qrCode && (
+                            <div className="mt-3 flex gap-2">
+							    <SecondaryTiny onClick={() => closeAndReset("twofa")} disabled={busy}>
+								    {t("common.cancel")}
+							    </SecondaryTiny>
+                            </div>
+                        )}
 					</div>
-				)}	
+				)}
 			</section>
 
 			{/* Danger Zone */}

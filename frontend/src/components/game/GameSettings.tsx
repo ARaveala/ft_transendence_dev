@@ -95,7 +95,7 @@ return (
 		</button>
 		)}
 		<button
-		className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded"
+		className="px-4 py-2 bg-indigo-600 hover:bg-indigo-800 rounded"
 		onClick={() =>
 			onConfirm({ ballSpeed, paddleSize, paddleSpeed, maxScore, powerUp })
 		}
