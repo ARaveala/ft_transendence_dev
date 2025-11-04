@@ -23,6 +23,7 @@ async function addFriend(fastify, options) {
 				reply.code(200).send({
 					status: "ADDED",
 					friend: username,
+					friendId: friendId,
 				})
 			} catch (err) {
 				reply.code(500).send({
@@ -44,13 +45,14 @@ async function removeFriend(fastify, options) {
 		url: API_PROTOCOL.REMOVE_FRIEND.path,
 		handler: async (request, reply) => {
 			flog.info({ function: 'removeFriend', payload: request.body }, 'Incoming body');
-			const username = request.body.username;
-			flog.debug({ function: 'removeFriend', username: username}, 'does username come through from body');
+			//const username = request.body.username;
+			const friendId = request.body.friend_id
+//			flog.debug({ function: 'removeFriend', username: username}, 'does username come through from body');
 			try {
 				const token = request.cookies.auth_token;
 				const userId = secure.getUserIdFromToken(token);
-				flog.debug({ function: 'removeFriend', username: username}, 'checking it before sending to fetch');
-				const friendId = await DBget.fetchUserByUsername(username);
+			//	flog.debug({ function: 'removeFriend', username: username}, 'checking it before sending to fetch');
+				//const friendId = await DBget.fetchUserByUsername(username);
 				flog.debug({ function: 'removeFriend', friend: friendId, user: userId}, 'checking ids');
 				await DBdelete.deleteFriendById(userId.id, friendId);
 				reply.code(200).send({

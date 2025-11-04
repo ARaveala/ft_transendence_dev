@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Modal from "../components/ui/Modal";
 import { API_PROTOCOL } from "../../shared/api-protocols";
@@ -6,6 +6,8 @@ import type { RegisterUserPayload } from "../../shared/payloads";
 import { useAuth } from "../context/AuthContext";
 import CenteredContainer from "../components/layout/CenteredContainer"; // <-- Import it
 import { useTranslation } from "../shared/Translation";
+
+const setServerLang = (code: "en" | "fi" | "sv") => localStorage.setItem("serverLang", code);
 
 const LanguageToggle: React.FC<{ compact?: boolean }> = ({ compact = true }) => {
 	const { t, setLang } = useTranslation();
@@ -22,6 +24,7 @@ const LanguageToggle: React.FC<{ compact?: boolean }> = ({ compact = true }) => 
 					credentials: "include",
 					body: JSON.stringify({ language: code }),
 				});
+				localStorage.setItem("serverLang", code);
 			} catch {}
 		}
 	}
@@ -86,11 +89,23 @@ function validateLoginInput(username: string, password: string) {
 }
 
 const HomePage: React.FC = () => {
-	const { t, lang } = useTranslation();
+	const { t, lang, setLang } = useTranslation();
 	const [isModalOpen, setIsModalOpen] = useState(false); // Tracks if modal is open
 	const [modalMode, setModalMode] = useState<"login" | "register">("register"); // Mode of modal
 	const navigate = useNavigate();
 	const { isLoggedIn, user, refreshSession } = useAuth(); // Access authentication state and functions
+
+	//Force english landing page when logged out
+	const forcedOnce = useRef(false);
+	useEffect(() => {
+		if (!isLoggedIn && !forcedOnce.current) {
+			forcedOnce.current = true;
+			if (lang !== "en") {
+				setLang("en");
+				localStorage.setItem("anonLang", "en");
+			}
+		}
+	}, [isLoggedIn]);
 
 	//2FA states
 	const [is2faStep, setIs2faStep] = useState(false);
@@ -122,11 +137,18 @@ const HomePage: React.FC = () => {
 
 		const endpoint =
 			modalMode === "register" ? API_PROTOCOL.REGISTER_USER : API_PROTOCOL.LOGIN_USER;
+		
+		type RegisterPayload = RegisterUserPayload & { language?: "en" | "fi" | "sv" };
+		const payload =
+			modalMode === "register"
+				? ({ ...data, language: lang } as RegisterUserPayload)
+				: data;
+
 		try {
 		const res = await fetch(endpoint.path, {
 			method: endpoint.method,
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(data),
+			body: JSON.stringify(payload),
 			credentials: "include", // include cookies in request
 		});
 
@@ -144,19 +166,19 @@ const HomePage: React.FC = () => {
 			throw new Error(error?.error || "Request failed");
 		}
 
-		try {
-			await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
-				method: API_PROTOCOL.CHANGE_LANGUAGE.method,
-				headers: { "Content-Type": "application/json" },
-				credentials: "include",
-				body: JSON.stringify({ language: lang }),
-			});
-		} catch (err:any) {
-			const message = 
-				err?.message || (typeof err === "string" ? err : t("home.error.generic"));
-				setFormError(message);
+		if (modalMode === "register") {
+			try {
+				await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
+					method: API_PROTOCOL.CHANGE_LANGUAGE.method,
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify({ language: lang }),
+				});
+				localStorage.setItem("serverLang", lang);
+			} catch (_ ){}
 		}
-		await refreshSession(); // New approach: refresh session to get user profile
+
+		await refreshSession();
 
 		setIsModalOpen(false);
 
@@ -185,14 +207,14 @@ const HomePage: React.FC = () => {
 				throw new Error(error?.error || "2FA verification failed.");
 			}
 
-			try {
-				await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
-					method: API_PROTOCOL.CHANGE_LANGUAGE.method,
-					headers: { "Content-Type": "application/json" },
-					credentials: "include",
-					body: JSON.stringify({ language: lang }),
-				});
-			} catch (_) {}
+			//try {
+			//	await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
+			//		method: API_PROTOCOL.CHANGE_LANGUAGE.method,
+			//		headers: { "Content-Type": "application/json" },
+			//		credentials: "include",
+			//		body: JSON.stringify({ language: lang }),
+			//	});
+			//} catch (_) {}
 
 			await refreshSession();
 			alert(t("home.alert.loginSuccess"));
