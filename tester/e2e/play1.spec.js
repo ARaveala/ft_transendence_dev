@@ -33,15 +33,6 @@ test('test', async ({ page }) => {
   await page.getByRole('button', { name: 'AI Opponent' }).click();
   await expect(page.getByRole('heading', { name: 'Game Settings' })).toBeVisible();
 
-  await page.getByRole('spinbutton').click();
-  await page.getByRole('spinbutton').click();
-  await page.getByRole('spinbutton').click();
-  await page.getByRole('spinbutton').dblclick();
-  await page.getByRole('spinbutton').click();
-  await page.getByRole('spinbutton').click();
-  await page.getByRole('spinbutton').click();
-  await page.getByRole('spinbutton').fill('51');
-  await page.getByRole('spinbutton').press('ArrowLeft');
   await page.getByRole('spinbutton').fill('1');
   await page.getByRole('slider').first().fill('4');
   await page.getByRole('button', { name: 'Confirm' }).click();
