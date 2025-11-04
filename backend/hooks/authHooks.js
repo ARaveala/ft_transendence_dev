@@ -26,6 +26,9 @@ async function authHook(fastify, options) {
 	flog.info({function: "authHook"}, 'Entering authook');
 	const {secure} = options;
 	fastify.addHook("onRequest", async (request, reply) => {
+		if (request.method === 'HEAD' && request.raw.url === '/') {
+		  return; // Skip auth for HEAD /
+		}
 		const path = request.routeOptions?.url || request.raw.url;
 
 		//		const path = request.routerPath;
@@ -35,7 +38,7 @@ async function authHook(fastify, options) {
 		const method = request.method;
 		// for tester maybe only
 		flog.warn({fucntion : 'authHook', method: method}, "lets see if we catch the head method");
-		if (request.method === 'HEAD') return;
+		//if (request.method === 'HEAD') return;
 
 		const isExcluded = excludedPaths.some(route =>
 		  route.path === path && route.method === method
