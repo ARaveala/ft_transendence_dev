@@ -12,7 +12,8 @@
 
 	'use strict';
 	const { logger, log } = require('@logger');
-	const fastify = require('fastify')({ logger });
+	const fastify = require('fastify')({ logger,   disableHeadRoute: false // This enables automatic HEAD handling
+ 	});
 	const path = require('path');
 	
 
@@ -82,9 +83,6 @@
 		limits: {
 			fileSize: 1024 * 1024 * 2, // Example limit: 2MB
 		}
-	});
-	fastify.require('fastify')({
-  		disableHeadRoute: false // 👈 This enables automatic HEAD handling
 	});
 
 	//const fastifyStatic = require('@fastify/static'); 
