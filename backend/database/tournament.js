@@ -452,6 +452,103 @@ function updateBracket(tournamentId, userId, bracketPos) {
   });
 }
 
+function getBrackets(tournamentId) {
+  flog.debug({ function: 'getBrackets' }, 'Getting brackets');
+
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT * FROM game WHERE tournament_id = ? ORDER BY round ASC, bracket_pos ASC`,
+      [tournamentId],
+      (err, games) => {
+        if (err) {
+          flog.error({ function: 'getBrackets', err }, 'DB error getting games');
+          return reject(err);
+        }
+
+        db.all(
+          `SELECT tp.*, u.username FROM tournament_players tp
+           LEFT JOIN users u ON tp.user_id = u.id
+           WHERE tp.tournament_id = ?`,
+          [tournamentId],
+          (err, players) => {
+            if (err) {
+              flog.error({ function: 'getBrackets', err }, 'DB error getting players');
+              return reject(err);
+            }
+
+            const playerMap = {};
+            players.forEach(p => {
+              playerMap[p.user_id] = {
+                username: p.username || "",
+                alias: p.alias,
+                role: p.player_role,
+                status: p.player_status,
+                score: p.player_score,
+                isSelf: !!p.is_owner,
+                isVerified: !!p.verified,
+              };
+            });
+
+        const groupedBrackets = {};
+		games.forEach(game => {
+		if (!groupedBrackets[game.round]) {
+		    groupedBrackets[game.round] = [];
+		}
+		const winnerAlias = game.winner_id && playerMap[game.winner_id]
+		    ? playerMap[game.winner_id].alias : null;
+
+		  groupedBrackets[game.round].push({
+		    match_id: game.game_uid,
+		    round: game.round,
+		    bracket_pos: game.bracket_pos,
+		    player1: playerMap[game.p1_id] || null,
+		    player2: playerMap[game.p2_id] || null,
+		    status: game.status,
+			winner: winnerAlias,
+		    score: {
+		      player1: game.p1_score,
+		      player2: game.p2_score,
+		    },
+		  });
+			});
+			//flog.debug({ players }, 'Fetched players');
+			const bracketArray = Object.keys(groupedBrackets)
+			  .sort((a, b) => a - b)
+			  .map(round => groupedBrackets[round]);
+				flog.debug({function: 'Fetched games array',  brackket: bracketArray});
+			  return resolve(bracketArray);
+		      }
+		    );
+		  }
+	    );
+  });
+}
+//function getBrackets(tournamentId){
+//	flog.debug({ function: 'getBrackets',}, 'getting Brackets');
+//		return new Promise((resolve, reject) => {
+//			//what i need for each game
+//			// game_uid
+//			// bracket num 2 is last, the other 2
+//			// are in round order .
+//
+//			//p1_id , p2_id 
+//			db.get('SELECT')
+//			if (err) {
+//				flog.error({ function: 'getBrackets', err}, 'DB error gettin getBrackets:');
+//				return reject(err);
+//			}
+//
+//			return resolve([1, 2][3]);
+//		});
+//}
+//getTOurnamnetplayers attach them to relative gameid, for return get game status for that , build score results
+//const ret = {
+//		match_id: bracket.game_uid,
+//		player1: player1,
+//		player2: player2,
+//		status: "pending",
+//		score: { player1: player1.score, player2: player2.score },
+//	}
 
 function updateTournamentStatus(tournamentId, newStatus) {
 	flog.debug({ function: 'updateTournamnetStatus',}, 'Updating tournamnetStatus in tournament');
@@ -548,4 +645,5 @@ module.exports = {
 	removePlayer,
 	updateTournamentStats,
 	 updateBracket,
+	 getBrackets,
 };
