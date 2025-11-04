@@ -17,7 +17,7 @@ const excludedPaths = [
 //if we make the routes include query strings or dynamic segments
 //const path = request.routerPath || request.raw.url;
 //if (excludedPaths.includes(path)) return;
-
+///aaaa
 async function authHook(fastify, options) {
   // this example below is how we could use it if i register the ocntext as an object called context
   // om not sure if it matters which way, but this insinutaes we could attatch way more here
