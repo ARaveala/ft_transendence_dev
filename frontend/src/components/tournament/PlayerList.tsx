@@ -262,6 +262,10 @@ const PlayerList: React.FC<PlayerListProps> = ({
 	onRemovePlayer(role);
 	await refreshSession();
 	};
+
+	useEffect(() => {
+		if (onAliasChanged) onAliasChanged(aliasChanged);
+	}, [aliasChanged, onAliasChanged]);
 	
 	// Helper to determine if a player's fields are locked in the UI
 	// Uses backend status === "ready" as the indicator that the backend considers the player ready
@@ -283,141 +287,137 @@ const PlayerList: React.FC<PlayerListProps> = ({
 
 		const data = formData[role] || { username: "", password: "", alias: "" };
 		const fieldErrs = errors[role] || {};
-
-	useEffect(() => {
-		if (onAliasChanged) onAliasChanged(aliasChanged);
-	}, [aliasChanged, onAliasChanged]);
 	
 	return (
 		<div
 			key={role}
 			className="flex flex-col gap-1">
 			< div className="flex items-center gap-2">
-			  <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center">
-				{isPlayerReady && (
-				  <span className="w-4 h-4 rounded-full bg-cyan-400 text-white text-[0.4rem] font-bold flex items-center justify-center">
-					✔
-				  </span>
-				)}
-			</span>
+				<span className="w-5 h-5 flex-shrink-0 flex items-center justify-center">
+					{isPlayerReady && (
+						<span className="w-4 h-4 rounded-full bg-cyan-400 text-white text-[0.4rem] font-bold flex items-center justify-center">
+							✔
+						</span>
+					)}
+				</span>
 			
 			<div className="flex flex-col sm:flex-row flex-wrap w-full gap-2 items-stretch sm:items-center">
-			  {/* Username */}
-			  <input
-				type="text"
-				placeholder="Username"
-				disabled={player.isSelf || isPlayerReady}
-				value={player.isSelf || isPlayerReady ? player.username : data.username}
-				onChange={(e) => updateField(role, "username", e.target.value)}
-				className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
-					 ${fieldErrs.username ? "border-red-500" : "border-gray-300"}
-					${player.isSelf || isPlayerReady
-					? `${isPlayerReady ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
-					: "bg-gray-900 text-white"
-				}`}
-			  />
-
-			  {/* Password */}
-			  <input
-				type="password"
-				placeholder="Password"
-				disabled={player.isSelf || isPlayerReady}
-				value={player.isSelf || isPlayerReady ? "********" : data.password}
-				onChange={(e) => updateField(role, "password", e.target.value)}
-				className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
-					${fieldErrs.password ? "border-red-500" : "border-gray-300"}
-					${player.isSelf || isPlayerReady
-					? `${isPlayerReady ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
-					: "bg-gray-900 text-white"
-				}`}
-			  />
-
-			  {/* Alias */}
-			  <input
-				type="text"
-				placeholder="Alias"
-				disabled={isAliasLocked}
-				value={
-				  player.isSelf
-					? tempAlias
-					: data.alias || player.alias || ""
-				}
-				onChange={(e) => updateField(role, "alias", e.target.value)}
-				className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto 
-					 ${fieldErrs.alias ? "border-red-500" : "border-gray-300"}
-					${isAliasLocked
-					? "bg-gray-900 cursor-not-allowed"
-					: "bg-gray-900"
-					}
-					${isPlayerReady ? "text-indigo-400" : "text-white"}
-				`}
+				{/* Username */}
+				<input
+					type="text"
+					placeholder="Username"
+					disabled={player.isSelf || isPlayerReady}
+					value={player.isSelf || isPlayerReady ? player.username : data.username}
+					onChange={(e) => updateField(role, "username", e.target.value)}
+					className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
+						${fieldErrs.username ? "border-red-500" : "border-gray-300"}
+						${player.isSelf || isPlayerReady
+						? `${isPlayerReady ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
+						: "bg-gray-900 text-white"
+					}`}
 				/>
 
-			  {/* Action Buttons (Other players) */}
-			  {!player.isSelf && !isPlayerReady && (
-				<Button
-				  onClick={() => handleAddPlayer(role, player)}
-				  disabled={isCurrentlyLoading}
-				  className="min-w-[6.3rem]"
-				>
-				  {isCurrentlyLoading ? "Adding..." : "Add Player"}
-				</Button>
-			  )}
+				{/* Password */}
+				<input
+					type="password"
+					placeholder="Password"
+					disabled={player.isSelf || isPlayerReady}
+					value={player.isSelf || isPlayerReady ? "********" : data.password}
+					onChange={(e) => updateField(role, "password", e.target.value)}
+					className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
+						${fieldErrs.password ? "border-red-500" : "border-gray-300"}
+						${player.isSelf || isPlayerReady
+						? `${isPlayerReady ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
+						: "bg-gray-900 text-white"
+					}`}
+				/>
 
-			  {isPlayerReady && !player.isSelf && (
-				<Button
-				  onClick={() => handleRemovePlayer(role)}
-				  disabled={isCurrentlyLoading}
-				  className="min-w-[6.3rem]"
-				>
-				  Remove
-				</Button>
-			  )}
-
-			   {/* Action Buttons (Player1) */}
-			  {player.isSelf && (
-				<div className="flex items-center gap-2">
-
-				  {/* Set/Edit Alias button */}
-				  <Button
-					onClick={() => {
-					 if (isPlayerReady && !isEditingAlias) {
-						setIsEditingAlias(true);
-						setTempAlias(player.alias || "");
-					  } else {
-						// Save Alias
-						handleAddPlayer(role, player);
+				{/* Alias */}
+				<input
+					type="text"
+					placeholder="Alias"
+					disabled={isAliasLocked}
+					value={
+					player.isSelf
+						? tempAlias
+						: data.alias || player.alias || ""
 					}
-				  }}
-					// Check completion against the dedicated logic now
-					disabled={isCurrentlyLoading}
-					className="min-w-[6.3rem]"
-				  >
-					{isCurrentlyLoading
-					  ? "Saving..."
-					  : !isPlayerReady
-						? "Set Alias"
-						: (isEditingAlias  || aliasChanged)
-							? "Save Alias" 
-							: "Edit Alias"}
-				  </Button>
-				</div>
-			  )}
+					onChange={(e) => updateField(role, "alias", e.target.value)}
+					className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto 
+						${fieldErrs.alias ? "border-red-500" : "border-gray-300"}
+						${isAliasLocked
+						? "bg-gray-900 cursor-not-allowed"
+						: "bg-gray-900"
+						}
+						${isPlayerReady ? "text-indigo-400" : "text-white"}
+					`}
+					/>
+
+				{/* Action Buttons (Other players) */}
+				{!player.isSelf && !isPlayerReady && (
+					<Button
+						onClick={() => handleAddPlayer(role, player)}
+						disabled={isCurrentlyLoading}
+						className="min-w-[6.3rem]"
+						>
+							{isCurrentlyLoading ? "Adding..." : "Add Player"}
+					</Button>
+				)}
+
+				{!player.isSelf && isPlayerReady && (
+					<Button
+						onClick={() => handleRemovePlayer(role)}
+						disabled={isCurrentlyLoading}
+						className="min-w-[6.3rem]"
+						>
+							Remove
+					</Button>
+				)}
+
+				{/* Action Buttons (Player1) */}
+				{player.isSelf && (
+					<div className="flex items-center gap-2">
+
+					{/* Set/Edit Alias button */}
+					<Button
+						onClick={() => {
+						if (isPlayerReady && !isEditingAlias) {
+							setIsEditingAlias(true);
+							setTempAlias(player.alias || "");
+						} else {
+							// Save Alias
+							handleAddPlayer(role, player);
+						}
+					}}
+						// Check completion against the dedicated logic now
+						disabled={isCurrentlyLoading}
+						className="min-w-[6.3rem]"
+					>
+						{isCurrentlyLoading
+						? "Saving..."
+						: !isPlayerReady
+							? "Set Alias"
+							: (isEditingAlias  || aliasChanged)
+								? "Save Alias" 
+								: "Edit Alias"}
+					</Button>
+					</div>
+				 )}
 			</div>
-			</div>
+		</div>
 			{/* Inline field errors (shown only after clicking button) */}
 			{fieldErrs.username && <span className="text-red-500 text-sm">{fieldErrs.username}</span>}
 			{fieldErrs.password && <span className="text-red-500 text-sm">{fieldErrs.password}</span>}
 			{fieldErrs.alias && <span className="text-red-500 text-sm">{fieldErrs.alias}</span>}
 			</div>
 		);
-	  });
+	});
 
 	return (
 		<div className="space-y-3">
 			{renderPlayers}
 		</div>
-  	);
+	);
 };
 
 export default PlayerList;

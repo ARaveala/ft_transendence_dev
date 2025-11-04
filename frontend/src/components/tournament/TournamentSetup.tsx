@@ -69,8 +69,6 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 
 	/* Starts the tournament:
 		- Sends tournament_id to backend
-		- Builds an initial bracket with placeholder (TBD) matches
-		- Notifies parent via `onTournamentUpdated`
 	*/
 
 	const handleStartTournament = async () => {
@@ -106,12 +104,19 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 		}
 	};
 
+	/* Setup (player list) is in progress when tournament status is
+		'waiting' - all players haven't been added yet or
+		'ongoing' - all players have been added but bracket has not been built yet
+	For some reason backend sends status as status: status: "waiting" */
+
 	const setupInProgress = tournament && (
 		tournament.status?.status === "waiting" || 
-		(tournament.status?.status === "ongoing" && (!tournament.bracket || tournament.bracket.length === 0)));
+		(tournament.status?.status === "ongoing" && 
+			(!tournament.bracket || tournament.bracket.length === 0)));
 
 	const tournamentCanStart =  tournament && (
-		(tournament.status?.status === "ongoing" && (!tournament.bracket || tournament.bracket.length === 0)));
+		(tournament.status?.status === "ongoing" &&
+			(!tournament.bracket || tournament.bracket.length === 0)));
 
 	return (
 			<div className="mt-3 space-y-6">
