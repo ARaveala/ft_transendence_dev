@@ -114,10 +114,17 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 			<Button
 				onClick={() => onStartMatch?.(finalMatch)}
 				disabled={!isMatchPlayable(finalMatch, 2, 0)}
-				className="-mt-4"
-			>
-				{finalMatch.status === "finished" ? "Final completed" : "Play Final"}
-			</Button>
+				className={`-mt-4 border-2
+					${finalMatch.status === "finished"
+						 ? "border-gray-600 bg-gray-900 text-gray-500 cursor-not-allowed"
+						: !isMatchPlayable(finalMatch, 2, 0)
+						? "border-indigo-500 bg-black text-gray-400 cursor-not-allowed"
+						: "border-indigo-500 bg-black text-white hover:bg-indigo-700"
+					}
+				`}
+				> 
+					Play Final
+				</Button>
 		</div>
 
 		{/* Round 1 Matches */}
@@ -149,33 +156,39 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
 					<Button
 						onClick={() => onStartMatch?.(match)}
-						disabled={match.status === "finished" || !isMatchPlayable(match, 1, idx)}
-						className={
-							match.status === "finished" 
-								? "bg-gray-900 text-gray-400 cursor-not-allowed"
-								: "bg-indigo-600 hover:bg-indigo-700"
-						}
-						>
-							Play Match {idx + 1}
-					</Button>
+						disabled={!isMatchPlayable(match, 1, idx)}
+						className={`
+							border-2
+							${match.status === "finished"
+								? "border-gray-600 bg-gray-900 text-gray-500 cursor-not-allowed"
+								: !isMatchPlayable(match, 1, idx)
+								? "border-indigo-500 bg-black text-gray-400 cursor-not-allowed"
+								: "border-indigo-500 bg-black text-white hover:bg-indigo-700"
+							}
+						`}
+					>
+						Play Match {idx + 1}
+					</Button>	
 				</div>
-			 ))}
-			</div>
+			))}
+		</div>
 
-				{/* Cancel/Close button at the bottom */}
+				{/* Close Tournament temporarily commented out until backend is ready */}
 				<div className="mt-8">
+					{/*
 					{allMatchesFinished ? (
 						<Button onClick={onClose}>
 							Close Tournament
 						</Button>
-					) : (
-						onCancel && (
+					)}
+					*/}
+						{onCancel && (
 							<Button onClick={onCancel}>
 								Cancel Tournament
-						</Button>
-					)
-				)}
-			</div>
+							</Button>
+						)}
+				</div>
+			
 		</div>
 	);
 }
