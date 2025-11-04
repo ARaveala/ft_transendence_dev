@@ -1,25 +1,27 @@
+// schemas could be usefull for parsing incoming body
 const schemas = require('@sharedSchemas');
 const { API_PROTOCOL } = require('@sharedApi');
 
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'friend.js' }); // scoped logger
 
+/**
+ * Finds frined based on username , adds friend by id to friends table, user token errors are sent from AuthHook.
+ * Other errors could be refined 
+ * @param {*} fastify 
+ * @param {*} options come from context.js
+ */
 async function addFriend(fastify, options) {
-	const {secure, DBinsert, DBget} = options;
+	const {DBinsert, DBget} = options;
 	fastify.route ({
 		method: API_PROTOCOL.ADD_FRIEND.method,
 		url: API_PROTOCOL.ADD_FRIEND.path,
 		handler: async (request, reply) => {
-			flog.info({ function: 'addFriend', payload: request.body }, 'Incoming body');
 			const username = request.body.username;
-			flog.debug({ function: 'addFriend', username: username}, 'does username come through from body');
 			try {
-				const token = request.cookies.auth_token;
-				const userId = secure.getUserIdFromToken(token);
-				flog.debug({ function: 'addFriend', username: username}, 'checking it before sending to fetch');
+				const userId = request.userId; 
 				const friendId = await DBget.fetchUserByUsername(username);
-				flog.debug({ function: 'addFriend', friend: friendId, user: userId}, 'checking ids');
-				await DBinsert.insertFriend(friendId, userId.id);
+				await DBinsert.insertFriend(friendId, userId);
 				reply.code(200).send({
 					status: "ADDED",
 					friend: username,
@@ -39,22 +41,15 @@ async function addFriend(fastify, options) {
 }
 
 async function removeFriend(fastify, options) {
-	const {secure, DBdelete, DBget} = options;
+	const {DBdelete} = options;
 	fastify.route ({
 		method: API_PROTOCOL.REMOVE_FRIEND.method,
 		url: API_PROTOCOL.REMOVE_FRIEND.path,
 		handler: async (request, reply) => {
-			flog.info({ function: 'removeFriend', payload: request.body }, 'Incoming body');
-			//const username = request.body.username;
 			const friendId = request.body.friend_id
-//			flog.debug({ function: 'removeFriend', username: username}, 'does username come through from body');
 			try {
-				const token = request.cookies.auth_token;
-				const userId = secure.getUserIdFromToken(token);
-			//	flog.debug({ function: 'removeFriend', username: username}, 'checking it before sending to fetch');
-				//const friendId = await DBget.fetchUserByUsername(username);
-				flog.debug({ function: 'removeFriend', friend: friendId, user: userId}, 'checking ids');
-				await DBdelete.deleteFriendById(userId.id, friendId);
+				userId = request.userId;
+				await DBdelete.deleteFriendById(userId, friendId);
 				reply.code(200).send({
 					status: "REMOVED"
 				})
