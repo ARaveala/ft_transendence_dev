@@ -189,8 +189,8 @@ const HomePage: React.FC = () => {
         }
 
         try {
-            const res = await fetch('/api/2fa/login-verify', { // new endpoint for 2FA login
-                method: 'POST',
+            const res = await fetch(API_PROTOCOL.TFA_LOGIN_VERIFY.path, { // new endpoint for 2FA login
+                method: API_PROTOCOL.TFA_LOGIN_VERIFY.method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ otp, tempAuthToken }),
             });

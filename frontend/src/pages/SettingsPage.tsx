@@ -69,7 +69,8 @@ const SettingsPage: React.FC = () => {
 
 	const fetch2faStatus = async () => {
 		try {
-        const res = await fetch('/api/2fa/status', {
+        const res = await fetch(API_PROTOCOL.TFA_STATUS.path, {
+			method: API_PROTOCOL.TFA_STATUS.method,
 			credentials: "include"
 		});
         const data = await res.json();
@@ -437,7 +438,10 @@ const SettingsPage: React.FC = () => {
 	const handle2faCheckboxChange = async () => {
 		if (!twoFactor && !qrCode) { // enabling 2FA
 			try {
-				const res = await fetch('/api/2fa/setup', { method: 'POST', credentials: "include" });
+				const res = await fetch(API_PROTOCOL.TFA_SETUP.path, {
+					method: API_PROTOCOL.TFA_SETUP.method,
+					credentials: "include"
+				});
 				const data = await res.json();
 				if (!res.ok) throw new Error(data.error || "Could not start 2FA setup.");
 				if (data.qrCodeUrl) { setQrCode(data.qrCodeUrl); }
@@ -446,7 +450,10 @@ const SettingsPage: React.FC = () => {
 		else if (twoFactor) { //  disabling 2FA
 			if (window.confirm("Are you sure you want to disable 2FA?")) {
 				try {
-					const res = await fetch('/api/2fa/disable', { method: 'POST', credentials: "include" });
+					const res = await fetch(API_PROTOCOL.TFA_DISABLE.path, {
+						method: API_PROTOCOL.TFA_DISABLE.method,
+						credentials: "include"
+					});
 					const data = await res.json();
 					if (!res.ok) throw new Error(data.error || "Failed to disable 2FA.");
 					if (data.disabled) { alert("2FA disabled."); setTwoFactor(false); setOpenRow(null); await refreshSession(); }
@@ -458,7 +465,12 @@ const SettingsPage: React.FC = () => {
 	const handleVerify2fa = async () => {
 		if (otp.length !== 6) { alert("Please enter a 6-digit code."); return; }
 		try {
-			const res = await fetch('/api/2fa/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: "include", body: JSON.stringify({ otp }) });
+			const res = await fetch(API_PROTOCOL.TFA_VERIFY.path, {
+				method: API_PROTOCOL.TFA_VERIFY.method,
+				headers: { 'Content-Type': 'application/json' },
+				credentials: "include",
+				body: JSON.stringify({ otp })
+			});
 			const data = await res.json();
 			if (!res.ok) throw new Error(data.error || "Failed to verify 2FA.");
 			if (data.verified) { alert("2FA enabled successfully!"); setTwoFactor(true); setQrCode(null); setOtp(""); setOpenRow(null); await refreshSession(); }
