@@ -66,7 +66,15 @@ async function getUser(fastify, options) {
 			const friends = await DBget.getFriendsForPlayer(userId.id);
 	//		flog.info({function: 'getUser', friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory(userId.id);
-
+			
+			const brackets = await DBtour.getBrackets(profile.active_tournament_id);
+			let fullBracket = []; 
+			if (Array.isArray(brackets) && brackets.length >= 3) {
+				fullBracket = [
+					[brackets[0][0], brackets[1][0]], // extract game1 and game2
+					[brackets[2][0]]                  // extract game3
+				];
+			}
 			//const tid = await DBget.getActiveTournamentId(userId);
 			//const { password, ...safeUser } = profile;
 			mockProfile.username = profile.username;
