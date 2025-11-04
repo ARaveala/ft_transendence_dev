@@ -139,11 +139,9 @@ function AISimulateKeyPress(keysDown) {
     // AI presses key to move towards where it predicts it will hit the ball
     const AIPaddleCenter = AIState.positions[AIState.rightPaddleI] + AIState.paddleHeight / 2;
     if (AIPaddleCenter - predictedBallCollision > AIState.paddleHeight / 10) {
-        console.log("AI is pressing up");
         keysDown[2] = true;
         AIState.positions[AIState.rightPaddleI] -= AIState.paddleSpeed;
     } else if (AIPaddleCenter - predictedBallCollision < -AIState.paddleHeight / 10) {
-        console.log("AI is pressing down");
         keysDown[3] = true;
         AIState.positions[AIState.rightPaddleI] += AIState.paddleSpeed;
     } // else do nothing
@@ -152,7 +150,11 @@ function AISimulateKeyPress(keysDown) {
 function updateGame(state, player1, player2) {
 
     // AI will simulate pressing keys. "true" condition is for testing, remove later
-    if (true || player2.type === "ai") {
+    if (player2.type === "ai") {
+        // clear keypresses 
+        state.keysDown[2] = false;
+        state.keysDown[3] = false;
+
         // create a copy of state every second
         const now = new Date();
         if (lastAIStateUpdate == undefined || now - lastAIStateUpdate >= 1000) {
@@ -169,7 +171,6 @@ function updateGame(state, player1, player2) {
 	if (state.keysDown[1]) state.positions[state.leftPaddleI] += state.paddleSpeed;
 
     // Move player2 paddle
-	// Adding if player2.type === "ai" here will prevent human from moving AIs paddle, add later
     if (state.keysDown[2]) state.positions[state.rightPaddleI] -= state.paddleSpeed;
 	if (state.keysDown[3]) state.positions[state.rightPaddleI] += state.paddleSpeed;
 
