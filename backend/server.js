@@ -195,11 +195,11 @@
 	//fastify.get('/', async (request, reply) => {
 	//return { hello: 'world' };
 	//});
-	//fastify.get('/status', async (request, reply) => {
-	//	const status = {"status": "API is online!"};
-	//	return status;
+	fastify.get('/status', async (request, reply) => {
+		const status = {"status": "API is online!"};
+		return status;
 //
-	//});
+	});
 	//fastify.get('/', async (request, reply) => {
 	//return { hello: 'world' };
 	//});
