@@ -1,271 +1,428 @@
 
+const WebScoket = require('ws');
 const {
 	createGameState, initGame, updateKeys, updateGame
 } = require('../pong_game/pong_server.js');
+const {fetchGame} = require('../database/game');
+const {finalizeGameAndUpdateScores} = require('../database/update');
+const {startLoop} = require('./handlers.js');
+const {getUserIdFromToken} = require('../security/security.js');
 
-const {
-  handleGreet,
-  startLoop,
-  initPlayer,
-  getGameContext,
-  //handleMove,
-  //handleConnection,
-  //handlePing
-} = require('./handlers.js');
+const runtime = new Map();
+const socketIndex = new Map();
 
-const {
-	updatePlayerGameStats,
-} = require('@db/update.js');
+function ensureRuntimeGame(gameId)
+{
+	if (!runtime.has(gameId))
+	{
+		runtime.set(gameId, {
+			id: gameId,
+			phase: 'setup',
+			state: createGameState(),
+			palyers: new Map(),
+			loop: null
+		});
+	}
+	return runtime.get(gameId);
+}
 
-const {
-	getGame,
-} = require("@Rgame");
-// we should rename this to message deligation?
-
-const {log} = require('@logger');
-//const games = new Map(); // matchId -> gameState
-// let state = games.get(matchId);
-
-// guarding send calls
-//if (webSocket.readyState === WebSocket.OPEN) {
-//  webSocket.send(JSON.stringify(keysDown));
-//}
-
-//let gameState;
-let currentWs;
-let playerinit = false;
-let paused = false;
-let reconnect = false;
-// if remote play , each player should have its own set of keys , that are clearly
-// attatched to the relative paddles
-/**
- *
-gameState.keys = {
-  player1: { up: false, down: false },
-  player2: { up: false, down: false }
-};
-
- */
-function handleMessage(ws, data) {
-	currentWs = ws; // this will have to be changed for remote play
-	const context = getGameContext(ws, data, playerinit);
-	const {game, gameState} = context || {};
-
-	if (data.type != "keys")
-		console.log("Message received: (Ignoring keypresses)", data);
-	
-	switch (data.type) {
-		case 'greet':
-			handleGreet(currentWs, data);
-			break;
-		case 'ping':
-			currentWs.send(JSON.stringify({ type: 'pong', payload: 'Pong!' }));
-			break;
-		case "pause": {
-				console.log("Game paused");//Error 
-
-			if (gameState.loop) {
-				clearInterval(gameState.loop);
-				gameState.loop = undefined; // mark as stopped
-				gameState.gameRunning = false; // optional flag
-				paused = true;
-			}
-			break;
-		}
-		case 'initPlayer':{
-			// this fucntion dosnt care about if remote or local
-			console.log("starting player init");
-			initPlayer(currentWs, data.token);
-			//if (game.type === 'local'){
-			//	// just verify player2 . or we can attatch the webscoket but its of no use
-			//	//initPlayer();
-			//}
-
-			// send status data.player ready, gameid?,
-			// update a player init, wait for second before full true
-			log('PLAYER INIT CASE::', "after init ");
-			playerinit = true;
-			console.log("finnished player init");
-			currentWs.send(JSON.stringify({type: 'playerInit_ack', message: 'player init success' }));
-			break;
-		}
-		case 'getPlayerNames': {
-			const player1 = [...game.players.values()].find(player => player.role === "player1");
-			const player2 = [...game.players.values()].find(player => player.role === "player2");
-			currentWs.send(JSON.stringify({
-				type: 'playerNames',
-				player1: (player1.alias ? player1.alias : "Player 1"),
-				player2: (player2.alias ? player2.alias : "Player 2")
-			}));
-			break;
-		}
-		case 'resetPositions': {
-			const resetAll = !data.resetTargets || data.resetTargets.length === 0;
-			if (resetAll || data.resetTargets.includes("paddles")) {
-				gameState.positions[gameState.leftPaddleI] = gameState.paddleOffset;
-				gameState.positions[gameState.rightPaddleI] = gameState.width - gameState.paddleOffset;
-			} if (resetAll || data.resetTargets.includes("ball")) {
-				gameState.positions[gameState.ballYI] = gameState.height / 2;
-				gameState.positions[gameState.ballXI] = gameState.width / 2;
-			} if (resetAll || data.resetTargets.includes("gameRunning")) {
-				gameState.gameRunning = true;
-                gameState.firstHit = false;
-			}
-			break;
-		}
-		case 'resetScore': { // used in a test from pong_game/index.html
-			const player1 = [...game.players.values()].find(player => player.role === "player1");
-			const player2 = [...game.players.values()].find(player => player.role === "player2");
-			player1.score = 0;
-			player2.score = 0;
-			break;
-		}
-		case 'gameOver': {
-			const players = [...game.players.entries()]; // [ [id, player], ... ]
-
-			const player1Entry = players.find(([_, p]) => p.role === 'player1');
-			const player2Entry = players.find(([_, p]) => p.role === 'player2');
-
-			const [id1, player1] = player1Entry;
-			const [id2, player2] = player2Entry;
-
-			// const winner = player1.score > player2.score ? 1 : 2;
-
-			console.log("ids:", id1, id2);
-			console.log("winner:", winner);
-			console.log("scores:", player1.score, player2.score);
-			console.log("gameID:", data.gameId);
-			finalizeGameAndUpdateScores({
-				gameId: data.gameId,
-				p1Score: player1.score,
-				p2Score: player2.score,
-			}).then(({winnerId}) => {
-				currentWs.send(JSON.stringify({type: 'game_result_saved', gameId: data.gameId, winnerId}));
-			}).catch(err => {
-				console.log('Failed to finalize game', err);
-				currentWs.send(JSON.stringify({type: 'error', error: 'Failed to save game result'}));
-			});
-			
-			// if (winner === 1){
-			// 	updatePlayerGameStats(true, id1, player1.score)
-			// 	 .catch(err => console.error('Failed to update player1 stats', err));
-			// 	//if (typeof id2 === 'string' && !id2.includes('Guest')) {
-			// 	//	updatePlayerGameStats(false, id2, player2.score)
-			// 	//	 .catch(err => console.error('Failed to update player2 stats', err));
-			// 	//}
-			// }
-			// else {
-			// 	//if (typeof id2 === 'string' && !id2.includes('Guest')) {
-			// 	//	updatePlayerGameStats(true, id2, player2.score)
-			// 	//	 .catch(err => console.error('Failed to update player2 stats', err));
-			// 	//}
-			// 	updatePlayerGameStats(false === 0, id1, player1.score)
-			// 	 .catch(err => console.error('Failed to update player1 stats', err));
-			// }
-			break;
-		}
-		case 'init': {
-			// if remote initgame should only happen for player1
-			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset, ballSpeed, paddleSpeed, powerUp }
-			currentWs.send(JSON.stringify({type: 'init_ack', message: 'game init success' }));
-            gameState.powerups = data.payload.powerups;
-			break;
-		}
-		case 'keys':{
-			// if remote update keys should somehow update keys for both players at the same time
-			/**
-			 * const playerId = ws.playerId;
-				gameState.keys[playerId/orsomething] = payload;
-
-			 */
-			updateKeys(gameState, data.payload); // update keys in game state
-			break;
-		}
-		case "start_loop":{
-			// if remote this should only start once player 1 and player 2 have initilized and player 1 has initilized the game
-			// then this should be updated to startloop for both player websockets
-			const player1 = [...game.players.values()].find(player => player.role === "player1");
-			const player2 = [...game.players.values()].find(player => player.role === "player2");
-			if (!player1 || !player2)
+async function handleMessage(currentWs, raw)
+{
+	let data;
+	try { data = JSON.parse(raw); } catch { return ;}
+	switch (data.type)
+	{
+		case 'attach_socket':
+		{
+			const user = getUserIdFromToken(data.token);
+			if (!user?.id)
 			{
-				console.log("Error getting players");
-				console.log("Player1: ", player1);
-				console.log("Player2: ", player2);
-				return;
+				currentWs.send(JSON.stringify({type: 'ERROR', error: 'Unauthorized'}));
+				break;
 			}
-			startLoop(game, gameState, player1, player2);
+			const gameId = Number(data.game_id);
+			if (!Number.isInteger(gameId))
+			{
+				currentWs.send(JSON.stringify({type: 'ERROR', error: 'Invalid game ID'}));
+				break;
+			}
+			const row = await fetchGame(gameId);
+			if (!row)
+			{
+				currentWs.send(JSON.stringify({type: 'ERROR', error: 'Game not found'}));
+				break;
+			}
+			const isSolo = row.type === 'ai' || row.type === 'local';
+			if (!isSolo && row.p1_id !== user.id && row.p2_id !== user.id)
+			{
+				currentWs.send(JSON.stringify({type: 'ERROR', error: 'Not participant'}));
+				break;
+			}
+			const game = ensureRuntimeGame(gameId);
+			if (socketIndex.has(currentWs))
+			{
+				const old = socketIndex.get(currentWs);
+				const oldGame = ensureRuntimeGame(old.gameId);
+				for (const [k, p] of oldGame.players.entries())
+					if (p.ws === currentWs) oldGame.players.delete(k);
+				socketIndex.delete(currentWs);
+			}
+			const p1 = {userId: row.p1_id || user.id, role: 'player1', score: 0, ws: currentWs};
+			const p2 = row.type === 'ai'
+				? {userId: null, role: 'player2', score: 0, isAI: true}
+				: {userId: row.p2_id || null, role: 'player2', score: 0, ws: currentWs};
+			game.players.set('p1', p1);
+			game.players.set('p2', p2);
+			socketIndex.set(currentWs, {gameId, userId: user.id});
+			currentWs.send(JSON.stringify({
+				type: 'attach_ok',
+				game_id: gameId,
+				roles: ['player1', 'player2'],
+				status: row.status,
+				type: row.type
+			}));
+			if (row.status === 'ongoing' && !game.loop)
+				startLoop(game, runtime);
 			break;
 		}
-		case "reconnect": {
-			paused = false; // may have future use, should be stored in game object
-			reconnect = true; // may have future use, not sure
-			currentWs.send(JSON.stringify(gameState.positions));
-			if (!gameState.loop) {
-				gameState.gameRunning = true;
-				const player1 = [...game.players.values()].find(player => player.role === "player1");
-				const player2 = [...game.players.values()].find(player => player.role === "player2");
-				startLoop(currentWs, gameState, player1, player2);
-				console.log("Game resumed");
-			}
+		case 'init':
+		{
+			const meta =socketIndex.gey(currentWs);
+			if (!meta) return;
+			const game = ensureRuntimeGame(meta.gameId);
+			const settings = data.payload || {};
+			initGame(game.state, settings);
+			game.state.fps = settings.fps || game.state.fps || 60;
+			currentWs.send(JSON.stringify({type: 'init_ack', message: 'OK'}));
 			break;
 		}
-		// i dont know how this would work , where is the score update coming from
-		// does the internally update it?
-		//case "updateScore": {
-		//	// this should be called by the game loop only , not by the client
-		//	// if remote this should update both players websockets
-		//	if (gameState.gameRunning) {
-		//		updateScores(gameState);
-		//	}
-		//	break;
-		//send current scores , front end checks if scores meet win condition?
-		//	currentWs.send(JSON.stringify({ type: 'score_update', player1: gameState.players.player1.score, player2: gameState.players.player2.score }));
-		//	break;
-		//}
-		case "end": {
-			// do we use game phase === end to detemrine this? or does front end send me it in this case
-			//update scores in database
-			// stop game loop
-			// send final scores to both players
-			// clean up game state
-			console.log("Game ended");
-			const player1 = Object.values(game.players).find(player => player.role === "player1");
-			const player2 = Object.values(game.players).find(player => player.role === "player2");
-			//isntead of clearing everything here , send me a game end confrimed message so i can clean up and close the webscokets
-			//if (gameState.loop) {
-			//	clearInterval(gameState.loop);
-			//	gameState.loop = undefined; // mark as stopped
-			//	gameState.gameRunning = false; // optional flag
-			//	paused = false;
-			//	reconnect = false;
-			//}
-			currentWs.send(JSON.stringify({ type: 'game_end', payload: gameState.positions, player1: player1.score, player2: player2.score }));
-			}
+		case 'keys':
+		{
+			const meta = socketIndex.get(currentWs);
+			if (!meta) return;
+			const game = runtime.get(meta.gameId);
+			if (!game) return;
+			updateKeys(game.state, data.payload);
 			break;
-		case "close": {
-			// this should be called when a player closes the webscoket or navigates away
-			// stop game loop
-			// notify other player
-			// clean up game state
-			console.log("Game closed by player");
-			//if (gameState.loop) {
-			//	clearInterval(gameState.loop);
-			//	gameState.loop = undefined; // mark as stopped
-			//	gameState.gameRunning = false; // optional flag
-			//	paused = false;
-			//	reconnect = false;
-			//}
-			currentWs.send(JSON.stringify({ type: 'game_closed', message: 'Game closed by player' }));
 		}
+		case 'pause':
+		{
+			const meta = socketIndex.get(currentWs);
+			if (!meta) return;
+			const game = runtime.get(meta.gameId);
+			if (!game?.state?.loop) return;
+			clearInterval(game.state.loop);
+			game.state.loop = undefined;
+			game.state.gameRunning = false;
 			break;
+		}
+		case 'game_over':
+		{
+			const meta = socketIndex.get(currentWs);
+			if (!meta) return;
+			const gameId = meta.gameId;
+			const game = runtime.get(gameId);
+			if (!game) return;
+			const p1 = [...game.players.values()].find(p => p.role === 'player1');
+			const p2 = [...game.players.values()].find(p => p.role === 'player2');
+			if (!p1 || !p2) return;
+			const p1Score = p1.score || 0;
+			const p2Score = p2.score || 0;
+			try
+			{
+				await finalizeGameAndUpdateScores({
+					gameId,
+					p1Score,
+					p2Score
+				});
+				currentWs.send(JSON.stringify({type: 'game_result_saved', game_id: gameId}));
+			}
+			catch (e) { currentWs.send(JSON.stringify({type: 'ERROR', error: 'finalize_failed'}))};
+			break;
+		}
 		default:
-			console.error('Unknown message type:', data.type);
-			currentWs.send(JSON.stringify({ error: 'Unknown message type' }));
 			break;
 	}
 }
 
-module.exports = { handleMessage };
+function onClose(ws)
+{
+	const meta = socketIndex.get(ws);
+	if (!meta) return;
+	const game = runtime.get(meta.gameId);
+	if (game) game.players.delete(ws);
+	socketIndex.delete(ws);
+}
+
+module.exports = {handleMessage, onClose, _runtime: runtime};
+
+// const {
+// 	createGameState, initGame, updateKeys, updateGame
+// } = require('../pong_game/pong_server.js');
+
+// const {
+//   handleGreet,
+//   startLoop,
+//   initPlayer,
+//   getGameContext,
+//   //handleMove,
+//   //handleConnection,
+//   //handlePing
+// } = require('./handlers.js');
+
+// const {
+// 	updatePlayerGameStats,
+// } = require('@db/update.js');
+
+// const {
+// 	getGame,
+// } = require("@Rgame");
+// // we should rename this to message deligation?
+
+// const {log} = require('@logger');
+// //const games = new Map(); // matchId -> gameState
+// // let state = games.get(matchId);
+
+// // guarding send calls
+// //if (webSocket.readyState === WebSocket.OPEN) {
+// //  webSocket.send(JSON.stringify(keysDown));
+// //}
+
+// //let gameState;
+// let currentWs;
+// let playerinit = false;
+// let paused = false;
+// let reconnect = false;
+// // if remote play , each player should have its own set of keys , that are clearly
+// // attatched to the relative paddles
+// /**
+//  *
+// gameState.keys = {
+//   player1: { up: false, down: false },
+//   player2: { up: false, down: false }
+// };
+
+//  */
+// function handleMessage(ws, data) {
+// 	currentWs = ws; // this will have to be changed for remote play
+// 	const context = getGameContext(ws, data, playerinit);
+// 	const {game, gameState} = context || {};
+
+// 	if (data.type != "keys")
+// 		console.log("Message received: (Ignoring keypresses)", data);
+	
+// 	switch (data.type) {
+// 		case 'greet':
+// 			handleGreet(currentWs, data);
+// 			break;
+// 		case 'ping':
+// 			currentWs.send(JSON.stringify({ type: 'pong', payload: 'Pong!' }));
+// 			break;
+// 		case "pause": {
+// 				console.log("Game paused");//Error 
+
+// 			if (gameState.loop) {
+// 				clearInterval(gameState.loop);
+// 				gameState.loop = undefined; // mark as stopped
+// 				gameState.gameRunning = false; // optional flag
+// 				paused = true;
+// 			}
+// 			break;
+// 		}
+// 		case 'initPlayer':{
+// 			// this fucntion dosnt care about if remote or local
+// 			console.log("starting player init");
+// 			initPlayer(currentWs, data.token);
+// 			//if (game.type === 'local'){
+// 			//	// just verify player2 . or we can attatch the webscoket but its of no use
+// 			//	//initPlayer();
+// 			//}
+
+// 			// send status data.player ready, gameid?,
+// 			// update a player init, wait for second before full true
+// 			log('PLAYER INIT CASE::', "after init ");
+// 			playerinit = true;
+// 			console.log("finnished player init");
+// 			currentWs.send(JSON.stringify({type: 'playerInit_ack', message: 'player init success' }));
+// 			break;
+// 		}
+// 		case 'getPlayerNames': {
+// 			const player1 = [...game.players.values()].find(player => player.role === "player1");
+// 			const player2 = [...game.players.values()].find(player => player.role === "player2");
+// 			currentWs.send(JSON.stringify({
+// 				type: 'playerNames',
+// 				player1: (player1.alias ? player1.alias : "Player 1"),
+// 				player2: (player2.alias ? player2.alias : "Player 2")
+// 			}));
+// 			break;
+// 		}
+// 		case 'resetPositions': {
+// 			const resetAll = !data.resetTargets || data.resetTargets.length === 0;
+// 			if (resetAll || data.resetTargets.includes("paddles")) {
+// 				gameState.positions[gameState.leftPaddleI] = gameState.paddleOffset;
+// 				gameState.positions[gameState.rightPaddleI] = gameState.width - gameState.paddleOffset;
+// 			} if (resetAll || data.resetTargets.includes("ball")) {
+// 				gameState.positions[gameState.ballYI] = gameState.height / 2;
+// 				gameState.positions[gameState.ballXI] = gameState.width / 2;
+// 			} if (resetAll || data.resetTargets.includes("gameRunning")) {
+// 				gameState.gameRunning = true;
+//                 gameState.firstHit = false;
+// 			}
+// 			break;
+// 		}
+// 		case 'resetScore': { // used in a test from pong_game/index.html
+// 			const player1 = [...game.players.values()].find(player => player.role === "player1");
+// 			const player2 = [...game.players.values()].find(player => player.role === "player2");
+// 			player1.score = 0;
+// 			player2.score = 0;
+// 			break;
+// 		}
+// 		case 'gameOver': {
+// 			const players = [...game.players.entries()]; // [ [id, player], ... ]
+
+// 			const player1Entry = players.find(([_, p]) => p.role === 'player1');
+// 			const player2Entry = players.find(([_, p]) => p.role === 'player2');
+
+// 			const [id1, player1] = player1Entry;
+// 			const [id2, player2] = player2Entry;
+
+// 			// const winner = player1.score > player2.score ? 1 : 2;
+
+// 			console.log("ids:", id1, id2);
+// 			console.log("winner:", winner);
+// 			console.log("scores:", player1.score, player2.score);
+// 			console.log("gameID:", data.gameId);
+// 			finalizeGameAndUpdateScores({
+// 				gameId: data.gameId,
+// 				p1Score: player1.score,
+// 				p2Score: player2.score,
+// 			}).then(({winnerId}) => {
+// 				currentWs.send(JSON.stringify({type: 'game_result_saved', gameId: data.gameId, winnerId}));
+// 			}).catch(err => {
+// 				console.log('Failed to finalize game', err);
+// 				currentWs.send(JSON.stringify({type: 'error', error: 'Failed to save game result'}));
+// 			});
+			
+// 			// if (winner === 1){
+// 			// 	updatePlayerGameStats(true, id1, player1.score)
+// 			// 	 .catch(err => console.error('Failed to update player1 stats', err));
+// 			// 	//if (typeof id2 === 'string' && !id2.includes('Guest')) {
+// 			// 	//	updatePlayerGameStats(false, id2, player2.score)
+// 			// 	//	 .catch(err => console.error('Failed to update player2 stats', err));
+// 			// 	//}
+// 			// }
+// 			// else {
+// 			// 	//if (typeof id2 === 'string' && !id2.includes('Guest')) {
+// 			// 	//	updatePlayerGameStats(true, id2, player2.score)
+// 			// 	//	 .catch(err => console.error('Failed to update player2 stats', err));
+// 			// 	//}
+// 			// 	updatePlayerGameStats(false === 0, id1, player1.score)
+// 			// 	 .catch(err => console.error('Failed to update player1 stats', err));
+// 			// }
+// 			break;
+// 		}
+// 		case 'init': {
+// 			// if remote initgame should only happen for player1
+// 			initGame(gameState, data.payload); // payload = { height, width, ballSize, paddleSize, paddleOffset, ballSpeed, paddleSpeed, powerUp }
+// 			currentWs.send(JSON.stringify({type: 'init_ack', message: 'game init success' }));
+//             gameState.powerups = data.payload.powerups;
+// 			break;
+// 		}
+// 		case 'keys':{
+// 			// if remote update keys should somehow update keys for both players at the same time
+// 			/**
+// 			 * const playerId = ws.playerId;
+// 				gameState.keys[playerId/orsomething] = payload;
+
+// 			 */
+// 			updateKeys(gameState, data.payload); // update keys in game state
+// 			break;
+// 		}
+// 		case "start_loop":{
+// 			// if remote this should only start once player 1 and player 2 have initilized and player 1 has initilized the game
+// 			// then this should be updated to startloop for both player websockets
+// 			const player1 = [...game.players.values()].find(player => player.role === "player1");
+// 			const player2 = [...game.players.values()].find(player => player.role === "player2");
+// 			if (!player1 || !player2)
+// 			{
+// 				console.log("Error getting players");
+// 				console.log("Player1: ", player1);
+// 				console.log("Player2: ", player2);
+// 				return;
+// 			}
+// 			startLoop(game, gameState, player1, player2);
+// 			break;
+// 		}
+// 		case "reconnect": {
+// 			paused = false; // may have future use, should be stored in game object
+// 			reconnect = true; // may have future use, not sure
+// 			currentWs.send(JSON.stringify(gameState.positions));
+// 			if (!gameState.loop) {
+// 				gameState.gameRunning = true;
+// 				const player1 = [...game.players.values()].find(player => player.role === "player1");
+// 				const player2 = [...game.players.values()].find(player => player.role === "player2");
+// 				startLoop(currentWs, gameState, player1, player2);
+// 				console.log("Game resumed");
+// 			}
+// 			break;
+// 		}
+// 		// i dont know how this would work , where is the score update coming from
+// 		// does the internally update it?
+// 		//case "updateScore": {
+// 		//	// this should be called by the game loop only , not by the client
+// 		//	// if remote this should update both players websockets
+// 		//	if (gameState.gameRunning) {
+// 		//		updateScores(gameState);
+// 		//	}
+// 		//	break;
+// 		//send current scores , front end checks if scores meet win condition?
+// 		//	currentWs.send(JSON.stringify({ type: 'score_update', player1: gameState.players.player1.score, player2: gameState.players.player2.score }));
+// 		//	break;
+// 		//}
+// 		case "end": {
+// 			// do we use game phase === end to detemrine this? or does front end send me it in this case
+// 			//update scores in database
+// 			// stop game loop
+// 			// send final scores to both players
+// 			// clean up game state
+// 			console.log("Game ended");
+// 			const player1 = Object.values(game.players).find(player => player.role === "player1");
+// 			const player2 = Object.values(game.players).find(player => player.role === "player2");
+// 			//isntead of clearing everything here , send me a game end confrimed message so i can clean up and close the webscokets
+// 			//if (gameState.loop) {
+// 			//	clearInterval(gameState.loop);
+// 			//	gameState.loop = undefined; // mark as stopped
+// 			//	gameState.gameRunning = false; // optional flag
+// 			//	paused = false;
+// 			//	reconnect = false;
+// 			//}
+// 			currentWs.send(JSON.stringify({ type: 'game_end', payload: gameState.positions, player1: player1.score, player2: player2.score }));
+// 			}
+// 			break;
+// 		case "close": {
+// 			// this should be called when a player closes the webscoket or navigates away
+// 			// stop game loop
+// 			// notify other player
+// 			// clean up game state
+// 			console.log("Game closed by player");
+// 			//if (gameState.loop) {
+// 			//	clearInterval(gameState.loop);
+// 			//	gameState.loop = undefined; // mark as stopped
+// 			//	gameState.gameRunning = false; // optional flag
+// 			//	paused = false;
+// 			//	reconnect = false;
+// 			//}
+// 			currentWs.send(JSON.stringify({ type: 'game_closed', message: 'Game closed by player' }));
+// 		}
+// 			break;
+// 		default:
+// 			console.error('Unknown message type:', data.type);
+// 			currentWs.send(JSON.stringify({ error: 'Unknown message type' }));
+// 			break;
+// 	}
+// }
+
+// module.exports = { handleMessage };
 
 /** example of how 2 websockets can communicate or get updates at the same time
  * for (const player of game.players.values()) {

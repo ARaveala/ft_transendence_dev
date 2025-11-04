@@ -3,71 +3,49 @@ const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'get.js' }); // scoped logger
 const bcrypt = require('bcryptjs');
 
-// naming can be changed 
-// get each element from database , such as score, name , status
-// userId is passed as ({object}) not (value) to allow adjustmenst such as do not show password
-// this should be what is being returned
-/**
- * 		const mockProfile = {
-				username: "PlayerOne",
-				avatarFile: "avatars/avatar1.png",
-				twoFactor: false,
-				rank: 5,
-				score: 1200,
-				victories: 15,
-				losses: 7,
-				totalMatches: 22,
-				friends: [
-					{ id: "1", username: "Player2", avatar: "/avatars/avatar2.png" },
-					{ id: "2", username: "Player3", avatar: "/avatars/avatar3.png" },
-				],
-				matchHistory: [
-					{ id: "m1", opponent: "Player2", result: "win", score: 21, timestamp: "2025-08-25T12:00:00" },
-					{ id: "m2", opponent: "Player3", result: "loss", score: 18, timestamp: "2025-08-24T15:30:00" },
-				],
-			};
-this could be managed by routes calling 3 fucntions     const player = await db.getPlayerById(playerId);
-    const friends = await db.getFriendsForPlayer(playerId);
-    const matchHistory = await db.getMatchHistory(playerId);
- */
 
-async function fetchUser({ userId }) {
-	console.log('Finside db::fetching user with ID:', userId);
-	const test = userId.id;
-		return new Promise((resolve, reject) => {
-			db.get('SELECT * FROM users WHERE id = ?', [test], (err, row) =>{
-				if (err) {
-					console.error('DB error:', err);
-					reject({ error: 'DB error fecth' });
-				} else if (!row) {
-					console.warn('User not found for ID:', userId);
-					reject({ error: 'User not found fecth' });
-				} else {
-					console.log('User found:', row);
-					resolve(row);
-				}
-
-			});
+async function fetchUser(userId)
+{
+	flog.debug({function: 'fetchUser', userId, type: typeof userId}, 'fetching user');
+	return new Promise((resolve, reject) => {
+		db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) =>{
+			if (err)reject({ error: 'DB error fecth' });
+			if (!row) reject({ error: 'User not found fecth' });
+			resolve(row);
 		});
+	});
 }
 
+// async function getUserIdByUsername(username)
+// {
+// 	return new Promise((resolve, reject) => {
+// 		db.get(`SELECT id FROM users WHERE username = ?`, [username], (err, row) => {
+// 			if (err) return reject({error: 'DB error fetch', details: err});
+// 			if (!row) return reject({error: 'User not found'});
+// 			resolve(row.id);
+// 		});
+// 	});
+// }
+
 // get user by username , ie when adding friend
-async function fetchUserByUsername(username) {
+async function fetchUserByUsername(username)
+{
 	if (username === undefined) {flog.warn({ function: 'fetUserByUsername'}, 'username undefined')}
 	flog.info({ function: 'fetUserByUsername', username: username}, 'username: ');
 		return new Promise((resolve, reject) => {
 			db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) =>{
-				if (err) {
+				if (err)
+				{
 					flog.error({ function: 'fetUserByUsername', err}, 'DB error:');
 					reject({ error: 'DB error fecth' });
-				} else if (!row) {
+				}
+				if (!row)
+				{
 					flog.warn({ function: 'fetUserByUsername', username: username}, 'User not found :');
 					reject({ error: 'User not found fecth' });
-				} else {
-					flog.info({ function: 'fetUserByUsername', row}, 'User found:');
-					resolve(row.id);
 				}
-
+				flog.info({ function: 'fetUserByUsername', row}, 'User found:');
+				resolve(row.id);
 			});
 		});
 }
@@ -186,7 +164,7 @@ async function miniLogin(username, password) {
 		throw {status: 401, error: 'Invalid username or password'};
       // Return minimal info — no profile data
 	  flog.info({ function: 'miniLogin', userId: row.id}, 'mini login success ');
-      resolve(row.id);
+      resolve({id: row.id});
     });
   });
 }
@@ -229,7 +207,9 @@ async function is2FaEnabled(userId) {
 		});
 }
 
-module.exports = { fetchUser, 
+module.exports = {
+	fetchUser,
+	// getUserIdByUsername,
 	miniLogin, 
 	getFriendsForPlayer, 
 	getMatchHistory,
@@ -238,10 +218,3 @@ module.exports = { fetchUser,
 	fetchUserByUsername,
 	is2FaEnabled,
 };
-//similar logic as below may be required
-//async function userRoutes(fastify, options) {
-//  await registerUser(fastify, options);
-//  await getUser(fastify, options);
-//}
-//
-//module.exports = userRoutes;

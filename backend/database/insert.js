@@ -1,6 +1,6 @@
 // this does not re initialize the database , just connects to it
 const db = require('./initDB.js');
-
+const { randomUUID } = require('crypto');
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'insert.js' }); // scoped logger
 
@@ -27,21 +27,21 @@ avatarFile: "avatars/avatar1.png",
 				friends: 0 (format unknown)
 				matchHistory: 0 (format unknown)
  */
-function insertUser({ username, password}) {
-
-    return new Promise((resolve, reject) => {
-        db.run(
-            `INSERT INTO users (username, password, avatar_file) VALUES (?, ?, ?)`,
-            [username, password, 'frontend/src/assets/avatars/avatar1.png'],
-            function (err) {
-                if (err) {
-                    reject({ error: 'Failed to add user', details: err });
-                } else {	
-                    resolve({ id: this.lastID });
-                }
-            }
-        );
-    });
+function insertUser({ username, password, avatarFile = 'frontend/src/assets/avatars/avatar1.png'}) {
+  flog.info({function: 'insertUser', username}, 'adding user');
+  const id = randomUUID();
+  return new Promise((resolve, reject) => {
+    db.run(
+      `INSERT INTO users (id, username, password, avatar_file) VALUES (?, ?, ?, ?)`,
+      [id, username, password, avatarFile],
+      function (err)
+      {
+        if (err)
+          reject({ error: 'Failed to add user', details: err });
+        resolve({id});
+      }
+    );
+  });
 }
 
 

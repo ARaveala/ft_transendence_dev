@@ -320,5 +320,6 @@ module.exports = {
 	createGameState,
 	initGame,
 	updateKeys,
-	updateGame
+	updateGame,
+	AISimulateKeyPress
 };

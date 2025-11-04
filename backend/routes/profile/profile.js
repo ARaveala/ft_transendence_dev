@@ -54,7 +54,7 @@ async function getUser(fastify, options) {
 			};
 		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
 		try {
-			const profile = await DBget.fetchUser({userId});
+			const profile = await DBget.fetchUser(userId);
 			//flog.warn({function: "getProfile", totalGames: profile.total_games}, "can we see total matches updated and recived==============================");
 			const friends = await DBget.getFriendsForPlayer(userId.id);
 	//		flog.info({function: 'getUser', friends}, 'checking friend object');
@@ -107,7 +107,7 @@ async function updateUsername(fastify, options) {
 				console.log('checking res', res);
 			}
 
-			const profile = await DBget.fetchUser({userId});
+			const profile = await DBget.fetchUser(userId);
 			if (!profile) {
 				console.log('error in fetching user id or profile ');
 				reply.code(404).send({
@@ -188,7 +188,7 @@ async function uploadAvatarFileRoute(fastify, options) {
 				}
 
 				// 1. Fetch current user data to get the old avatar URL for later deletion
-				const currentUserData = await DBget.fetchUser({ userId });
+				const currentUserData = await DBget.fetchUser(userId);
 				const oldAvatarUrl = currentUserData ? currentUserData.avatar_file : null;
 
 				// Parse the file data from the multipart request

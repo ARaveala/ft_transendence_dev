@@ -23,7 +23,8 @@
     "sinclair": "^0.2.0",
     "speakeasy": "^2.0.0",
     "sqlite3": "^5.1.7",
-    "typebox": "^0.0.1"
+    "typebox": "^0.0.1",
+    "uuid": "^9.0.1"
   },
   "_moduleAliases": {
     "@db": "database",

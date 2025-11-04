@@ -48,6 +48,7 @@ async function registerUser(fastify, options) {
 	});
 }
 
+
 // result change may affect frontend testing due to incorrect path
 async function loginUser(fastify, options) {
     const { DBget, secure } = options;

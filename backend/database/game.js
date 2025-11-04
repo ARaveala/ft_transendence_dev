@@ -1,12 +1,12 @@
 const db = require('./initDB');
 
-function createGameRow({p1Id, mode, type})
+function createGameRow({p1Id})
 {
     return new Promise((resolve, reject) => {
         db.run(
-            `INSERT INTO games (p1_id, p2_id, status, mode, type)
-             VALUES (?, NULL, 'waiting', ?, ?)`,
-            [p1Id, mode ?? null, type ?? null],
+            `INSERT INTO games (p1_id, p2_id, status)
+             VALUES (?, NULL, 'waiting')`,
+            [p1Id],
             function (err)
             {
                 if (err) return reject(err);
@@ -18,7 +18,7 @@ function createGameRow({p1Id, mode, type})
 
 function joinGameRow({gameId, p2Id})
 {
-    return new Promise((resove, reject) => {
+    return new Promise((resolve, reject) => {
         db.run(
             `UPDATE games
                 SET p2_id = ?, status = 'ongoing'
@@ -30,6 +30,23 @@ function joinGameRow({gameId, p2Id})
             {
                 if (err) return reject(err);
                 if (this.changes === 0) return reject(new Error('GAME_NOT_JOINABLE'));
+                resolve({ok: true});
+            }
+        );
+    });
+}
+
+function startGameRow({gameId, allowSolo = false})
+{
+    return new Promise((resolve, reject) =>{
+        const sql = allowSolo
+            ? `UPDATE games SET status = 'ongoing' WHERE id = ?`
+            : `UPDATE games SET status = 'ongoing' WHERE id = ? AMD p1_id IS NOT NULL AND p2_id IS NOT NULL`;
+        db.run(sql, [gameId],
+            function (err)
+            {
+                if (err) return reject(err);
+                if (this.changes === 0) return reject(new Error('GAME_NOT_READY'));
                 resolve({ok: true});
             }
         );
@@ -48,4 +65,4 @@ function fetchGame(gameId)
     });
 }
 
-module.exports = { createGameRow, joinGameRow, fetchGame };
+module.exports = { createGameRow, joinGameRow, startGameRow, fetchGame };

@@ -12,24 +12,15 @@ const flog = logger.child({ fileContext: 'insert.js' }); // scoped logger
  */
 function deleteUserById(id) {
   return new Promise((resolve, reject) => {
-    // defensive: ensure integer
 	console.log('checking id', id);
 	const userId = id;
-	// const userId = Number(id);
 	console.log('db function delete check id', userId, 'type', typeof userId);
-    if (!Number.isInteger(userId) || userId <= 0) {
-      return reject(new Error('Invalid user id'));
-    }
-
-    db.run(
-      'DELETE FROM users WHERE id = ?',
-      [userId],
+    if (!id || typeof id !== 'string') return reject(new Error('Invalid user ID'));
+    db.run('DELETE FROM users WHERE id = ?', [userId],
       function onDone(err) {
         if (err) return reject(err);
-        // this.changes is provided by sqlite3 and tells how many rows were affected
         resolve(this.changes);
-      }
-    );
+      });
   });
 }
 

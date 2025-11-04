@@ -4,7 +4,7 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS users
 (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     avatar_file TEXT,
@@ -23,22 +23,22 @@ CREATE TABLE IF NOT EXISTS users
 -- status can be 'pending', 'accepted', 'blocked'
 -- cap at 20?
 CREATE TABLE IF NOT EXISTS friends (
-    user_id INTEGER NOT NULL,
-    friend_id INTEGER NOT NULL,
+    user_id TEXT NOT NULL,
+    friend_id TEXT NOT NULL,
 	status TEXT NOT NULL DEFAULT 'pending',
     CHECK (user_id <> friend_id),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (friend_id) REFERENCES users(id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, friend_id) -- ensures no duplicate friendships
 );
-CREATE INDEX IF NOT EXISTS idx_friend_friend_id ON friends(friend_id);
+-- CREATE INDEX IF NOT EXISTS idx_friend_friend_id ON friends(friend_id);
 
 -- tournament table
 CREATE TABLE IF NOT EXISTS tournaments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     status TEXT NOT NULL DEFAULT 'waiting'
         CHECK (status IN ('waiting','ongoing','finished')),
-    winner_id INTEGER,
+    winner_id TEXT,
     FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
@@ -49,13 +49,13 @@ CREATE TABLE IF NOT EXISTS games
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tournament_id INTEGER,
-    p1_id INTEGER,
-    p2_id INTEGER,
+    p1_id TEXT,
+    p2_id TEXT,
     p1_score INTEGER NOT NULL DEFAULT 0,
     p2_score INTEGER NOT NULL DEFAULT 0,
     type TEXT,
     mode TEXT,
-    winner_id INTEGER,
+    winner_id TEXT,
     round INTEGER,
     bracket_pos INTEGER,
     status TEXT NOT NULL DEFAULT 'waiting'
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS games
 CREATE TABLE IF NOT  EXISTS tournament_players (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tournament_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
+    user_id TEXT NOT NULL,
     alias TEXT NOT NULL,
     role INTEGER NOT NULL CHECK (role BETWEEN 1 AND 4),
     UNIQUE (tournament_id, user_id),

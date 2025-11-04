@@ -102,19 +102,12 @@ function finalizeGameAndUpdateScores({gameId, p1Score, p2Score, winnerScoreDelta
 
 function updateUsername(username, userId) {
 	console.log('updating username for user:', { username, userId});
-
 	return new Promise((resolve, reject) => {
-		db.run(
-			`UPDATE users SET username = ? WHERE id = ?`,
-			[username, userId],
+		db.run(`UPDATE users SET username = ? WHERE id = ?`, [username, userId],
 			function (err) {
-				if (err) {
-					reject({ error: 'Failed to update the username', details: err});
-				} else if (this.changes === 0) {
-					reject({ error: 'User not found , no changes made' });
-				} else {
-					resolve({ message: 'username updated', userId: userId, newUsername: username});
-				}
+				if (err) reject({ error: 'Failed to update the username', details: err});
+				if (this.changes === 0) reject({ error: 'User not found , no changes made' });
+				resolve({ message: 'username updated', userId: userId, newUsername: username});
 			}
 		);
 	});

@@ -1,32 +1,87 @@
 const { API_PROTOCOL } = require('@sharedApi');
-const { createGameRow, joinGameRow, fetchGame } = require('@db/game');
+const { createGameRow, joinGameRow, fetchGame, startGameRow } = require('@db/game');
 const { getUserIdFromToken } = require('@security');
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'game.js' });
-const {
-  createGameState,
-  initGame,
-  updateKeys,
-  updateGame
-} = require('../pong_game/pong_server.js');
 
-const {
-	miniLogin
-} = require('@db/get.js');
+module.exports = async function gameRoutes(fastify)
+{
+	fastify.post(API_PROTOCOL.CREATE_GAME.path, async (req, reply) => {
+		const token = req.cookies.auth_token;
+		const user = getUserIdFromToken(token);
+		if (!user?.id) return reply.code(401).send({status: 'ERROR', error: 'Unauthorized'});
+		const {mode = null, type = null} = req.body || {};
+		const {id: gameId} = await createGameRow({p1Id: user.id, mode, type});
+		reply.send({status: 'OK', gameId: gameId, mode, type});
+	});
+	fastify.post(API_PROTOCOL.JOIN_GAME.path, async (req, reply) => {
+		const token = req.cookies.auth_token;
+		const user = getUserIdFromToken(token);
+		if (!user?.id) return reply.code(401).send({status: 'ERROR', error: 'Unauthorized'});
+		const {game_id} = req.body || {};
+		const gameId = Number(game_id);
+		if (!Number.isInteger(gameId)) return reply.code(400).send({status: 'ERROR', error: 'Invalid game ID'});
+		try { await joinGameRow({gameId, p2Id: user.id}); }
+		catch (e)
+		{
+			if (e && e.message === 'GAME_NOT_JOINABLE')
+				return reply.code(400).send({status: 'ERROR', error: 'Game not joinable'});
+			throw e;
+		}
+		const row = await fetchGame(gameId);
+		reply.send({status: 'OK', gameId: gameId, state: row?.status || 'ongoing'});
+	});
+	fastify.post(API_PROTOCOL.START_GAME.path, async (req, reply) => {
+		const token = req.cookies.auth_token;
+		const user = getUserIdFromToken(token);
+		if (!user?.id) return reply.code(401).send({status: 'ERROR', error: 'Unautorized'});
+		const {game_id} = req.body || {};
+		const gameId = Number(game_id);
+		if (!Number.isInteger(gameId)) return reply.code(400).send({status: 'ERROR', error: 'Invalid game ID'});
+		const row = await fetchGame(gameId);
+		if (!row) return reply.code(404).send({status: 'ERROR', error: 'Game not found'});
+		if (row.p1_id === user.id && row.p2_id !== user.id)
+		{
+			if (row.type !== 'local' && row.type !== 'ai')
+				return reply.code(403).send({status: 'ERROR', error: 'Not a participant'});
+		}
+		const allowSolo = row.type === 'ai' || row.type === 'local';
+		try {await startGameRow({gameId, allowSolo})}
+		catch (e)
+		{
+			if (e.message === 'GAME_NOT_READY')
+				return reply.code(409).send({status: 'ERROR', error: 'Game not ready'});
+			throw e;
+		}
+		reply.send({status: 'OK', gameId: gameId, state: 'ongoing'});
+	});
+}
 
-const {log} = require('@logger');
-//const {
-//	getUserIdFromToken,
-//	generateWsToken
-//} = require('@security');
+
+// const {
+//   createGameState,
+//   initGame,
+//   updateKeys,
+//   updateGame
+// } = require('../pong_game/pong_server.js');
+
+// const {
+// 	miniLogin
+// } = require('@db/get.js');
+
+// const {log} = require('@logger');
+// //const {
+// //	getUserIdFromToken,
+// //	generateWsToken
+// //} = require('@security');
 
 
 
-const games = new Map(); // gameId -> { owner, players, state, loop }
+/*const games = new Map(); // gameId -> { owner, players, state, loop }
 // this fucntion maybe should handle 1 user at a Time,
-// this insinuates cookie is sent, remember to include on front end
+// this insinuates cookie is sent, remember to include on front end*/
 
-function ensureRuntimeGame(gameId)
+/*function ensureRuntimeGame(gameId)
 {
 	if (!games.has(gameId))
 	{
@@ -136,7 +191,7 @@ module.exports = {
   launchGame,
   endGame,
   _games: games // for testing
-};
+};*/
 
 // function createGameMap(owner, mode, type) {
 // 	const gameId = generateRandomId();// may need to stringyfy

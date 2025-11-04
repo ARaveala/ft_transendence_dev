@@ -2,35 +2,53 @@
 // 	createGameState, initGame, updateKeys, updateGame
 // } = require('../pong_game/pong_server.js');
 
-const { updateGame } = require('../pong_game/pong_server.js');
+const { updateGame, updateKeys, AISimulateKeyPress } = require('../pong_game/pong_server.js');
 
-function startLoop(game, gameState, player1, player2)
+function startLoop(game, gameState)
 {
-  const recipients = [...gameState.player.values()]
-    .filter(p => p.ws && p.ws.readyState === 1)
-    .map(p => p.ws);
-  const sendAll = payload => recipients.forEach(ws => ws.send(JSON.stringify(payload)));
+  if (!game || game.loop) return;
+  const fps = gameState.fps || 60;
+  const tickMs = Math.max(5, Math.floor(1000 / fps));
+  game.latestKeys = game.latestKeys || [false, false, false, false];
+  const sendAll = (payload) => 
+  {
+    for (const p of game.players.values())
+    {
+      if (p.ws && p.ws.readyState === 1) p.ws.send(JSON.stringify(payload));
+    }
+  };
   sendAll({
-    type: "update_game",
+    type: 'update_game',
     positions: gameState.positions,
     visiblePowerUps: gameState.visiblePowerUps
   });
-  gameState.loop = setInterval(() => {
-    const changed = updateGame(gameState, player1, player2);
-    if (changed === 1)
+  game.loop = setInterval(() => {
+    const p1 = [...game.players.values()].find(p => p.role === 'player1');
+    const p2 = [...game.players.values()].find(p => p.role === 'player2');
+    if (!p1 ||  !p2) return;
+    const keys = game.latestKeys.slice();
+    if (p2.isAI)
+    {
+      keys[2] = false;
+      keys[3] = false;
+      AISimulateKeyPress(gameState);
+    }
+    updateKeys(gameState, keys);
+    const scored = updateGame(gameState, p1, p2);
+    if (scored === 1)
     {
       sendAll({
-        type: "update_score",
-        player1_score: player1.score,
-        player2_score: player2.score
+        type: 'update_score',
+        player1_score: p1.score || 0,
+        player2_score: p2.score || 0
       });
     }
     sendAll({
-      type: "update_game",
+      type: 'update_game',
       positions: gameState.positions,
       visiblePowerUps: gameState.visiblePowerUps
     });
-  }, 1000 / gameState.fps);
+  }, tickMs);
 }
 
 module.exports = { startLoop };

@@ -3,7 +3,7 @@ const DBinsert = require('@db/insert.js');
 const DBget = require('@db/get.js');
 const DBupdate = require('@db/update.js');
 const secure = require('@security');
-const DBtour = require('@db/tournament.js');
+// const DBtour = require('@db/tournament.js');
 
 // const game = require('@Rgame');
 module.exports = {
@@ -12,6 +12,6 @@ module.exports = {
 	secure,
 	DBget,
 	DBupdate,
-	DBtour,
+	// DBtour,
 	// game,
 };
