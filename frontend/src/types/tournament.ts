@@ -13,7 +13,7 @@ export interface Match {
   match_id: string;
   player1: TournamentPlayer;
   player2: TournamentPlayer;
-  winner?: TournamentPlayer;
+  winner?: "string";
   score?: {
     player1: number;
     player2: number;
@@ -30,7 +30,7 @@ export interface TournamentState {
   players: TournamentPlayer[];
   currentMatch?: Match;
   bracket?: Match[][];
-  winner?: TournamentPlayer;
+  winner?: "string";
   createdAt?: Date;
   lastUpdated?: Date
   can_start?: boolean;

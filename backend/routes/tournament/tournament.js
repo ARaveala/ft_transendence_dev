@@ -9,6 +9,7 @@ const  {
 //const {DBtour} = options;
 	getTournamentPlayersWithUsernames,
 	getActiveTournamentStatus,
+	getBrackets,
  
 } = require('@db/tournament.js');
 
@@ -67,20 +68,25 @@ async function getTournamentState(tournamentId) {
 	//const {DBtour} = options;
 	const players = await getTournamentPlayersWithUsernames(tournamentId);
 	const tournamentStatus = await getActiveTournamentStatus(tournamentId)
-	flog.debug({function: 'getTournamentState', players: players, tid: tournamentId, status: tournamentStatus}, '####trying to see if db functions work inside here########################## ');
+//	flog.debug({function: 'getTournamentState', players: players, tid: tournamentId, status: tournamentStatus}, '####trying to see if db functions work inside here########################## ');
 	const full_list = buildTournamentPlayerList(players);
-	flog.debug({function: 'getTournamentState', full_list: full_list}, 'tournament state data fetched ');
-//onst match1 = await createMatches(players[0], players[3], matchSetup);
-/*let matchSetup = await DBtour.buildBracket(
-				  currentTournamentId,
-				  players[0].user_id,
-				  players[3].user_id,
-				  gameId1,
-				  1, // round
-				  'pending'
-				);*/
+//	flog.debug({function: 'getTournamentState', full_list: full_list}, 'tournament state data fetched ');
 
-  const tournamentState = {
+	//const brackets = await getBrackets(tournamentId);
+	//flog.warn({function: 'get tournamnet state', bracket1: brackets[0], bracket2: brackets[1]}, "----00-0-0-0-0 looking into brackets ");
+	//let matchSetup = await DBtour.buildBracket(
+//				  currentTournamentId,
+//				  players[1].user_id,
+//				  players[2].user_id,
+//				  gameId2,
+//				  2, // round
+//				  'pending'
+//				);
+//				const match2 = await createMatches(players[1], players[2], matchSetup);
+//	const bracket1 = brackets[0][1];
+//	const bracket2 = brackets[2];
+//	const fulBracket = [bracket1, bracket2] == ;
+	const tournamentState = {
 	tournament_id: tournamentId,
 	status: tournamentStatus,
 	players: full_list,
@@ -108,7 +114,7 @@ async function createTournament(fastify, options){
  		url: API_PROTOCOL.CREATE_TOURNAMENT.path,
  		handler: async (request, reply) => {
  			const max_players = request.body;
- 			flog.debug({ function: 'createTournament', body: request.body }, 'request body:');
+ 			//flog.debug({ function: 'createTournament', body: request.body }, 'request body:');
  			//flog.debug({function: 'createTournament', mxp: max_players}, 'checking max player body');
  			try{
  				const token = request.cookies.auth_token;
@@ -127,14 +133,14 @@ async function createTournament(fastify, options){
 				// check status valid didnt fail, catch will also catch
 				//flog.debug({function: 'createTournament', tournamentId: tournamentId, status: tournamentStatus}, 'tournament id created ');
 				await DBtour.createTournamentPlayer(tournamentId, userId.id, "", 1, "player1", true, true);
-				flog.debug({function: 'createTournament', tournamentId: tournamentId, userId: userId.id}, 'tournament player created ');
+				//flog.debug({function: 'createTournament', tournamentId: tournamentId, userId: userId.id}, 'tournament player created ');
 				
 			//	const players = await DBtour.getTournamentPlayersWithUsernames(tournamentId)
 			//	flog.debug({function: 'createTournament', players: players}, 'tournament players ');
 			//	const tournamentState = await getTournamentState(players, tournamentId, tournamentStatus);
 				const tournamentState = await getTournamentState(tournamentId);
 
-				console.log("show me the ids are clear-----", userId.id, tournamentId);
+				//console.log("show me the ids are clear-----", userId.id, tournamentId);
 				await DBupdate.applyTournamentId(userId.id, tournamentId);
 				
  				reply.code(200).send({status: 'OK', tournament: tournamentState});
@@ -152,7 +158,7 @@ async function verifyPlayer(fastify, options){
 		method: API_PROTOCOL.VERIFY_PLAYER.method,
 		url: API_PROTOCOL.VERIFY_PLAYER.path,
  		handler: async (request, reply) => {
- 			flog.debug({ function: 'verifyPlayer', body: request.body }, 'request body:');
+ 			//flog.debug({ function: 'verifyPlayer', body: request.body }, 'request body:');
  			const {role, username, password, alias} = request.body;
 			try{
  				const token = request.cookies.auth_token;
@@ -167,22 +173,22 @@ async function verifyPlayer(fastify, options){
 					tournamentState = await getTournamentState(currentTournamentId);
 //					tournamentState = await getTournamentState(await DBtour.getTournamentPlayersWithUsernames(currentTournamentId),
 //						currentTournamentId, await DBtour.getActiveTournamentStatus(currentTournamentId));
-					flog.debug({function: 'verifyPlayer', tournamnetState: tournamentState}, '!!!!!!player 1 alias updated ');
+			//		flog.debug({function: 'verifyPlayer', tournamnetState: tournamentState}, '!!!!!!player 1 alias updated ');
 				} else {
 					const otherUserId = await DBget.miniLogin(username, password);
-					flog.debug({function: 'verifyPlayer', tid: currentTournamentId}, 'showing we have tournamnetid ');
+			//		flog.debug({function: 'verifyPlayer', tid: currentTournamentId}, 'showing we have tournamnetid ');
 					if (otherUserId) {
 						// is this the right way to handle role swap ?
-						flog.debug({function: 'verifyPlayer', otherUserId: otherUserId.id, role: role}, 'verified player id and role ');
+			//			flog.debug({function: 'verifyPlayer', otherUserId: otherUserId.id, role: role}, 'verified player id and role ');
 						await DBtour.createTournamentPlayer(currentTournamentId, otherUserId.id, alias, Number(role.replace('player','')), role, true, false);
 						await DBtour.updatePlayerReadyStatus(currentTournamentId, otherUserId.id, 'ready');
 
-						flog.debug({function: 'verifyPlayer'}, '!!!!!!player verified and added to tournament ');
+			//			flog.debug({function: 'verifyPlayer'}, '!!!!!!player verified and added to tournament ');
 						const checkFull = await DBtour.getTournamentPlayers(currentTournamentId);
-						flog.debug({function: 'verifyPlayer', checkFull: checkFull}, '!!!!!!checking if tournament full ');
+			//			flog.debug({function: 'verifyPlayer', checkFull: checkFull}, '!!!!!!checking if tournament full ');
 //						if (checkFull.full === true){
 						if (checkFull && checkFull.length === 4) {
-							flog.debug({function: 'verifyPlayer'}, '!!!!!!all players verified setting tournament to ready ');
+			//				flog.debug({function: 'verifyPlayer'}, '!!!!!!all players verified setting tournament to ready ');
 							await DBtour.updateTournamentStatus(currentTournamentId, 'ongoing');
 
 						}
@@ -197,7 +203,7 @@ async function verifyPlayer(fastify, options){
 
 
 				}
-				flog.debug({function: 'verifyPlayer', tournamentState: tournamentState}, '!!!!!!final tournamnet state ');
+			//	flog.debug({function: 'verifyPlayer', tournamentState: tournamentState}, '!!!!!!final tournamnet state ');
 				// check verified user
  				reply.code(200).send({status: 'OK', tournament: tournamentState}); //wrong
  			}

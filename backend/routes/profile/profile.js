@@ -27,7 +27,7 @@ const {
  */
 // this should be getProfile
 async function getUser(fastify, options) {
-	const { DBget, secure } = options;
+	const { DBget, secure, DBtour } = options;
 	fastify.get(API_PROTOCOL.GET_PROFILE.path,{
 	}, async (request, reply) => {
 		// just for testing check no fail after remove
@@ -74,7 +74,15 @@ async function getUser(fastify, options) {
 			const friends = await DBget.getFriendsForPlayer(userId.id);
 	//		flog.info({function: 'getUser', friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory(userId.id);
-
+			
+			const brackets = await DBtour.getBrackets(profile.active_tournament_id);
+			let fullBracket = []; 
+			if (Array.isArray(brackets) && brackets.length >= 3) {
+				fullBracket = [
+					[brackets[0][0], brackets[1][0]], // extract game1 and game2
+					[brackets[2][0]]                  // extract game3
+				];
+			}
 			//const tid = await DBget.getActiveTournamentId(userId);
 			//const { password, ...safeUser } = profile;
 			mockProfile.username = profile.username;
@@ -88,10 +96,12 @@ async function getUser(fastify, options) {
 			mockProfile.friends = friends || [];
 			mockProfile.matchHistory = matchHistory || [];
 			//mockP
-			mockProfile.tournament = profile.active_tournament_id == 0 ? 0 : getTournamentState(profile.active_tournament_id);
-			//console.log("show mock profile", mockProfile);
-			
-			//reply.send(safeUser);
+			console.log("show mock profile", mockProfile);
+			mockProfile.tournament = profile.active_tournament_id === 0 ? null : await getTournamentState(profile.active_tournament_id);
+			if (mockProfile.tournament) {
+				mockProfile.tournament.bracket = brackets.length === 0 ? [] : fullBracket;
+			}
+			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
 			reply.code(500).send(err);
