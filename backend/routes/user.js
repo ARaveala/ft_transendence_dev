@@ -10,9 +10,6 @@ const { API_PROTOCOL } = require('@sharedApi');
  
  */
 
-console.log('API_PROTOCOL:', API_PROTOCOL);
-
-
 
 // Declare a route for getting entire user profile based on id
 // userId is passed as ({object}) not (value) to allow adjustmenst such as do not show password
