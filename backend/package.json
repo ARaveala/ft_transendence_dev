@@ -27,7 +27,6 @@
   "_moduleAliases": {
     "@db": "database",
     "@routes": "routes",
-    "@rUsers": "routes/user.js",
     "@schemas": "schemas",
     "@Wbs": "WebSocket",
     "@context": "routes/context.js",

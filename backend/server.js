@@ -57,7 +57,7 @@
 //		app.warn("SERVER error on registering hook ");
 //	}
 
-	const userRoutes = require('@routes/user.js');
+//	const userRoutes = require('@routes/user.js');
 	const friendRoutes = require('@routes/friends.js');
 	const friendContext = require('@routes/context.js');
 	
@@ -275,7 +275,7 @@
 	await fastify.register(cookie);
     await fastify.register(authHooks, authHookContext);
 	await fastify.register(authRoutes, authcontext);
-    await fastify.register(userRoutes, context);
+    //await fastify.register(userRoutes, context);
     await fastify.register(tournamentRoutes, tournamentContext);
     await fastify.register(friendRoutes, context);
 	await fastify.register(profileRoutes, profilecontext);
