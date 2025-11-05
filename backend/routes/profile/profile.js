@@ -25,6 +25,63 @@ const {
       matchHistory
     };
  */
+
+ async function getFriendProfile(fastify, options) {
+	const { DBget } = options;
+	fastify.get(API_PROTOCOL.GET_OTHER_PLAYER_PROFILE.path,{ //get friend profile
+	}, async (request, reply) => {
+		const token = request.cookies.auth_token;
+		if (!token) {
+		 console.warn("Unauthorized access to /api/profile — no valid user ID");
+		 reply.code(401).send({ error: "Unauthorized" });
+		 return;
+		}
+		let loggedInUser;
+		try {
+			loggedInUser = secure.getUserIdFromToken(token); // might throw if expired
+		} catch (err) {
+			console.warn(`Unauthorized access to ${request.url} — ${err.name}`);
+			return reply.code(401).send({ error: err.name });
+		}
+		 const targetUserId = request.query.user_id;
+
+		if (!targetUserId || !targetUserId.id) {
+			return reply.code(401).send({ error: "Invalid token" });
+		}
+		const mockProfile = {
+				username: "PlayerOne",
+				avatarFile: undefined,
+				rank: 5,
+				score: 1200,
+				victories: 20,
+				losses: 7,
+				matches: 22,
+				matchHistory: [],
+			};
+		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
+		try {
+			const profile = await DBget.fetchUser({userId});
+			const matchHistory = await DBget.getMatchHistory(userId.id);
+			
+			mockProfile.username = profile.username;
+			mockProfile.avatarFile = profile.avatar_file;
+			mockProfile.rank = profile.rank;
+			mockProfile.score = profile.score;
+			mockProfile.victories = profile.wins;
+			mockProfile.losses = profile.losses;
+			mockProfile.totalMatches = profile.total_games;
+			mockProfile.matchHistory = matchHistory || [];
+			console.log("show mock profile", mockProfile);
+
+			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
+			reply.send(mockProfile);
+		} catch (err) {
+			reply.code(500).send(err);
+		}
+	});
+}
+
+
 // this should be getProfile
 async function getUser(fastify, options) {
 	const { DBget, secure, DBtour } = options;
@@ -388,5 +445,6 @@ async function profileRoutes(fastify, options) {
 	await uploadAvatarFileRoute(fastify, options); // POST for file upload
 	await updateLanguage(fastify, options);
 	await updateTwoFactor(fastify, options);
+	await getFriendProfile(fastify, options);
 }
 module.exports = profileRoutes

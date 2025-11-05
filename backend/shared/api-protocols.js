@@ -21,6 +21,10 @@ const API_PROTOCOL = {
     path: '/api/profile',
     method: 'GET',
   },
+  GET_OTHER_PLAYER_PROFILE: {
+    path: '/api/profile/other-user',
+    method: 'GET',
+  },
   GET_LEADERBOARD: {
     path: '/api/leaderboard',
     method: 'GET',
