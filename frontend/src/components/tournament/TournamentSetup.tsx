@@ -6,6 +6,8 @@ import { TBD_PLAYER } from "../../../shared/constants";
 import { useAuth } from "../../context/AuthContext";
 import { StartTournamentPayload, StartTournamentResponse, RemovePlayerPayload, RemovePlayerResponse } from '../../../shared/payloads';
 import Button from "../ui/Button";
+import { useApiFetch } from "../../utils/apiFetch";
+
 
 interface TournamentSetupProps {
 	onCancel: () => void;
@@ -14,6 +16,7 @@ interface TournamentSetupProps {
 
 const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamentStarted }) => {
 	const { tournament, setTournament, refreshSession } = useAuth();
+	const apiFetch = useApiFetch();
 	const [loading, setLoading] = useState(false);
 	const [loadingSession, setLoadingSession] = useState(true);
 	const [aliasChanged, setAliasChanged] = useState(false);
@@ -45,28 +48,29 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 			role,
 		};
 		try {
-			setLoading(true);
-			const res = await fetch(API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.path, {
-				method: API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.method,
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(payload),
-				credentials: "include",
-			});
-			
-			const data: RemovePlayerResponse = await res.json();
-			console.log("lets see return after remove player", data);
-			if (data.status === "OK" && data.tournament) {
-				setTournament(data.tournament);
+		setLoading(true);
+		const data: RemovePlayerResponse = await apiFetch(
+		API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.path,
+		{
+			method: API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.method,
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(payload),
+		}
+		);
+
+		console.log("lets see return after remove player", data);
+		 if (data.status === "OK" && data.tournament) {
+			setTournament(data.tournament);
 			} else {
-				console.error("Error removing player:", data.error);
+			console.error("Error removing player:", data.error);
 			}
-		} catch (err) {
+		} catch (err: any) {
+			if (err.sessionExpired) return; // apiFetch handled redirect
 			console.error("Network error when removing player:", err);
 		} finally {
 			setLoading(false);
 		}
-	};
-
+};
 	/* Starts the tournament:
 		- Sends tournament_id to backend
 	*/
@@ -78,14 +82,15 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 
 		try {
 			setLoading(true);
-			const res = await fetch(API_PROTOCOL.START_TOURNAMENT.path, {
+			const data: StartTournamentResponse = await apiFetch(
+			API_PROTOCOL.START_TOURNAMENT.path,
+			{
 				method: API_PROTOCOL.START_TOURNAMENT.method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
-				credentials: "include",
-			});
+			}
+			);
 
-			const data: StartTournamentResponse = await res.json();
 			console.log("lets looky at the data sent ", data);
 			if (data.status === "OK" && data.tournament) {
 				setTournament(data.tournament);
@@ -97,8 +102,9 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 			}
 
 		console.log("Tournament object from backend:", tournament);
-		} catch (err) {
-			console.error(err);
+		} catch (err: any) {
+			if (err.sessionExpired) return;
+			console.error(err)
 		} finally {
 			setLoading(false);
 		}
