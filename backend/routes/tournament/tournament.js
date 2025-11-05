@@ -3,7 +3,7 @@ const { API_PROTOCOL } = require('@sharedApi');
 const {logger} = require('@logger');
 //const { createTournamentPlayer, getTournamentPlayerById } = require('../../database/tournament');
 const flog = logger.child({ fileContext: 'tournamnet.js' });
-
+const aliasSchema = require('@schemas/aliasSchema.js');
 //this is so i can utalize as a utility function from outside this file scope
 const  {
 //const {DBtour} = options;
@@ -157,6 +157,7 @@ async function verifyPlayer(fastify, options){
  	fastify.route({
 		method: API_PROTOCOL.VERIFY_PLAYER.method,
 		url: API_PROTOCOL.VERIFY_PLAYER.path,
+        schema: aliasSchema,
  		handler: async (request, reply) => {
  			//flog.debug({ function: 'verifyPlayer', body: request.body }, 'request body:');
  			const {role, username, password, alias} = request.body;

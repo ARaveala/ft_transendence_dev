@@ -2,7 +2,8 @@ const { API_PROTOCOL } = require('@sharedApi');
 const {logger} = require('@logger');
 const { saveAndGetAvatarUrl, deleteOldAvatar } = require('./save_avatar.js'); // <-- Note the new import
 const flog = logger.child({ fileContext: 'profile.js' }); // scoped logger
-
+const usernameSchema = require('@schemas/usernameSchema.js');
+const passwordSchema = require('@schemas/passwordSchema.js');
 const {
 	getTournamentState,
 } = require('@Rtour/tournament.js');
@@ -114,8 +115,8 @@ async function updateUsername(fastify, options) {
 	fastify.route({
 		method: API_PROTOCOL.CHANGE_USERNAME.method,
 		url: API_PROTOCOL.CHANGE_USERNAME.path,
+		schema: usernameSchema, 
 		handler: async (request, reply) => {
-		//schema: { body: schemas.ChangeUsername }, dosnt exist yet 
 		const { username } = request.body;
 		try {
 
@@ -161,8 +162,8 @@ async function updatePassword(fastify, options) {
 	fastify.route({
 		method: API_PROTOCOL.CHANGE_PASSWORD.method,
 		url: API_PROTOCOL.CHANGE_PASSWORD.path,
+		schema: passwordSchema, 
 		handler: async (request, reply) => {
-		//schema: { body: schemas.ChangeUsername }, dosnt exist yet 
 		const { current_password, new_password } = request.body;
 		try {
 
