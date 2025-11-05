@@ -19,12 +19,17 @@ jobs:
         with:
           node-version: 20
 
+      # --- Install dependencies ---
       - name: Install backend dependencies
         run: npm install --prefix backend
 
       - name: Install frontend dependencies
         run: npm install --prefix frontend
 
+      - name: Install tester dependencies
+        run: npm install --prefix tester
+
+      # --- Build frontend ---
       - name: Build frontend
         run: npm run build --prefix frontend
 
@@ -32,14 +37,31 @@ jobs:
       - name: Copy frontend build to backend (if needed)
         run: cp -r frontend/dist backend/public || true
 
-      - name: Start backend and test
+      # --- Run backend + Playwright tests ---
+      - name: Start backend and frontend and run Playwright tests
         run: |
+          set -e
+
+          # Start backend
           npm start --prefix backend &
           BACKEND_PID=$!
-          echo "Waiting for backend to be ready..."
-          npx wait-on http://localhost:3000
+
+          # Start frontend (Vite dev server)
+          npm run dev --prefix frontend &
+          FRONTEND_PID=$!
+
+          echo "Waiting for backend and frontend to be ready..."
+          npx wait-on http://localhost:3000 http://localhost:5173
+
           echo "Running API health check..."
-          curl -f http://localhost:3000/status || (kill $BACKEND_PID && exit 1)
-          echo "Shutting down backend..."
-          kill $BACKEND_PID
+          curl -f http://localhost:3000/status || (kill $BACKEND_PID $FRONTEND_PID && exit 1)
+
+          echo "Installing Playwright browsers..."
+          npx --prefix tester playwright install --with-deps
+
+          echo "Running Playwright tests..."
+          npx --prefix tester playwright test || (kill $BACKEND_PID $FRONTEND_PID && exit 1)
+
+          echo "Shutting down servers..."
+          kill $BACKEND_PID $FRONTEND_PID
 
