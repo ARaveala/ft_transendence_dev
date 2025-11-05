@@ -27,82 +27,188 @@ const {
  */
 // this should be getProfile
 async function getUser(fastify, options) {
-	const { DBget, secure, DBtour } = options;
-	fastify.get(API_PROTOCOL.GET_PROFILE.path,{
-	}, async (request, reply) => {
-		// just for testing check no fail after remove
+  const { DBget, secure, DBtour } = options;
 
+  const roleToString = (n) => `player${Number(n) || 1}`;
+  const toFriend = (r) => ({
+    user_id: r.friendID,
+    username: r.username,
+    avatar: r.avatar || undefined,
+    online_status: r.status === 'online'
+  });
 
-		const token = request.cookies.auth_token;
-		//if (!token.user.id) {
-		//  console.warn("Unauthorized access to /api/profile — no valid user ID");
-		//  reply.code(401).send({ error: "Unauthorized" });
-		//  return;
-		//}
+  // Turn a raw tournament_players row into a TournamentPlayer
+  const toTournamentPlayer = (p, currentUserId) => ({
+    username: p.username || '',
+    alias: p.alias,
+    status: p.verified ? 'ready' : 'waiting',
+    avatar: undefined,
+    score: undefined,
+    isSelf: p.user_id === currentUserId,
+    isVerified: !!p.verified,
+    role: roleToString(p.role)
+  });
 
-		const userId = secure.getUserIdFromToken(token);
-		const mockProfile = {
-				username: "PlayerOne",
-				avatarFile: undefined,
-				mfa_enabled: false,
-				rank: 5,
-				score: 1200,
-				victories: 20,
-				losses: 7,
-				matches: 22,
-				friends: [],
-				matchHistory: [
-					{ id: "m1", opponent: "Player2", result: "win", score: 21, timestamp: "2025-08-25T12:00:00" },
-					{ id: "m2", opponent: "Player3", result: "loss", score: 18, timestamp: "2025-08-24T15:30:00" },
-				],
-				tournament: undefined
-			};
-		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
-		try {
-			const profile = await DBget.fetchUser({userId});
-			//console.log("WHAT IS TID :", profile.active_tournament_id);
+  // Build a Match object from a games row + joined usernames/aliases
+  const toMatch = (g) => {
+    const p1 = {
+      username: g.p1_username || '',
+      alias: g.p1_alias || g.p1_username || '',
+      status: g.status === 'finished' ? 'finished'
+            : g.status === 'ongoing'  ? 'playing'
+            : 'ready',
+      avatar: undefined,
+      score: g.p1_score ?? undefined,
+      isSelf: undefined,
+      isVerified: undefined,
+      role: 'player1'
+    };
+    const p2 = {
+      username: g.p2_username || '',
+      alias: g.p2_alias || g.p2_username || '',
+      status: g.status === 'finished' ? 'finished'
+            : g.status === 'ongoing'  ? 'playing'
+            : 'ready',
+      avatar: undefined,
+      score: g.p2_score ?? undefined,
+      isSelf: undefined,
+      isVerified: undefined,
+      role: 'player2'
+    };
+    return {
+      match_id: String(g.id),
+      player1: p1,
+      player2: p2,
+      winner: g.winner_username || undefined,
+      score: { player1: g.p1_score ?? 0, player2: g.p2_score ?? 0 },
+      status: g.status // 'pending' | 'ongoing' | 'finished'
+    };
+  };
 
-			//flog.warn({function: "getProfile", totalGames: profile.total_games}, "can we see total matches updated and recived==============================");
-			const friends = await DBget.getFriendsForPlayer(userId.id);
-	//		flog.info({function: 'getUser', friends}, 'checking friend object');
-			const matchHistory = await DBget.getMatchHistory({userId});
-			const brackets = await DBtour.getBrackets(profile.active_tournament_id);
-			let fullBracket = []; 
-			if (Array.isArray(brackets) && brackets.length >= 3) {
-			  fullBracket = [
-    			[brackets[0][0], brackets[1][0]], // extract game1 and game2
-    			[brackets[2][0]]                  // extract game3
-  			];
-			}
-			//if (brackets){
-			//	fullBracket = [  [brackets[0], brackets[1]], [brackets[2]]   ];
-			//}
-			flog.warn({function: 'get tournamnet state', fullBracket: fullBracket}, "----00-0-0-0-0 looking into brackets ");
-	//let matchSetup = await DBtour.buildBracket(
-			//const tid = await DBget.getActiveTournamentId(userId);
-			//const { password, ...safeUser } = profile;
-			mockProfile.username = profile.username;
-			mockProfile.avatarFile = profile.avatar_file;
-			mockProfile.mfa_enabled = profile.mfa_enabled === 1; // convert to boolean
-			mockProfile.rank = profile.rank;
-			mockProfile.score = profile.score;
-			mockProfile.victories = profile.wins;
-			mockProfile.losses = profile.losses;
-			mockProfile.totalMatches = profile.total_games;
-			mockProfile.friends = friends || [];
-			mockProfile.matchHistory = matchHistory || [];
-			//mockP
-			console.log("show mock profile", mockProfile);
-			mockProfile.tournament = profile.active_tournament_id === 0 ? null : await getTournamentState(profile.active_tournament_id);
-			if (mockProfile.tournament) {
-				mockProfile.tournament.bracket = brackets.length === 0 ? [] : fullBracket;
-			}
-			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
-			reply.send(mockProfile);
-		} catch (err) {
-			reply.code(500).send(err);
-		}
-	});
+  async function buildTournamentState(tournamentId, currentUserId) {
+    try {
+      const statusRow = await DBtour.getActiveTournamentStatus(tournamentId); // { status }
+      if (!statusRow) throw new Error('no such tournament');
+
+      const playersDB = await DBtour.getTournamentPlayersWithUsernames(tournamentId);
+      const players = playersDB.map((p) => toTournamentPlayer(p, currentUserId));
+
+      // owner = role 1 (schema doesn’t store “owner”)
+      const ownerP = playersDB.find(p => Number(p.role) === 1);
+      const owner = ownerP?.username || ownerP?.alias || '';
+
+      // can_start = four players and all verified
+      const assigned = playersDB.length;
+      const pending = Math.max(0, 4 - assigned);
+      const canStart = assigned === 4 && playersDB.every(p => p.verified === 1);
+
+      // bracket from games table
+      const flatGames = await DBtour.getBrackets(tournamentId); // rows with round, bracket_pos, joined names
+      const roundsMap = new Map();
+      for (const g of flatGames) {
+        const m = toMatch(g);
+        const r = Number(g.round) || 1;
+        if (!roundsMap.has(r)) roundsMap.set(r, []);
+        roundsMap.get(r).push({ pos: Number(g.bracket_pos) || 0, match: m });
+      }
+      // sort each round by bracket_pos and strip helpers
+      const bracket = Array.from(roundsMap.keys())
+        .sort((a, b) => a - b)
+        .map(r => roundsMap.get(r).sort((a, b) => a.pos - b.pos).map(x => x.match));
+
+      // currentMatch = first ongoing else first pending
+      const current = flatGames.find(g => g.status === 'ongoing')
+                    || flatGames.find(g => g.status === 'pending');
+      const currentMatch = current ? toMatch(current) : undefined;
+
+      return {
+        tournament_id: String(tournamentId),
+        status: statusRow.status,                 // 'waiting' | 'ongoing' | 'finished'
+        owner,
+        players,
+        currentMatch,
+        bracket,
+        winner: undefined,
+        createdAt: undefined,
+        lastUpdated: undefined,
+        can_start: canStart,
+        pending_players: pending
+      };
+    } catch {
+      // No tournament for user
+      return {
+        tournament_id: '',
+        status: 'waiting',
+        owner: '',
+        players: [],
+        bracket: [],
+        winner: undefined,
+        createdAt: undefined,
+        lastUpdated: undefined,
+        can_start: false,
+        pending_players: 0
+      };
+    }
+  }
+
+  fastify.get(API_PROTOCOL.GET_PROFILE.path, {}, async (request, reply) => {
+    const token = request.cookies.auth_token;
+    if (!token) return reply.code(401).send({ error: 'Unauthorized' });
+
+    const userId = secure.getUserIdFromToken(token);
+    if (!userId) return reply.code(401).send({ error: 'Unauthorized' });
+
+    try {
+      // 1) user row
+      const profile = await DBget.fetchUser({ userId });
+
+      // 2) friends + history (from games)
+      const [friendsRows, historyRows] = await Promise.all([
+        DBget.getFriendsForPlayer(userId),
+        DBget.getMatchHistory({ userId })
+      ]);
+
+      // 3) tournament state (optional)
+      const tid = profile.active_tournament_id ?? 0; // if you add this later, it will start working
+      const tournament = tid
+        ? await buildTournamentState(tid, userId)
+        : {
+            tournament_id: '',
+            status: 'waiting',
+            owner: '',
+            players: [],
+            bracket: [],
+            winner: undefined,
+            createdAt: undefined,
+            lastUpdated: undefined,
+            can_start: false,
+            pending_players: 0
+          };
+
+      // 4) final payload
+      const payload = {
+        user_id: userId,
+        username: profile.username,
+        avatarFile: profile.avatar_file || undefined,
+        twoFactor: !!profile.mfa_enabled,
+        rank: profile.rank ?? 0,
+        score: profile.score ?? 0,
+        victories: profile.wins ?? 0,
+        losses: profile.losses ?? 0,
+        totalMatches: profile.total_games ?? 0,
+        tournamentWins: undefined, // not in schema
+        friends: friendsRows.map(toFriend),
+        matchHistory: historyRows.map(toMatch),
+        tournament,
+        language: profile.language || 'en'
+      };
+
+      return reply.code(200).send(payload);
+    } catch (err) {
+      flog.error({ function: 'getUser', err }, 'Failed to build profile');
+      return reply.code(500).send({ error: 'Failed to fetch profile' });
+    }
+  });
 }
 
 async function updateUsername(fastify, options) {

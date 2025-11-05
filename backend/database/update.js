@@ -1,25 +1,26 @@
 const db = require('./initDB');
-// const updateScoreSchema = require('@schemas/updateScore.js');
+const bcrypt = require('bcryptjs');
 const {logger} = require('@logger');
-const flog = logger.child({ fileContext: 'DB/update.js' }); // scoped logger
+const flog = logger.child({ fileContext: 'DB/update.js' });
 
 function updateUserScore({userId, score}) {
-	console.log('updating score for user:', { userId, score });
-
-	return new Promise((resolve, reject) => {
-		db.run(
-			`UPDATE users SET score = ? WHERE id = ?`,
-			[score, userId],
-			function (err) {
-				if (err) {
-					reject({ error: 'Failed to update the score', details: err});
-				} else if (this.changes === 0) {
-					reject({ error: 'User not found , no changes made' });
-				} else {
-					resolve({ message: 'Score updated', userId: userId, newScore: score});
+	flog.info({ function: 'updatePassword', userId }, 'updating password');
+	return new Promise(async (resolve, reject) => {
+		try
+		{
+			const hash = await bcrypt.hash(newPassword, 10);
+			db.run(
+				`UPDATE users SET password = ? WHERE id = ?`,
+				[hash, userId],
+				function (err)
+				{
+					if (err) return reject({error: 'Failed to update password', details: err});
+					if (this.changes === 0) return reject({error: 'User not found, no changes made'});
+					resolve({message: 'Password updated', userId});
 				}
-			}
-		);
+			);
+		}
+		catch (e) { reject({error: 'Hashing failed', details: e}); }
 	});
 }
 

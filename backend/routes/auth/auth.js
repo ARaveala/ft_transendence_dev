@@ -26,24 +26,15 @@ async function registerUser(fastify, options) {
 	fastify.post(API_PROTOCOL.REGISTER_USER.path, {
 	schema: { body: schemas.RegisterUser }
 	}, async (request, reply) => {
-		/** @type {RegisterUserPayload} */
 		const { username, password} = request.body;
-		const  score = 0;
-		const  status = 'online';
-		flog.info( {function: 'registerUser'}, `see trace.log/server.log for body/verbose`);
-		flog.trace({ function: 'registerUser', payload: request.body }, 'Incoming body');
-		//log('REGISTER_USER:', `in coming body ${JSON.stringify(request.body)}`);
-		try {
-			const result = await DBinsert.insertUser({ username, password, score, status });
-
-			const token = secure.generateToken(result, username);
-			secure.setAuthCookie(reply, token)
-			//saftey protocols here ? or centralize?
-			reply.code(200).send('ok');
-		} catch (err) {
-			reply.code(500).send(err);
-			flog.error( {function: 'registerUser', error: err}, 'Error during user registration::', err);
-		}
+        try
+        {
+            const userId = await DBinsert.insertUser({username, password, score: 0, status: 'online'});
+            const token = secure.generateToken(userId, username);
+            secure.setAuthCookie(reply, token);
+            reply.code(200).send('ok');
+        }
+        catch (err) { reply.code(err?.status || 500).send(err);}
 	});
 }
 
@@ -54,32 +45,20 @@ async function loginUser(fastify, options) {
         url: API_PROTOCOL.LOGIN_USER.path,
         handler: async (request, reply) => {
             const { username, password } = request.body;
-            flog.info({ function: 'loginUser' }, `Incoming login attempt for user: ${username}`);
-            try {
+            try
+            {
                 const result = await DBget.miniLogin(username, password);
-                if (!result) {
-                    return reply.code(401).send({ error: "Invalid username or password." });
+                const is2FaEnabled = await DBget.is2FaEnabled(result.id);
+                if (is2FaEnabled)
+                {
+                    const tempToken = secure.generateTemporaryToken({id: result.id, type: '2fa_pending'});
+                    return reply.code(202).send({message: '2FA required', tempAuthToken: tempToken});
                 }
-
-                const isTwoFactorEnabled = await DBget.is2FaEnabled(result.id);
-
-                if (isTwoFactorEnabled) {
-                    flog.info({ function: 'loginUser' }, `2FA required for user: ${result.id}`);
-                    const tempToken = secure.generateTemporaryToken({ id: result.id, username: username, type: '2fa_pending' });
-					reply.code(202).send({
-                        message: '2FA required',
-                        tempAuthToken: tempToken
-                    });
-                } else {
-                    const token = secure.generateToken(result, username);
-                    flog.info({ function: 'loginUser' }, `2FA not enabled. Issuing standard token for user: ${result.id}`);
-                    secure.setAuthCookie(reply, token);
-                    reply.code(200).send('ok');
-                }
-            } catch (err) {
-                flog.error({ function: 'loginUser', error: err }, 'Error during login:', err);
-				reply.code(500).send(err);
+                const token = secure.generateToken(result.id, username);
+                secure.setAuthCookie(reply, token);
+                reply.code(200).send('ok');
             }
+            catch (err) { reply.code(401).send({error: 'Invalid username or password'}); }
         }
     });
 }

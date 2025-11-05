@@ -34,22 +34,17 @@ function createTournament() {
  * @param {*} tId tournamentId
  * @returns tournament row with status 'waiting' | 'ready' | 'playing' | 'finished';
  */
-function getActiveTournamentStatus(tId) {
-	flog.debug({ function: 'getActiveTournamentStatus' }, 'Fetching active tournament status');
-		return new Promise((resolve, reject) => {
-			db.get('SELECT status FROM tournaments WHERE id = ?',[tId], (err, row) =>{
-				if (err) {
-					console.error('DB error:', err);
-					reject({ error: 'DB error fetch' });
-				} else if (!row) {
-					console.warn('No active tournament found');
-					reject({ error: 'No active tournament' });
-				} else {
-					flog.info({ function: 'getActiveTournamentStatus', tournament: row }, 'Active tournament found');
-					resolve(row);
-				}
-			});
-		});
+function getActiveTournamentStatus(tournamentId) {
+  return new Promise((resolve, reject) => {
+    db.get(
+      `SELECT status FROM tournaments WHERE id = ?`,
+      [tournamentId],
+      (err, row) => {
+        if (err) return reject({ error: 'DB error tournament status' });
+        resolve(row || null);
+      }
+    );
+  });
 }
 
 /**
@@ -122,30 +117,21 @@ function createTournamentPlayer(tournamentId, playerId, alias, seed, role, verif
  * 
  * @returns 
  */
+
 function getTournamentPlayersWithUsernames(tournamentId) {
-	//flog.debug({ function: 'getTournamentPlayersWithUsernames' }, 'Fetching tournament players with usernames');
-	return new Promise((resolve, reject) => {
-		const query = `
-			SELECT 
-				tp.alias,
-				tp.player_role,
-				tp.player_status,
-				tp.player_score,
-				tp.verified,
-				tp.is_owner,
-				tp.user_id,
-				u.username
-			FROM tournament_players tp
-			LEFT JOIN users u ON tp.user_id = u.id
-			WHERE tp.tournament_id = ?
-		`;
-	db.all(query, [tournamentId], (err, rows) => {
-		if (err) {
-			return reject({ error: 'DB error fetching players' });
-		}
-		flog.info({ function: 'getTournamentPlayersWithUsernames', players: rows }, 'Tournament players with usernames found');
-		resolve(rows);
-	});
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT tp.user_id, u.username, tp.alias, tp.role, tp.verified
+       FROM tournament_players tp
+       JOIN users u ON u.id = tp.user_id
+       WHERE tp.tournament_id = ?
+       ORDER BY tp.role ASC`,
+      [tournamentId],
+      (err, rows) => {
+        if (err) return reject({ error: 'DB error tournament players' });
+        resolve(rows || []);
+      }
+    );
   });
 }
 
@@ -344,29 +330,6 @@ function removePlayer(tournamentId, role) {
 	});
 }
 
-/**
-CREATE TABLE IF NOT EXISTS game
-(
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	tournament_id INTEGER,
-	p1_id INTEGER,
-	p2_id INTEGER,
-	p1_score INTEGER NOT NULL DEFAULT 0,
-	p2_score INTEGER NOT NULL DEFAULT 0,
-	winner_id INTEGER,
-	round INTEGER,
-	bracket_pos INTEGER,
-	ALTER TABLE game ADD COLUMN game_uid TEXT UNIQUE,
-	status TEXT NOT NULL DEFAULT 'waiting'
-		CHECK (status IN ('waiting', 'ready', 'ongoing', 'finished')),
-	FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
-	FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
-	FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
-	FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
-);
-
-
- */
 
 //status pending
 function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status){
@@ -453,74 +416,31 @@ function updateBracket(tournamentId, userId, bracketPos) {
 }
 
 function getBrackets(tournamentId) {
-  flog.debug({ function: 'getBrackets' }, 'Getting brackets');
-
   return new Promise((resolve, reject) => {
     db.all(
-      `SELECT * FROM game WHERE tournament_id = ? ORDER BY round ASC, bracket_pos ASC`,
+      `SELECT
+          g.id, g.tournament_id, g.p1_id, g.p2_id,
+          g.p1_score, g.p2_score, g.status, g.winner_id,
+          g.round, g.bracket_pos,
+          u1.username AS p1_username,
+          u2.username AS p2_username,
+          uW.username AS winner_username,
+          tp1.alias AS p1_alias,
+          tp2.alias AS p2_alias
+       FROM games g
+       LEFT JOIN users u1 ON u1.id = g.p1_id
+       LEFT JOIN users u2 ON u2.id = g.p2_id
+       LEFT JOIN users uW ON uW.id = g.winner_id
+       LEFT JOIN tournament_players tp1 ON tp1.tournament_id = g.tournament_id AND tp1.user_id = g.p1_id
+       LEFT JOIN tournament_players tp2 ON tp2.tournament_id = g.tournament_id AND tp2.user_id = g.p2_id
+       WHERE g.tournament_id = ?
+       ORDER BY g.round ASC, g.bracket_pos ASC`,
       [tournamentId],
-      (err, games) => {
-        if (err) {
-          flog.error({ function: 'getBrackets', err }, 'DB error getting games');
-          return reject(err);
-        }
-
-        db.all(
-          `SELECT tp.*, u.username FROM tournament_players tp
-           LEFT JOIN users u ON tp.user_id = u.id
-           WHERE tp.tournament_id = ?`,
-          [tournamentId],
-          (err, players) => {
-            if (err) {
-              flog.error({ function: 'getBrackets', err }, 'DB error getting players');
-              return reject(err);
-            }
-
-            const playerMap = {};
-            players.forEach(p => {
-              playerMap[p.user_id] = {
-                username: p.username || "",
-                alias: p.alias,
-                role: p.player_role,
-                status: p.player_status,
-                score: p.player_score,
-                isSelf: !!p.is_owner,
-                isVerified: !!p.verified,
-              };
-            });
-
-        const groupedBrackets = {};
-		games.forEach(game => {
-		if (!groupedBrackets[game.round]) {
-		    groupedBrackets[game.round] = [];
-		}
-		const winnerAlias = game.winner_id && playerMap[game.winner_id]
-		    ? playerMap[game.winner_id].alias : null;
-
-		  groupedBrackets[game.round].push({
-		    match_id: game.game_uid,
-		    round: game.round,
-		    bracket_pos: game.bracket_pos,
-		    player1: playerMap[game.p1_id] || null,
-		    player2: playerMap[game.p2_id] || null,
-		    status: game.status,
-			winner: winnerAlias,
-		    score: {
-		      player1: game.p1_score,
-		      player2: game.p2_score,
-		    },
-		  });
-			});
-			//flog.debug({ players }, 'Fetched players');
-			const bracketArray = Object.keys(groupedBrackets)
-			  .sort((a, b) => a - b)
-			  .map(round => groupedBrackets[round]);
-				flog.debug({function: 'Fetched games array',  brackket: bracketArray});
-			  return resolve(bracketArray);
-		      }
-		    );
-		  }
-	    );
+      (err, rows) => {
+        if (err) return reject({ error: 'DB error brackets' });
+        resolve(rows || []);
+      }
+    );
   });
 }
 //function getBrackets(tournamentId){
