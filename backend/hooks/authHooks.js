@@ -17,7 +17,7 @@ const excludedPaths = [
 //if we make the routes include query strings or dynamic segments
 //const path = request.routerPath || request.raw.url;
 //if (excludedPaths.includes(path)) return;
-
+///aaaa
 async function authHook(fastify, options) {
   // this example below is how we could use it if i register the ocntext as an object called context
   // om not sure if it matters which way, but this insinutaes we could attatch way more here
@@ -26,11 +26,22 @@ async function authHook(fastify, options) {
 	flog.info({function: "authHook"}, 'Entering authook');
 	const {secure} = options;
 	fastify.addHook("onRequest", async (request, reply) => {
-		const path = request.routerPath;
+		if (request.method === 'HEAD' && request.raw.url === '/') {
+		  return; // Skip auth for HEAD /
+		}
+		if (request.method === 'GET' && request.raw.url === '/status'){
+			return;
+		}
+		const path = request.routeOptions?.url || request.raw.url;
+
+		//		const path = request.routerPath;
 		flog.debug({ function: "authHook", path, match: excludedPaths.includes(path) }, "Exclusion check");
 
 //const path = request.routerPath;
 		const method = request.method;
+		// for tester maybe only
+		flog.warn({fucntion : 'authHook', method: method}, "lets see if we catch the head method");
+		//if (request.method === 'HEAD') return;
 
 		const isExcluded = excludedPaths.some(route =>
 		  route.path === path && route.method === method

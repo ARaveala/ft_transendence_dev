@@ -12,7 +12,8 @@
 
 	'use strict';
 	const { logger, log } = require('@logger');
-	const fastify = require('fastify')({ logger });
+	const fastify = require('fastify')({ logger,   disableHeadRoute: false // This enables automatic HEAD handling
+ 	});
 	const path = require('path');
 	
 
@@ -83,7 +84,9 @@
 			fileSize: 1024 * 1024 * 2, // Example limit: 2MB
 		}
 	});
-
+	fastify.get('/', async (req, reply) => {
+  		reply.send({ status: 'ok' });
+	});
 	//const fastifyStatic = require('@fastify/static'); 
 	//const fastifyStatic = require('@fastify/static'); 
 
@@ -195,11 +198,12 @@
 	//fastify.get('/', async (request, reply) => {
 	//return { hello: 'world' };
 	//});
-	//fastify.get('/status', async (request, reply) => {
-	//	const status = {"status": "API is online!"};
-	//	return status;
+
+	fastify.get('/status', async (request, reply) => {
+		const status = {"status": "API is online!"};
+		return status;
 //
-	//});
+	});
 	//fastify.get('/', async (request, reply) => {
 	//return { hello: 'world' };
 	//});
