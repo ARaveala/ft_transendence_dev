@@ -8,17 +8,20 @@ const Exit: React.FC = () => {
 	const { t } = useTranslation();
 	const { isLoggedIn, logoutUser } = useAuth();
 	const navigate = useNavigate();
+	
 
 	const [busy, setBusy] = useState(false);
 	const [done, setDone] = useState(false);
 	const [err, setErr] = useState<string | null>(null);
 
+	const sessionExpired = new URLSearchParams(location.search).get("reason") === "sessionExpired";
+
 	useEffect(() => {
-		if (done) {
-			const timer = setTimeout(() => navigate("/"), 2500);
-			return () => clearTimeout(timer);
+		if (done || sessionExpired) {  // <-- redirect also on session expired
+		const timer = setTimeout(() => navigate("/"), 2500);
+		return () => clearTimeout(timer);
 		}
-	}, [done, navigate]);
+	}, [done, sessionExpired, navigate]);
 
 	async function handleLogout() {
 		try {
@@ -35,7 +38,7 @@ const Exit: React.FC = () => {
 
 	const arrivedLoggedOut = !isLoggedIn && !done;
 
-	return (
+		return (
 		<CenteredContainer>
 			<div className="w-full max-w-[26rem] bg-gray-900/90 rounded-xl p-6 text-white shadow-2xl flex flex-col items-center gap-2">
 				<h1 className="text-3xl font-bold mb-0.5">{t("exit.title")}</h1>
@@ -48,8 +51,14 @@ const Exit: React.FC = () => {
 						<p className="text-gray-300">{t("exit.loggedOut")}</p>
 						<p className="text-gray-400 text-sm">{t("exit.redirectHome")}</p>
 					</>
+				) : sessionExpired ? (
+					// Case 2: session expired
+					<>
+						<p className="text-gray-300">{t("exit.sessionExpired")}</p>
+						<p className="text-gray-400 text-sm">{t("exit.redirectHome")}</p>
+					</>
 				) : arrivedLoggedOut ? (
-					// Case 2: user opened exit while logged out
+					// Case 3: user opened exit while logged out
 					<>
 						<p className="text-gray-300">{t("exit.alreadyLoggedOut")}</p>
 						<p className="text-gray-400 text-sm">{t("exit.logingPrompt")}</p>
@@ -62,7 +71,7 @@ const Exit: React.FC = () => {
 						</button>
 					</>
 				) : (
-					// Case 3: user is logged in and wants to log out
+					// Case 4: user is logged in and wants to log out
 					<>
 						<p className="text-gray-300">
 							{busy ? t("exit.loggingOut") : t("exit.goodbye")}
