@@ -66,11 +66,11 @@ const Profile: React.FC = () => {
 			</section>
 
 			{/* Stats */}
-			<section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+			<section className="grid grid-cols-2 sm:grid-cols-3 gap-3">
 				<StatCard label={`${t("profile.stats.victories")} 🏅`} value={user.victories ?? 0} />
 				<StatCard label={`${t("profile.stats.losses")} 💣`} value={user.losses ?? 0} />
 				<StatCard label={`${t("profile.stats.matches")} 🕹️`} value={(user.totalMatches ?? matches.length) ?? 0} />
-				<StatCard label={`${t("profile.stats.tournamentWins")} 🏆`} value={user.tournamentWins ?? user.tournament_wins ?? 0} />
+				{/* <StatCard label={`${t("profile.stats.tournamentWins")} 🏆`} value={user.tournamentWins ?? user.tournament_wins ?? 0} /> */}
 			</section>
 
 			{/* Match History */}

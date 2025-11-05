@@ -12,7 +12,7 @@ onBack?: () => void;
 }
 
 const GameSettings: React.FC<GameSettingsProps> = ({ onConfirm, onBack }) => {
-const [ballSpeed, setBallSpeed] = useState(5);
+const [ballSpeed, setBallSpeed] = useState(4);
 const [paddleSize, setPaddleSize] = useState(150);
 const [paddleSpeed, setPaddleSpeed] = useState(10);
 const [maxScore, setMaxScore] = useState(5);
@@ -27,7 +27,7 @@ return (
 		<input
 		type="range"
 		min="1"
-		max="20"
+		max="8"
 		value={ballSpeed}
 		onChange={(e) => setBallSpeed(Number(e.target.value))}
 		className="w-full"
@@ -38,8 +38,8 @@ return (
 		<label>Paddle Size: {paddleSize}px</label>
 		<input
 		type="range"
-		min="50"
-		max="300"
+		min="100"
+		max="200"
 		value={paddleSize}
 		onChange={(e) => setPaddleSize(Number(e.target.value))}
 		className="w-full"
@@ -63,9 +63,13 @@ return (
 		<input
 		type="number"
 		min="1"
-		max="20"
+		max="10"
 		value={maxScore}
-		onChange={(e) => setMaxScore(Number(e.target.value))}
+		onChange={(e) => {
+			const value = Number(e.target.value);
+			const clamped = Math.max(1, Math.min(10, value)); // enforce 1–10 range
+			setMaxScore(clamped);
+			}}
 		className="w-full text-black p-1 rounded"
 		/>
 	</div>
