@@ -1,6 +1,14 @@
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'game.js' });
+// all these should be swapped for context files, either or
+// 2 different approaches
 const { miniLogin } = require('@db/get.js');
+const signSchema = require('@schemas/signSchema.js');
+const {log} = require('@logger');
+//const {
+//	getUserIdFromToken,
+//	generateWsToken
+//} = require('@security');
 
 const { API_PROTOCOL } = require('@sharedApi');
 
@@ -151,7 +159,8 @@ async function createGame(fastify, options) {
  * @param {*} options 
  */
 async function joinGame(fastify, options) {
-//		const {secure} = options;
+		const {secure} = options;
+        schema: signSchema,
 		fastify.post(API_PROTOCOL.JOIN_GAME.path, {
 	}, async (request, reply) => {
 		const {gameId, type, mode, username, password, player_count} = request.body;

@@ -3,7 +3,7 @@ const { API_PROTOCOL } = require('@sharedApi');
 const {log} = require('@logger');
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'auth' }); // scoped logger
-
+const signSchema = require('@schemas/signSchema.js');
 const speakeasy = require('speakeasy'); // for creating 2FA secrets
 const qrcode = require('qrcode');      // creating qrcodes
 const tempSetupSecrets = new Map();
@@ -24,7 +24,7 @@ defaults
 async function registerUser(fastify, options) {
 	const {secure, DBinsert,} = options;
 	fastify.post(API_PROTOCOL.REGISTER_USER.path, {
-//	schema: { body: schemas.RegisterUser }
+	schema: signSchema,
 	}, async (request, reply) => {
 		/** @type {RegisterUserPayload} */
 		const { username, password} = request.body;
@@ -52,6 +52,7 @@ async function loginUser(fastify, options) {
     fastify.route({
         method: API_PROTOCOL.LOGIN_USER.method,
         url: API_PROTOCOL.LOGIN_USER.path,
+        schema: signSchema,
         handler: async (request, reply) => {
             const { username, password } = request.body;
             flog.info({ function: 'loginUser' }, `Incoming login attempt for user: ${username}`);
