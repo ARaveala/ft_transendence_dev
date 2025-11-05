@@ -71,7 +71,6 @@ test('test', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Start a new tournament' }).click();
   await expect(page.getByRole('textbox', { name: 'Username' }).first()).toBeVisible();
-
   await page.getByRole('textbox', { name: 'Alias' }).first().click();
   await page.getByRole('textbox', { name: 'Alias' }).first().fill('alias4');
   await page.getByRole('button', { name: 'Set Alias' }).click();
