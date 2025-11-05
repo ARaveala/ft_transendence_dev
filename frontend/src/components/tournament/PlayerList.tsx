@@ -356,24 +356,24 @@ const PlayerList: React.FC<PlayerListProps> = ({
 							`}
 							/>
 
-						{/* Action Buttons (Other players) */}
-						{!player.isSelf && !isPlayerReady && (
+						{/* Action Button (Other players) */}
+						{!player.isSelf && (
 							<Button
-								onClick={() => handleAddPlayer(role, player)}
+								onClick={() =>
+									isPlayerReady
+										? handleRemovePlayer(role)
+										: handleAddPlayer(role, player)
+								}
 								disabled={isCurrentlyLoading}
 								className="min-w-[6.3rem]"
-								>
-									{isCurrentlyLoading ? "Adding..." : "Add Player"}
-							</Button>
-						)}
-
-						{!player.isSelf && isPlayerReady && (
-							<Button
-								onClick={() => handleRemovePlayer(role)}
-								disabled={isCurrentlyLoading}
-								className="min-w-[6.3rem]"
-								>
-									Remove
+							>
+								{isCurrentlyLoading
+									? isPlayerReady 
+										? "Removing..."
+										: "Adding..."
+									: isPlayerReady
+										? "Remove"
+										: "Add Player"}
 							</Button>
 						)}
 
