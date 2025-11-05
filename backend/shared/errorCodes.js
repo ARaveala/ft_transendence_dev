@@ -21,6 +21,7 @@
 		to implemet refresh tokens, prompt refresh )
 	USER_NOT_VERIFIED: 'User account is not verified', (somehow user is not logged in)
  */
+
 const AUTH_ERROR_MSG = {
 	DEFAULT_AUTH: 'Authentication required',
 	INVALID_TOKEN: 'Invalid Token',
