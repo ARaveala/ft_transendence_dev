@@ -1,0 +1,189 @@
+.github/workflows/main.yml:          npx wait-on http://localhost:3000
+.github/workflows/main.yml:          curl -f http://localhost:3000/status || (kill $BACKEND_PID && exit 1)
+CLI/CLI.js:const API_BASE = 'http://localhost:3000';
+CLI/CLI.js:        const ws = new WebSocket("ws://localhost:3000/ws");
+GeneralDocumenations/HOWTOSTART.md:put::        http://localhost:3000/test_harness/index.html
+GeneralDocumenations/HOWTOSTART.md:You can make a POST request http://localhost:3000/register
+backend/WebSocket/pongtest.txt:console.log("WebSocket server running on ws://localhost:3000/ws");
+backend/WebSocket/pongtest.txt:                        const webSocket = new WebSocket("ws://localhost:3000/ws");
+backend/WebSocket/test.html:                const webSocket = new WebSocket("ws://localhost:3000/ws");
+backend/WebSocket/test.html:console.log("WebSocket server running on ws://localhost:3000");
+backend/pong_game/example.js:  const ws = new WebSocket("ws://localhost:3000/ws");
+backend/pong_game/node_modules/undici-types/mock-call-history.d.ts:  /** request's origin. ie. https://localhost:3000. */
+backend/pong_game/node_modules/@types/node/http.d.ts:         *   http.get('http://localhost:3000', { agent }, (res) => {
+backend/pong_game/node_modules/@types/node/http.d.ts:         *     .get('http://localhost:3000', { agent }, (res) => {
+backend/pong_game/node_modules/@types/node/inspector.d.ts:     * $ node --inspect=localhost:3000 -p 'inspector.url()'
+backend/pong_game/node_modules/@types/node/inspector.d.ts:     * Debugger listening on ws://localhost:3000/51cf8d0e-3c36-4c59-8efd-54519839e56a
+backend/pong_game/node_modules/@types/node/inspector.d.ts:     * ws://localhost:3000/51cf8d0e-3c36-4c59-8efd-54519839e56a
+backend/pong_game/node_modules/@types/node/inspector.d.ts:         *   const mapUrl = 'http://localhost:3000/dist/app.js.map';
+backend/pong_game/node_modules/@types/node/inspector.d.ts:         *   const tsUrl = 'http://localhost:3000/src/app.ts';
+backend/routes/game.js: * const ws = new WebSocket('ws://localhost:3000/ws');
+backend/node_modules/@fastify/swagger/examples/dynamic-swagger.js:    host: 'localhost:3000',
+backend/node_modules/@fastify/swagger/examples/example-static-specification.json:      "url": "http://localhost:3000/",
+backend/node_modules/@fastify/swagger/examples/example-static-specification.yaml:  - url: http://localhost:3000/
+backend/node_modules/@fastify/swagger/README.md:        url: 'http://localhost:3000',
+backend/node_modules/@fastify/swagger-ui/examples/dynamic-swagger.js:    host: 'localhost:3000',
+backend/node_modules/@fastify/swagger-ui/examples/example-static-specification.json:      "url": "http://localhost:3000/",
+backend/node_modules/@fastify/swagger-ui/examples/example-static-specification.yaml:  - url: http://localhost:3000/
+backend/node_modules/agentkeepalive/README.md:  .get('http://localhost:3000', { agent }, (res) => {
+backend/node_modules/find-my-way/test/issue-206.test.js:// http://localhost:3000/parameter with / in it
+backend/node_modules/find-my-way/test/issue-206.test.js:// http://localhost:3000/parameter%20with%20%2F%20in%20it
+backend/node_modules/find-my-way/test/issue-206.test.js:// http://localhost:3000/parameter with %252F in it
+backend/node_modules/find-my-way/example.js:  console.log('Server listening on: http://localhost:3000')
+backend/node_modules/find-my-way/README.md:  console.log('Server listening on: http://localhost:3000')
+backend/node_modules/pino-pretty/Readme.md:- `--messageFormat` (`-o`): Format output of message, e.g. `{levelLabel} - {pid} - url:{req.url}` will output message: `INFO - 1123 - url:localhost:3000/test`
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/node_modules/pino/test/redact.test.js:        host: 'localhost:3000',
+backend/node_modules/fastify/docs/Guides/Benchmarking.md:branchcmp --rounds 2 -s "node ./node_modules/concurrently -k -s first \"node ./examples/asyncawait.js\" \"node ./node_modules/autocannon -c 100 -d 5 -p 10 localhost:3000/\""
+backend/node_modules/fastify/docs/Guides/Detecting-When-Clients-Abort.md:- Accepting requests at http://localhost:3000, with a 3 second delayed response 
+backend/node_modules/fastify/docs/Guides/Detecting-When-Clients-Abort.md:      const response = await fetch('http://localhost:3000', { signal });
+backend/node_modules/fastify/docs/Guides/Style-Guide.md:[http://localhost:3000/](http://localhost:3000/)
+backend/node_modules/fastify/docs/Reference/HTTP2.md:$ npx h2url https://localhost:3000
+backend/node_modules/fastify/docs/Reference/HTTP2.md:$ npx h2url http://localhost:3000
+backend/node_modules/fastify/docs/Reference/Validation-and-Serialization.md:curl -X GET "http://localhost:3000/?ids=1
+backend/node_modules/fastify/examples/benchmark/parser.js:// curl -X POST -d '{"hello":"world"}' -H'Content-type: application/json' http://localhost:3000/
+backend/node_modules/fastify/examples/benchmark/parser.js:// curl -X POST -d '{"hello":"world"}' -H'Content-type: application/jsoff' http://localhost:3000/
+backend/node_modules/fastify/examples/benchmark/parser.js:// curl -X POST -d 'hello=world' -H'Content-type: application/x-www-form-urlencoded' http://localhost:3000/
+backend/node_modules/fastify/examples/benchmark/parser.js:// curl -X POST -d '{"hello":"world"}' -H'Content-type: application/vnd.custom+json' http://localhost:3000/
+backend/node_modules/fastify/examples/parser.js:// curl -X POST -d '{"hello":"world"}' -H'Content-type: application/json' http://localhost:3000/
+backend/node_modules/fastify/examples/parser.js:// curl -X POST -d '{"hello":"world"}' -H'Content-type: application/jsoff' http://localhost:3000/
+backend/node_modules/fastify/examples/parser.js:// curl -X POST -d 'hello=world' -H'Content-type: application/x-www-form-urlencoded' http://localhost:3000/
+backend/node_modules/fastify/examples/parser.js:// curl -X POST -d '{"hello":"world"}' -H'Content-type: application/vnd.custom+json' http://localhost:3000/
+backend/node_modules/fastify/examples/parser.js:// curl -X POST -d '{"hello":"world"}' -H'Content-type: application/json' http://localhost:3000/ is now no longer handled by fastify
+backend/node_modules/fastify/integration/test.sh:curl -i -X GET -H 'Content-Type: application/json' localhost:3000/ > GET
+backend/node_modules/fastify/integration/test.sh:curl -i -X POST -H 'Content-Type: application/json' localhost:3000/post/$NUMBER --data {} > POST
+backend/node_modules/fastify/integration/test.sh:curl -i -X PUT -H 'Content-Type: application/json' localhost:3000/put/$NUMBER --data {} > PUT
+backend/node_modules/fastify/integration/test.sh:curl -i -X DELETE -H 'Content-Type: application/json' localhost:3000/delete/$NUMBER --data {} > DELETE
+backend/node_modules/fastify/package.json:    "benchmark": "concurrently -k -s first \"node ./examples/benchmark/simple.js\" \"autocannon -c 100 -d 30 -p 10 localhost:3000/\"",
+backend/node_modules/fastify/package.json:    "benchmark:parser": "concurrently -k -s first \"node ./examples/benchmark/parser.js\" \"autocannon -c 100 -d 30 -p 10 -i ./examples/benchmark/body.json -H \"content-type:application/jsoff\" -m POST localhost:3000/\"",
+backend/node_modules/fastify/README.md:__Method:__: `autocannon -c 100 -d 40 -p 10 localhost:3000` * 2, taking the
+frontend/src/pages/GamePage.tsx:		if (event.origin !== "http://localhost:3000") return;
+frontend/src/pages/GamePage.tsx:						src={`http://localhost:3000/pong_game/index.html?gameId=${gameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}`}
+frontend/src/pages/TournamentLobby.tsx:        if (event.origin !== "http://localhost:3000") return;
+frontend/src/pages/TournamentLobby.tsx:            src={`http://localhost:3000/pong_game/index.html?gameId=${activeGameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}`}
+frontend/node_modules/@vitejs/plugin-react/dist/index.d.cts:   * reactRefreshHost: 'http://localhost:3000'
+frontend/node_modules/@vitejs/plugin-react/dist/index.d.ts:   * reactRefreshHost: 'http://localhost:3000'
+frontend/node_modules/@vitejs/plugin-react/README.md:react({ reactRefreshHost: 'http://localhost:3000' })
+frontend/node_modules/@vitejs/plugin-react/README.md:Under the hood, this simply updates the React Fash Refresh runtime URL from `/@react-refresh` to `http://localhost:3000/@react-refresh` to ensure there is only one Refresh runtime across the whole application. Note that if you define `base` option in the host application, you need to include it in the option, like: `http://localhost:3000/{base}`.
+frontend/node_modules/msw/src/browser/setupWorker/start/utils/printStartMessage.test.ts:    workerScope: 'http://localhost:3000/',
+frontend/node_modules/msw/src/browser/setupWorker/start/utils/printStartMessage.test.ts:    workerUrl: 'http://localhost:3000/worker.js',
+frontend/node_modules/msw/src/browser/setupWorker/start/utils/printStartMessage.test.ts:    'http://localhost:3000/',
+frontend/node_modules/msw/src/browser/setupWorker/start/utils/printStartMessage.test.ts:    'http://localhost:3000/worker.js',
+frontend/node_modules/msw/src/browser/setupWorker/start/utils/printStartMessage.test.ts:    workerScope: 'http://localhost:3000/user',
+frontend/node_modules/msw/src/browser/setupWorker/start/utils/printStartMessage.test.ts:    'http://localhost:3000/user',
+frontend/node_modules/msw/src/browser/setupWorker/start/utils/printStartMessage.test.ts:    workerUrl: 'http://localhost:3000/mockServiceWorker.js',
+frontend/node_modules/msw/src/browser/setupWorker/start/utils/printStartMessage.test.ts:    'http://localhost:3000/mockServiceWorker.js',
+frontend/node_modules/msw/src/core/utils/request/onUnhandledRequest.test.ts:  const request = new Request(new URL('/user', 'http://localhost:3000'))
+frontend/node_modules/msw/src/core/utils/request/onUnhandledRequest.test.ts:    `callback: GET http://localhost:3000/user`,
+frontend/node_modules/msw/src/core/utils/matching/matchRequestUrl.test.ts:    expect(coercePath('http://localhost:3000')).toEqual(
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:      new WebSocketHandler('ws://localhost:3000').parse({
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:        url: new URL('ws://localhost:3000'),
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:      new WebSocketHandler('ws://localhost:3000').parse({
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:        url: new URL('ws://localhost:3000/'),
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:      new WebSocketHandler('ws://localhost:3000/').parse({
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:        url: new URL('ws://localhost:3000/'),
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:      new WebSocketHandler('ws://localhost:3000/:serviceName').parse({
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:        url: new URL('ws://localhost:3000/auth'),
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:      new WebSocketHandler('ws://localhost:3000').parse({
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:          'ws://localhost:3000/socket.io/?EIO=4&transport=websocket',
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:      new WebSocketHandler('ws://localhost:3000/non-matching').parse({
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:          'ws://localhost:3000/socket.io/?EIO=4&transport=websocket',
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:      new WebSocketHandler('ws://localhost:3000/clients/socket.io/123').parse({
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:        url: new URL('ws://localhost:3000/clients/socket.io/123'),
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:      new WebSocketHandler('ws://localhost:3000').parse({
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:        url: new URL('ws://localhost:3000/clients/socket.io/123'),
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:        url: new URL('ws://localhost:3000/api/ws'),
+frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts:          baseUrl: 'ws://localhost:3000/',
+frontend/node_modules/msw/src/core/getResponse.test.ts:    new Request('https://localhost:3000/resource'),
+frontend/node_modules/msw/src/core/getResponse.test.ts:      baseUrl: 'https://localhost:3000/',
+frontend/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:    if (url2[0] === "/" && url2[1] !== "/" || // #3230 if some request url (localhost:3000/a/b) return to fallback html, the relative assets
+frontend/pong_game/script.tsx:const webSocket = new WebSocket("ws://localhost:3000/ws");
+tester/playwright.config.ts:    // baseURL: 'http://localhost:3000',
+tester/playwright.config.ts:  //   url: 'http://localhost:3000',
+tester/node_modules/@types/node/http.d.ts:         *   http.get('http://localhost:3000', { agent }, (res) => {
+tester/node_modules/@types/node/http.d.ts:         *     .get('http://localhost:3000', { agent }, (res) => {
+tester/node_modules/@types/node/inspector.d.ts:     * $ node --inspect=localhost:3000 -p 'inspector.url()'
+tester/node_modules/@types/node/inspector.d.ts:     * Debugger listening on ws://localhost:3000/51cf8d0e-3c36-4c59-8efd-54519839e56a
+tester/node_modules/@types/node/inspector.d.ts:     * ws://localhost:3000/51cf8d0e-3c36-4c59-8efd-54519839e56a
+tester/node_modules/@types/node/inspector.d.ts:         *   const mapUrl = 'http://localhost:3000/dist/app.js.map';
+tester/node_modules/@types/node/inspector.d.ts:         *   const tsUrl = 'http://localhost:3000/src/app.ts';
+tester/node_modules/playwright-core/types/types.d.ts:     * - baseURL: `http://localhost:3000` and navigating to `/bar.html` results in `http://localhost:3000/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:     * - baseURL: `http://localhost:3000/foo/` and navigating to `./bar.html` results in
+tester/node_modules/playwright-core/types/types.d.ts:     *   `http://localhost:3000/foo/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:     * - baseURL: `http://localhost:3000/foo` (without trailing slash) and navigating to `./bar.html` results in
+tester/node_modules/playwright-core/types/types.d.ts:     *   `http://localhost:3000/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:     * - baseURL: `http://localhost:3000` and navigating to `/bar.html` results in `http://localhost:3000/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:     * - baseURL: `http://localhost:3000/foo/` and navigating to `./bar.html` results in
+tester/node_modules/playwright-core/types/types.d.ts:     *   `http://localhost:3000/foo/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:     * - baseURL: `http://localhost:3000/foo` (without trailing slash) and navigating to `./bar.html` results in
+tester/node_modules/playwright-core/types/types.d.ts:     *   `http://localhost:3000/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:     * - baseURL: `http://localhost:3000` and navigating to `/bar.html` results in `http://localhost:3000/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:     * - baseURL: `http://localhost:3000/foo/` and navigating to `./bar.html` results in
+tester/node_modules/playwright-core/types/types.d.ts:     *   `http://localhost:3000/foo/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:     * - baseURL: `http://localhost:3000/foo` (without trailing slash) and navigating to `./bar.html` results in
+tester/node_modules/playwright-core/types/types.d.ts:     *   `http://localhost:3000/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:     * - baseURL: `http://localhost:3000` and sending request to `/bar.html` results in `http://localhost:3000/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:     * - baseURL: `http://localhost:3000/foo/` and sending request to `./bar.html` results in
+tester/node_modules/playwright-core/types/types.d.ts:     *   `http://localhost:3000/foo/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:     * - baseURL: `http://localhost:3000/foo` (without trailing slash) and navigating to `./bar.html` results in
+tester/node_modules/playwright-core/types/types.d.ts:     *   `http://localhost:3000/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:   * - baseURL: `http://localhost:3000` and navigating to `/bar.html` results in `http://localhost:3000/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:   * - baseURL: `http://localhost:3000/foo/` and navigating to `./bar.html` results in
+tester/node_modules/playwright-core/types/types.d.ts:   *   `http://localhost:3000/foo/bar.html`
+tester/node_modules/playwright-core/types/types.d.ts:   * - baseURL: `http://localhost:3000/foo` (without trailing slash) and navigating to `./bar.html` results in
+tester/node_modules/playwright-core/types/types.d.ts:   *   `http://localhost:3000/bar.html`
+tester/node_modules/undici-types/mock-call-history.d.ts:  /** request's origin. ie. https://localhost:3000. */
+tester/node_modules/playwright/lib/agents/generator.md:  user: 'I need a test that logs into my app at localhost:3000 with username admin@test.com and password 123456, then
+tester/node_modules/playwright/types/test.d.ts:   *     url: 'http://localhost:3000',
+tester/node_modules/playwright/types/test.d.ts:   *     baseURL: 'http://localhost:3000/',
+tester/node_modules/playwright/types/test.d.ts:   *   // This will result in http://localhost:3000/foo
+tester/node_modules/playwright/types/test.d.ts:   *       url: 'http://localhost:3000',
+tester/node_modules/playwright/types/test.d.ts:   *     baseURL: 'http://localhost:3000',
+tester/node_modules/playwright/types/test.d.ts:   * - baseURL: `http://localhost:3000` and navigating to `/bar.html` results in `http://localhost:3000/bar.html`
+tester/node_modules/playwright/types/test.d.ts:   * - baseURL: `http://localhost:3000/foo/` and navigating to `./bar.html` results in
+tester/node_modules/playwright/types/test.d.ts:   *   `http://localhost:3000/foo/bar.html`
+tester/node_modules/playwright/types/test.d.ts:   * - baseURL: `http://localhost:3000/foo` (without trailing slash) and navigating to `./bar.html` results in
+tester/node_modules/playwright/types/test.d.ts:   *   `http://localhost:3000/bar.html`
+tester/node_modules/playwright/types/test.d.ts:   *     baseURL: 'http://localhost:3000',

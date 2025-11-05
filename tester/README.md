@@ -9,3 +9,4 @@ How to use tester:
 4. Utils can go to e2e/utils.js
 5. "npx playwright test" starts tester when app is running
 6. Utils has random username generator.
+7. Recommended to delete users after, since there is a very small chance the same username is randomized again later
