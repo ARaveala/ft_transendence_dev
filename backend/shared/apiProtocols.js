@@ -182,6 +182,31 @@ REPORT_GAME_RESULT:{
     method: 'POST',
   },
 
+  TFA_SETUP: {
+	path: '/api/2fa/setup',
+    method: 'POST',
+  },
+
+  TFA_VERIFY: {
+	path: '/api/2fa/verify',
+	method: 'POST',
+  },
+
+  TFA_DISABLE: {
+	path: '/api/2fa/disable',
+    method: 'POST',
+  },
+
+  TFA_STATUS: {
+	path: '/api/2fa/status',
+    method: 'GET',
+  },
+
+  TFA_LOGIN_VERIFY: {
+	path: '/api/2fa/login-verify',
+	method: 'POST',
+  }
+
 };
 
 
