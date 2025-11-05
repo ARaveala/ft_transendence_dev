@@ -223,20 +223,27 @@
 	//  credentials: true // if you're sending cookies or auth headers
 	//});
 	// Global error handler
-	fastify.setErrorHandler((error, request, reply) => {
-	if (error.validation) {
-		console.log('Validation error:', error.validation);
-		const {code, msg} = errorCodes.VALIDATION_FAILED;
-		const formatted = formatError.formatValidationError(error, msg);
-		//reply.code(400).send({ error: 'VALIDATION_FAILED', details: error.validation });
-		
-	reply.code(code).send({ error: 'VALIDATION_FAILED', formatted});
-		
-	} else {
-		console.log('Server error in srver.js:', error);
-		reply.code(500).send({ error: 'SERVER_ERROR', message: error.message });
-	}
-	});
+fastify.setErrorHandler((error, request, reply) => {
+  if (error.validation) {
+    console.log('Validation error:', error.validation);
+
+    // Format errors: pass the full validation array
+    const formatted = formatError.formatValidationError(error, error.validation);
+    console.log("Formatted:", formatted);
+    const code = formatted.errorType.code;
+    reply.code(code).send({
+      error: formatted.errorType.message,
+      details: formatted.errorType.message
+    });
+  } else {
+    console.log('Server error:', error);
+    reply.code(500).send({ 
+      error: 'SERVER_ERROR', 
+      message: error.message 
+    });
+  }
+});
+
 	// Log all incoming requests for testing and debugging
 	fastify.addHook('onRequest', async (request, reply) => {
 		logger.trace({ function: 'onRequest', method: request.method, url: request.url, headers: request.headers, body: request.body }, 'Incoming request');

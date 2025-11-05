@@ -1,30 +1,31 @@
+const { ERROR_CODES }= require('@sharedErr');
 
 function formatValidationError(error, msgType) {
   const issues = error.validation || [];
 
-  const messages = issues.map(issue => {
+  const errorType = issues.map(issue => {
     const field = issue.instancePath.replace('/', '');
     const keyword = issue.keyword;
 
     if (field === 'username' && keyword === 'pattern') {
-      return 'Username must not contain spaces or special characters';
+      return ERROR_CODES.VALIDATION_FAILED; 
     }
 
     if (field === 'username' && keyword === 'minLength') {
-      return 'Username must be at least 3 characters long';
+      return ERROR_CODES.VALIDATION_FAILED; 
     }
 
     if (field === 'password' && keyword === 'minLength') {
-      return 'Password must be at least 6 characters long';
+      return ERROR_CODES.VALIDATION_FAILED; 
     }
 
-    return issue.message || 'Invalid input';
+    return { message: issue.message, code: 500 } || { message: 'Invalid input', code: 500 };
   });
 
   return {
     error: 'VALIDATION_FAILED',
 	message: msgType || 'Invalid input',
-    messages
+    errorType: errorType[0]
   };
 }
 
