@@ -55,6 +55,7 @@ function buildTournamentPlayerList(players) {
 			role: `player${i}`,
 			status: "waiting",
 			score: 0,
+			isSelf: false,
 			isVerified: false
 		});
 	 }
