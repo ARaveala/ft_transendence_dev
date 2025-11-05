@@ -1,4 +1,4 @@
-const schemas = require('@sharedSchemas');
+//const schemas = require('@sharedSchemas');
 const { API_PROTOCOL } = require('@sharedApi');
 const {log} = require('@logger');
 const {logger} = require('@logger');
@@ -24,7 +24,7 @@ defaults
 async function registerUser(fastify, options) {
 	const {secure, DBinsert,} = options;
 	fastify.post(API_PROTOCOL.REGISTER_USER.path, {
-	schema: { body: schemas.RegisterUser }
+//	schema: { body: schemas.RegisterUser }
 	}, async (request, reply) => {
 		/** @type {RegisterUserPayload} */
 		const { username, password} = request.body;

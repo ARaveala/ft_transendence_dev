@@ -30,7 +30,6 @@
     "@schemas": "schemas",
     "@Wbs": "WebSocket",
     "@context": "routes/context.js",
-    "@sharedSchemas": "shared/schemas.js",
     "@sharedApi": "shared/apiProtocols.js",
     "@sharedErr": "shared/errorCodes.js",
     "@sharedEcode": "shared/errorCodes.js",

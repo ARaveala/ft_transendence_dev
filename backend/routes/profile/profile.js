@@ -109,6 +109,45 @@ async function getUser(fastify, options) {
 	});
 }
 
+async function getFriendProfile(fastify, options) {
+	const { DBget } = options;
+	fastify.get(API_PROTOCOL.GET_PROFILE.path,{//get friend profile
+	}, async (request, reply) => {
+		const userId = request.body.userId
+
+		const mockProfile = {
+				username: "PlayerOne",
+				avatarFile: undefined,
+				rank: 5,
+				score: 1200,
+				victories: 20,
+				losses: 7,
+				matches: 22,
+				matchHistory: [],
+			};
+		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
+		try {
+			const profile = await DBget.fetchUser({userId});
+			const matchHistory = await DBget.getMatchHistory(userId.id);
+			
+			mockProfile.username = profile.username;
+			mockProfile.avatarFile = profile.avatar_file;
+			mockProfile.rank = profile.rank;
+			mockProfile.score = profile.score;
+			mockProfile.victories = profile.wins;
+			mockProfile.losses = profile.losses;
+			mockProfile.totalMatches = profile.total_games;
+			mockProfile.matchHistory = matchHistory || [];
+			console.log("show mock profile", mockProfile);
+
+			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
+			reply.send(mockProfile);
+		} catch (err) {
+			reply.code(500).send(err);
+		}
+	});
+}
+
 async function updateUsername(fastify, options) {
 	const { DBupdate, DBget, secure } = options;
 	fastify.route({
