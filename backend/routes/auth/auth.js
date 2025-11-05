@@ -85,21 +85,22 @@ async function loginUser(fastify, options) {
 }
 
 async function logoutUser(fastify, options) {
-	const { DBget, secure } = options;
+	const { secure } = options;
 	fastify.post(API_PROTOCOL.LOGOUT_USER.path, {
 	}, async (request, reply) => {
 		//const { username, password} = request.body;
 		//log('LOGOUT', `Incoming user data: ${JSON.stringify(request.body)}`);
 		try {
 		// here it looks to find if user exists and password matches.
-			const token = request.cookies.auth_token;
 
-			//console.log('Cookies in logout User:', request.cookies);
-
-			const userId = secure.getUserIdFromToken(token);
+////////REMOVE
+			//const token = request.cookies.auth_token;
+			//const userId = secure.getUserIdFromToken(token);
+////////			
+			
 			// should verify seperatley , unless we need to check anything the 
 			// user is activly involved in like a game ...for some reason
-			secure.clearAuthCookie(reply, token);
+			secure.clearAuthCookie(reply);
 			//log('LOGINUSER', `token on creation ${token}`);
 			//secure.setAuthCookie(reply, token);
 			// change status function once everything verified
@@ -114,53 +115,27 @@ async function logoutUser(fastify, options) {
 		}
 	});
 }
-// delete user 
 
-// will this login also take the alias 
-/*async function loginUserTournament(fastify, options) {
-	const { DBinsert, secure } = options;
-	fastify.post(API_PROTOCOL.LOGIN_USER_TOURNAMENT.path, {
-	}, async (request, reply) => {
-		const { username, password} = request.body;
-		console.log('Incoming user data:', request.body);
-		try {
-			const result = await DBinsert.loginUser({ username, password});
-			// if user 2fa -> securty.js handle that
-			// dev testing for now
-			const token = secure.generateToken(result);
-			secure.setAuthCookie(reply, token);
-			// change status function once everything verified
 
-			// add user to to tournament table
-			// if table full , set tournament ready {
-				reply.code(200).send('ready');?
-			}
-			console.log('User registration result:', result);
-			reply.code(200).send('ok');
-			//reply.send(result);
-		} catch (err) {
-			console.log(('Error during login:', err));
-			reply.code(500).send(err);
-		}
-	});
-}*/
-
-//
 async function deleteUser(fastify, option) {
 	const {secure, DBdelete} = option;
 	fastify.route({
 		method: API_PROTOCOL.DELETE_PROFILE.method,
 		url: API_PROTOCOL.DELETE_PROFILE.path,
 		handler: async (request, reply) => {
-	//fastify.post(API_PROTOCOL.DELETE_PROFILE.path, {
-	//}, async (request, reply) => {
-		//const {username, password} = request.body; // do we want user to type password in last time for delete?
 		console.log("DELETE USER ");
+		console.log('request.userId:', request.userId);
 		try	{
-			const token = request.cookies.auth_token;
-			const userId = secure.getUserIdFromToken(token);
-			console.log('checking id in delete backend', userId.id, 'type', typeof userId.id);
-			const result = await DBdelete.deleteUserById(userId.id);
+////////REMOVE
+			//const token = request.cookies.auth_token;
+			//const userId = secure.getUserIdFromToken(token);
+/////////
+			const userId = request.userId;
+
+			flog.warn({fucntion: 'delteUser', testing: userId}, 'seeing if we get valid id ');
+			
+			//console.log('checking id in delete backend', userId, 'type', typeof userId);
+			const result = await DBdelete.deleteUserById(userId);
 			// is result is 1 , a row was deleted
 			//if row is 0 , user was not found
 			if (result === 1) {
@@ -172,13 +147,18 @@ async function deleteUser(fastify, option) {
 			console.log("result of delete user", result);
 		}
 		catch {
+			flog.error({fucntion: 'deletUser'}, 'ERROR deleting user ');
 			reply.code(500).send('error deleting user');
 		}
 		}
 	});
 
 }
-
+/**
+ * this nees refactoring so it uses all the api protocol calls 
+ * @param {} fastify 
+ * @param {*} options 
+ */
 /* Generates 2FA secret and QR code, stores secret temporarily in memory */
 async function setupTwoFactor(fastify, options) {
     const { secure } = options;
@@ -302,7 +282,7 @@ async function getTwoFactorStatus(fastify, options) {
     });
 }
 
-/* Verifies OTP during login using PLAIN TEXT secret from DATABASE */
+/* Verifies OTP during login using PLAIN TEXT secret from DATABASE */ //this to be ignored also in authook
 async function verifyLoginTwoFactor(fastify, options) {
     const { secure, DBget } = options;
     fastify.post(API_PROTOCOL.TFA_LOGIN_VERIFY.path, {}, async (request, reply) => {
@@ -357,7 +337,7 @@ async function authRoutes(fastify, options) {
 	await logoutUser(fastify, options);
 	await deleteUser(fastify, options);
 	await setupTwoFactor(fastify, options);
-    await verifyTwoFactor(fastify, options);
+	await verifyTwoFactor(fastify, options);
 	await disableTwoFactor(fastify, options);
 	await getTwoFactorStatus(fastify, options);
 	await verifyLoginTwoFactor(fastify, options);

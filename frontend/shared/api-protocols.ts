@@ -111,6 +111,11 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
 
+  TOURNAMENT_RESET: {
+	path: '/api/tournament/reset',
+	method: 'POST',
+  },
+
   LOGOUT_USER: {
 	  path: '/api/logout',
 	  method: 'POST',

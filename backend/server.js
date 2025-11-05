@@ -2,20 +2,61 @@
 	require('module-alias/register'); // enables aliases
 	// env file
 	require('dotenv').config();
+//	console.log('JWT_SECRET:', process.env.JWT_SECRET);
+//	const cookie = require('@fastify/cookie');
+	console.log('JWT_SECRET:', process.env.JWT_SECRET);
+	const cookie = require('@fastify/cookie');
 	// Import the Fastify framework
 	// Create a Fastify instance
 	// logger is enabled for debugging purposes
 
 	'use strict';
 	const { logger, log } = require('@logger');
-	const fastify = require('fastify')({ logger });
+	const fastify = require('fastify')({ logger,   disableHeadRoute: false // This enables automatic HEAD handling
+ 	});
 	const path = require('path');
 	
 
-	const app = fastify;
+//	const app = fastify;
+//	const app = fastify;
 
 	// set up fucntion userRoutes , require from user.js
 	//this will be split later into multiple files we can use this now as the tetsing ground
+	const authHooks = require('@hooks/authHooks.js');
+	const authHookContext = require('@hooks/authContext.js');
+
+
+	//async function registerAuthHook(fastify) {
+	//	await fastify.register(authHooks, authHookContext);
+	//}
+//
+	//// ✅ Register the hook early
+	//await registerAuthHook(fastify); 
+	
+
+//	fastify.register(authHooks, authHookContext);
+//	try {
+//		await fastify.register(authHooks, authHookContext);
+//	} catch {
+//		app.warn("SERVER error on registering hook ");
+//	}
+
+
+	//async function registerAuthHook(fastify) {
+	//	await fastify.register(authHooks, authHookContext);
+	//}
+//
+	//// ✅ Register the hook early
+	//await registerAuthHook(fastify); 
+	
+
+//	fastify.register(authHooks, authHookContext);
+//	try {
+//		await fastify.register(authHooks, authHookContext);
+//	} catch {
+//		app.warn("SERVER error on registering hook ");
+//	}
+
 	const userRoutes = require('@routes/user.js');
 	const friendRoutes = require('@routes/friends.js');
 	const friendContext = require('@routes/context.js');
@@ -26,60 +67,101 @@
 	// set up context, require from context.js 
 	// there will be multiple index or context.txt for each file ....
 	const context = require('@context');
-	const {db, secure} = context;
+//	const {db, secure} = context;
+//	const {db, secure} = context;
 	// attatch context to fucntion options 
-	fastify.register(userRoutes, context);
-	fastify.register(tournamentRoutes, tournamentContext)
-	fastify.register(friendRoutes, context);
-
+//	fastify.register(userRoutes, context);
+//	fastify.register(tournamentRoutes, tournamentContext)
+//	fastify.register(friendRoutes, context);
+//
+//	fastify.register(userRoutes, context);
+//	fastify.register(tournamentRoutes, tournamentContext)
+//	fastify.register(friendRoutes, context);
+//
 	// Register the multipart plugin (Mandatory for request.file() to work)
 	fastify.register(require('@fastify/multipart'), {
 		limits: {
 			fileSize: 1024 * 1024 * 2, // Example limit: 2MB
 		}
 	});
-
-	const fastifyStatic = require('@fastify/static'); 
+	fastify.get('/', async (req, reply) => {
+  		reply.send({ status: 'ok' });
+	});
+	//const fastifyStatic = require('@fastify/static'); 
+	//const fastifyStatic = require('@fastify/static'); 
 
 	// We are pointing the root directly to the physical 'avatars' folder inside 'public'.
-	const AVATAR_DIR = path.join(__dirname, 'public', 'avatars'); 
+	////remove
+//	const AVATAR_DIR = path.join(__dirname, 'public', 'avatars'); 
+//
+//	// --- Static File Registration for Avatars ---
+//	// This configuration specifically maps the URL prefix '/api/avatars' 
+//	// to the physical directory where the files are stored.
+//	///REMOVE
+//	fastify.register(fastifyStatic, {
+//		// 1. The physical directory on disk: .../backend/public/avatars
+//		root: AVATAR_DIR,
+//		
+//		// 2. The URL prefix: Requests starting with /api/avatars/ will now look inside AVATAR_DIR.
+//		// Request URL: /api/avatars/6_...png 
+//		// -> Maps to: AVATAR_DIR/6_...png 
+//		prefix: '/api/avatars', 
+//		
+//		// Enable serving files
+//		serve: true,
+//		
+//		// Disable decorating reply if not needed, simpler setup
+//		decorateReply: false 
+//	});
+	////remove
+//	const AVATAR_DIR = path.join(__dirname, 'public', 'avatars'); 
+//
+//	// --- Static File Registration for Avatars ---
+//	// This configuration specifically maps the URL prefix '/api/avatars' 
+//	// to the physical directory where the files are stored.
+//	///REMOVE
+//	fastify.register(fastifyStatic, {
+//		// 1. The physical directory on disk: .../backend/public/avatars
+//		root: AVATAR_DIR,
+//		
+//		// 2. The URL prefix: Requests starting with /api/avatars/ will now look inside AVATAR_DIR.
+//		// Request URL: /api/avatars/6_...png 
+//		// -> Maps to: AVATAR_DIR/6_...png 
+//		prefix: '/api/avatars', 
+//		
+//		// Enable serving files
+//		serve: true,
+//		
+//		// Disable decorating reply if not needed, simpler setup
+//		decorateReply: false 
+//	});
 
-	// --- Static File Registration for Avatars ---
-	// This configuration specifically maps the URL prefix '/api/avatars' 
-	// to the physical directory where the files are stored.
-	fastify.register(fastifyStatic, {
-		// 1. The physical directory on disk: .../backend/public/avatars
-		root: AVATAR_DIR,
-		
-		// 2. The URL prefix: Requests starting with /api/avatars/ will now look inside AVATAR_DIR.
-		// Request URL: /api/avatars/6_...png 
-		// -> Maps to: AVATAR_DIR/6_...png 
-		prefix: '/api/avatars', 
-		
-		// Enable serving files
-		serve: true,
-		
-		// Disable decorating reply if not needed, simpler setup
-		decorateReply: false 
-	});
-
-
-	fastify.register(fastifyStatic, {
-		root: path.join(__dirname, 'pong_game'),
-		prefix: '/pong_game/',
-		index: false,
-		decorateReply: false // prevents re-adding sendFile
-	});
+///REMOVE
+//	fastify.register(fastifyStatic, {
+//		root: path.join(__dirname, 'pong_game'),
+//		prefix: '/pong_game/',
+//		index: false,
+//		decorateReply: false // prevents re-adding sendFile
+//	});
+///REMOVE
+//	fastify.register(fastifyStatic, {
+//		root: path.join(__dirname, 'pong_game'),
+//		prefix: '/pong_game/',
+//		index: false,
+//		decorateReply: false // prevents re-adding sendFile
+//	});
 
 	// set up auth routes with context
 	const authRoutes = require('@Rauth/auth.js');
 	const authcontext = require('@Rauth/context.js');
-	fastify.register(authRoutes, authcontext);
+	///REMOVEfastify.register(authRoutes, authcontext);
+	///REMOVEfastify.register(authRoutes, authcontext);
 	
 
 	const profileRoutes = require('@Rprofile/profile.js');
 	const profilecontext = require('@Rprofile/context.js');
-	fastify.register(profileRoutes, profilecontext);
+	///REMOVEfastify.register(profileRoutes, profilecontext);
+	///REMOVEfastify.register(profileRoutes, profilecontext);
 
 
 	// Attach WebSocket server to Fastify's internal server
@@ -89,31 +171,47 @@
 	const formatError = require("@errors");
 
 	const {gameRoutes} = require('@Rgame');
-	fastify.register(gameRoutes, context);
+	///REMOVEfastify.register(gameRoutes, context);
+	///REMOVEfastify.register(gameRoutes, context);
 
 	
 
 	// websocket handlers
 	//const WBhandlers = require ('Webscoket/');
-	const cookie = require('@fastify/cookie');
+
+
 	// utalizes api routing from  routes/user.js
 
 //	const tournamentRoutes = require('./routes/tournament/tournament');
 //	fastify.register(tournamentRoutes, { db, secure });
 
-	fastify.register(cookie);
+	///REMOVEfastify.register(cookie);
+	
+	
+	///REMOVEfastify.register(cookie);
+	
+	
 	// no i need to register all of above? not just user routes
 
 
 	// These are for easy testing
-	fastify.get('/', async (request, reply) => {
-	return { hello: 'world' };
-	});
+	//fastify.get('/', async (request, reply) => {
+	//return { hello: 'world' };
+	//});
+
 	fastify.get('/status', async (request, reply) => {
 		const status = {"status": "API is online!"};
 		return status;
-
+//
 	});
+	//fastify.get('/', async (request, reply) => {
+	//return { hello: 'world' };
+	//});
+	//fastify.get('/status', async (request, reply) => {
+	//	const status = {"status": "API is online!"};
+	//	return status;
+//
+	//});
 
 
 
@@ -150,20 +248,69 @@
 	});
 	const start = async () => {
 
+//		try {
+			//console.log('Registering authHook...');
+//		await fastify.register(authHooks, authHookContext);
+			//console.log('Registerededed authHook...');
+		
+//} catch {
+//			app.warn("SERVER error on registering hook ");
+//		}
+
+//		try {
+			//console.log('Registering authHook...');
+//		await fastify.register(authHooks, authHookContext);
+			//console.log('Registerededed authHook...');
+		
+//} catch {
+//			app.warn("SERVER error on registering hook ");
+//		}
+
 		try {
 			log('STARTING SERVER', '---------------------------------------------');
 		//await fastify.register(require('@fastify/cors'), {
 		//  		origin: '*', // Allow all origins (for testing only)
 		//});
 	//    await fastify.listen({ port: 3000 });
-		// have added for testing a local host binding to test docker ability to connect to browser
-		fastify.listen({ port: 3000, host: '0.0.0.0' }, err => {
-		if (err) {
-			fastify.log.error(err)
-			process.exit(1)
-		}
+	await fastify.register(cookie);
+    await fastify.register(authHooks, authHookContext);
+	await fastify.register(authRoutes, authcontext);
+    await fastify.register(userRoutes, context);
+    await fastify.register(tournamentRoutes, tournamentContext);
+    await fastify.register(friendRoutes, context);
+	await fastify.register(profileRoutes, profilecontext);
+	await fastify.register(gameRoutes, context);
+    //await fastify.register(require('@fastify/multipart'), {
+    //  limits: { fileSize: 1024 * 1024 * 2 }
+    //});
+
+    await fastify.register(require('@fastify/static'), {
+      root: path.join(__dirname, 'public', 'avatars'),
+      prefix: '/api/avatars',
+      serve: true,
+      decorateReply: false
+    });
+
+    await fastify.register(require('@fastify/static'), {
+      root: path.join(__dirname, 'pong_game'),
+      prefix: '/pong_game/',
+      index: false,
+      decorateReply: false
+    });
+
+//    await fastify.register(authRoutes, authcontext);
+//    await fastify.register(profileRoutes, profilecontext);
+//    await fastify.register(gameRoutes, context);
+
+
+		await fastify.listen({ port: 3000, host: '0.0.0.0' });//, err => {
+		//if (err) {
+		//	fastify.log.error(err)
+		//	process.exit(1)
+		//}
 		fastify.log.info('Server listening on port 3000')
-		});
+		//});
+		//});
 		setUpWebSockets(fastify.server);
 		console.log('WebSocket server is running');
 	} catch (err) {
@@ -189,14 +336,3 @@
 	//  });
 	//});
 
-
-	// just an example of returning a different type of data
-	//function getAllUsers() {
-	//    return new Promise((resolve, reject) => {
-	//        db.all(`SELECT id, username, avatar FROM users`, [], (err, rows) => {
-	//            if (err) reject(err);
-	//            else resolve(rows); // rows is an array of user objects
-	//        });
-	//    });
-	//}
-	//SELECT id, username FROM users WHERE score > 100
