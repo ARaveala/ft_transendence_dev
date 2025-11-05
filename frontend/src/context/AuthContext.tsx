@@ -40,6 +40,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 				const data: UserProfile = await res.json();
 				setUser(data);
 				setIsLoggedIn(true);
+
+				 if (data.tournament && 
+					typeof data.tournament === 'object' && 
+					data.tournament.tournament_id) {
+					setTournament(data.tournament);
+				} else {
+					setTournament(null);
+				}
 			} else {
 				setUser(null);
 				setIsLoggedIn(false);

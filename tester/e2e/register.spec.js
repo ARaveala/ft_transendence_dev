@@ -1,21 +1,20 @@
 import { test, expect } from '@playwright/test';
-
-function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+const { randomUsername, randomizeNUsernames } = require('./utils');
 test('test', async ({ page }) => {
-  const username = "user" + randomInt(0, 999999);
+    const username = randomUsername();
   await page.goto('http://localhost:5173/');
   await page.getByRole('button', { name: 'Register' }).click();
   await page.getByRole('textbox', { name: 'Username' }).click();
   await page.getByRole('textbox', { name: 'Username' }).fill(username);
   await page.getByRole('textbox', { name: 'Username' }).press('Tab');
-  await page.getByRole('textbox', { name: 'Password' }).fill('password');
+  await page.getByRole('textbox', { name: 'Password' }).fill('qwe123123');
   page.once('dialog', dialog => {
     console.log(`Dialog message: ${dialog.message()}`);
     dialog.dismiss().catch(() => {});
   });
   await page.locator('form').getByRole('button', { name: 'Register' }).click();
-  const welcome = page.locator('#welcome');
-  await expect(welcome).toHaveText('Welcome, ' + username + '!')
+  await expect(page.getByText('Welcome, ' + username + '! 🏓')).toBeVisible();
+  await page.getByRole('link', { name: 'Settings' }).click();
+  await page.getByRole('button', { name: 'Delete profile' }).click();
+  await expect(page.getByRole('heading', { name: 'Pong' })).toBeVisible();
 });
