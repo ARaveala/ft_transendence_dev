@@ -40,6 +40,9 @@ jobs:
           npx wait-on http://localhost:3000
           echo "Running API health check..."
           curl -f http://localhost:3000/status || (kill $BACKEND_PID && exit 1)
+          echo "Running Playwright tests..."
+          npx --prefix tester playwright install --with-deps
+          npx --prefix tester playwright test || (kill $BACKEND_PID && exit 1)
           echo "Shutting down backend..."
           kill $BACKEND_PID
 
