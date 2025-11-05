@@ -12,6 +12,7 @@ const flog = logger.child({ fileContext: 'friend.js' }); // scoped logger
  * @param {*} options come from context.js
  */
 async function addFriend(fastify, options) {
+	
 	const {DBinsert, DBget} = options;
 	fastify.route ({
 		method: API_PROTOCOL.ADD_FRIEND.method,
