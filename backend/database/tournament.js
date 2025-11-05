@@ -80,7 +80,7 @@ function createTournamentPlayer(tournamentId, playerId, alias, seed, role, verif
 			//        }
 			// });
 			//})			
-			db.run('INSERT INTO tournament_players (tournament_id, user_id, alias, seed, player_role, verified, is_owner) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+			db.run('INSERT INTO tournament_players (tournament_id, user_id, alias, seed, role, verified, is_owner) VALUES (?, ?, ?, ?, ?, ?, ?)', 
 				[tournamentId, playerId, alias, seed, role, verified, isOwner], function onDone(err) {
 				if (err) {
 					flog.error({ function: 'createTournamentPlayer', err}, 'DB error adding player to tournament:');
@@ -239,7 +239,7 @@ function updatePlayerReadyStatus(tournamentId, playerId, newStatus) {
 function updateTournamentStats(gameId, p1Score, p2Score, status, winnerId){
 	flog.debug({function: "updateTournamentStats", gameid: gameId, p1Score: p1Score, p2Score: p2Score, winnerId: winnerId});
 		return new Promise((resolve, reject) => {
-    		db.get('SELECT tournament_id, p1_id, p2_id FROM game WHERE game_uid = ?', [gameId], (err, row) => {
+    		db.get('SELECT tournament_id, p1_id, p2_id FROM games WHERE game_uid = ?', [gameId], (err, row) => {
     			if (err || !row) {
     				flog.error({ function: "updateTournamentStats", errmsg: err?.message || 'Game not found' });
     				return reject(err || new Error('Game not found'));
@@ -249,7 +249,7 @@ function updateTournamentStats(gameId, p1Score, p2Score, status, winnerId){
 
 		db.serialize(() => { 
 			db.run(
-				'UPDATE game SET p1_score = ?, p2_score = ?, winner_id = ?, status = ? WHERE tournament_id = ? AND game_uid = ?',
+				'UPDATE games SET p1_score = ?, p2_score = ?, winner_id = ?, status = ? WHERE tournament_id = ? AND game_uid = ?',
 			[p1Score, p2Score, winnerId, status, tournament_id, gameId], function onDone(err){
 				if (err) {
 					flog.error({fucntion: "updateTournamentStats", errmsg: err.message});
@@ -291,7 +291,7 @@ function cancelTournament(tournamentId) {
 function getUserByRole(tournamentId, role) {
 	flog.debug({ function: 'getUserByRole' , tid: tournamentId, role: role});
 		return new Promise((resolve, reject) => {
-			db.get('SELECT * FROM tournament_players WHERE tournament_id = ? AND player_role = ?',
+			db.get('SELECT * FROM tournament_players WHERE tournament_id = ? AND role = ?',
 				[tournamentId, role], (err, row) =>{
 				if (err) {
 					console.error('DB error:', err);
@@ -342,7 +342,7 @@ function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status)
 		bracket_pos = 2;
 	}
 	return new Promise((resolve, reject) => {
-	db.run('INSERT INTO game (tournament_id, p1_id, p2_id, game_uid, round, status, bracket_pos) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+	db.run('INSERT INTO games (tournament_id, p1_id, p2_id, round, status, bracket_pos) VALUES (?, ?, ?, ?, ?, ?, ?)', 
 		[tournamentId, player1Id, player2Id, gameid, round, status, bracket_pos], function onDone(err) {
 		if (err) {
 			flog.error({ function: 'DBbuild bracket', err}, 'DB error adding player to tournament:');
@@ -351,7 +351,7 @@ function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status)
 		flog.info({ function: 'DBbuild bracket', tournamentId, player1Id, player2Id}, 'Players added to bracket');
 		 const insertedId = this.lastID;
 		db.get(
-		  'SELECT * FROM game WHERE id = ?',
+		  'SELECT * FROM games WHERE id = ?',
 		  [insertedId],
 		  (err2, row) => {
 			if (err2) return reject(err2);
@@ -367,14 +367,14 @@ function updateBracket(tournamentId, userId, bracketPos) {
   return new Promise((resolve, reject) => {
     // Step 1: Find the game with empty slot at bracketPos
     db.get(
-      `SELECT id, p1_id, p2_id, game_uid FROM game 
+      `SELECT id, p1_id, p2_id FROM games 
        WHERE tournament_id = ? AND bracket_pos = ? AND status = 'pending'`,
       [tournamentId, bracketPos],
       (err, row) => {
         if (err) return reject(err);
         if (!row) return reject(new Error('No available game slot found'));
 
-        const { id, p1_id, p2_id, game_uid } = row;
+        const { id, p1_id, p2_id } = row;
 
         // Step 2: Fill the empty slot
         let updateField = '';
@@ -391,7 +391,7 @@ function updateBracket(tournamentId, userId, bracketPos) {
 
         // Step 3: Update game with player
         db.run(
-          `UPDATE game SET ${updateField} = ?, status = ? WHERE id = ?`,
+          `UPDATE games SET ${updateField} = ?, status = ? WHERE id = ?`,
           [
             userId,
 //            p1_id && p2_id ? 'ongoing' : 'pending', // status becomes 'ongoing' if both are filled
@@ -510,7 +510,7 @@ function cancelTournament(tournamentId) {
 function getUserByRole(tournamentId, role) {
 	flog.debug({ function: 'getUserByRole' , tid: tournamentId, role: role});
 		return new Promise((resolve, reject) => {
-			db.get('SELECT * FROM tournament_players WHERE tournament_id = ? AND player_role = ?',
+			db.get('SELECT * FROM tournament_players WHERE tournament_id = ? AND role = ?',
 				[tournamentId, role], (err, row) =>{
 				if (err) {
 					console.error('DB error:', err);

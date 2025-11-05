@@ -106,11 +106,11 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 	};
 
 	const setupInProgress = tournament && (
-		tournament.status?.status === "waiting" || 
-		(tournament.status?.status === "ongoing" && (!tournament.bracket || tournament.bracket.length === 0)));
+		tournament.status === "waiting" || 
+		(tournament.status === "ongoing" && (!tournament.bracket || tournament.bracket.length === 0)));
 
 	const tournamentCanStart =  tournament && (
-		(tournament.status?.status === "ongoing" && (!tournament.bracket || tournament.bracket.length === 0)));
+		(tournament.status === "ongoing" && (!tournament.bracket || tournament.bracket.length === 0)));
 
 	return (
 			<div className="mt-3 space-y-6">
