@@ -5,7 +5,7 @@ const usernameSchema = {
     properties: {
       username: { 
         type: 'string', 
-        pattern: '^[a-zA-Z][a-zA-Z0-9_]$',
+        pattern: '^[a-zA-Z][a-zA-Z0-9_]{5,11}$',
         minLength: 6,
         maxLength: 12
       }
