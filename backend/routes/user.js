@@ -9,9 +9,6 @@ const { API_PROTOCOL } = require('@sharedApi');
 /**
  
  */
-schema
-console.log('API_PROTOCOL:', API_PROTOCOL);
-
 
 
 // Declare a route for getting entire user profile based on id
