@@ -227,15 +227,13 @@ fastify.setErrorHandler((error, request, reply) => {
   if (error.validation) {
     console.log('Validation error:', error.validation);
 
-    // Use 400 for validation errors
-
     // Format errors: pass the full validation array
     const formatted = formatError.formatValidationError(error, error.validation);
     console.log("Formatted:", formatted);
     const code = formatted.errorType.code;
     reply.code(code).send({
-      error: formatted.message,
-      details: formatted
+      error: formatted.errorType.message,
+      details: formatted.errorType.message
     });
   } else {
     console.log('Server error:', error);
