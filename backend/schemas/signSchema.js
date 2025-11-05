@@ -5,7 +5,7 @@ const signSchema = {
     properties: {
       username: {
         type: 'string',
-        pattern: '^[A-Za-z][A-Za-z0-9_]$',
+        pattern: '^[A-Za-z][A-Za-z0-9_]{5,11}$',
         minLength: 6,
         maxLength: 12
       },
