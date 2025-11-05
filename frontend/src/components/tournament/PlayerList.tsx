@@ -4,6 +4,7 @@ import { API_PROTOCOL } from "../../../shared/api-protocols";
 import { VerifyPlayerPayload, VerifyPlayerResponse } from "../../../shared/payloads";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
+import { useApiFetch } from "../../utils/apiFetch";
 
 // Username: must start with letter, 6-12 chars, letters, numbers, underscore allowed
 const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]{5,11}$/;
@@ -45,6 +46,8 @@ const PlayerList: React.FC<PlayerListProps> = ({
 	const [loading, setLoading] = useState<string | null>(null);
 	const [isEditingAlias, setIsEditingAlias] = useState<boolean>(false);
 	const [tempAlias, setTempAlias] = useState('');
+	const apiFetch = useApiFetch();
+
 
 	const self = tournament.players.find(p => p.isSelf);
 	const backendAlias = self?.alias ?? "";
@@ -192,30 +195,17 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			};
 
 			// API call to backend to verify entered player
-			const res = await fetch(API_PROTOCOL.VERIFY_PLAYER.path, {
+				const response: VerifyPlayerResponse = await apiFetch(API_PROTOCOL.VERIFY_PLAYER.path, {
 				method: API_PROTOCOL.VERIFY_PLAYER.method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
-				credentials: "include",
 			});
 
-			if (!res.ok) {
-				let msg = "Verification failed.";
-				try {
-					const body = await res.json();
-					if (body?.error) msg = body.error;
-				} catch {}
-
-				// Assign backend error inline
-				setErrors(prev => ({
-					...prev,
-					[role]: { alias: msg }
-				}));
-
-				return;
+			if (response.status === "OK" && response.tournament) {
+				setTournament(response.tournament);
+				await refreshSession();
 			}
 
-			const response: VerifyPlayerResponse = await res.json();
 			if (response.status === "OK" && response.tournament) {
 			// Update the tournament in context
 				setTournament(response.tournament);
@@ -240,12 +230,13 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				}
 			}
 			
-		} catch (err: any) {
-			console.error("Error verifying player:", err);
-			setErrors(prev => ({
-				...prev,
-				[role]: {alias: err.message ||  "Network error. Please try again." }
-			}));
+			} catch (err: any) {
+				if (err.sessionExpired) return; // let apiFetch handle redirect
+				console.error("Error verifying player:", err);
+				setErrors(prev => ({
+					...prev,
+					[role]: { alias: err.message || "Network error. Please try again." }
+				}));
 		} finally {
 			setLoading(null);
 		}

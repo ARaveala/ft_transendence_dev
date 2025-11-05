@@ -3,6 +3,7 @@ import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useTranslation } from "../shared/Translation";
 import defaultAvatar from "../assets/avatars/default-avatar.png";
 import { useAuth } from "../context/AuthContext";
+import { useApiFetch } from "../utils/apiFetch"
 
 
 type Friend = {
@@ -53,6 +54,9 @@ const Friends: React.FC = () => {
 		setErr(null);
 		setRemoveConfirmId((cur) => (cur === friendId ? null : friendId));
 	}
+	// Use apiFetch hook
+	const apiFetch = useApiFetch();
+
 
 	if (loading) return <div className="p-6">{t("friends.loading")}</div>;
 	if (!isLoggedIn) { //changed from !user to !isLoggedIn
@@ -73,6 +77,7 @@ const Friends: React.FC = () => {
 		setErr(null);
 		setMsg(null);
 		setBusyAdd(true);
+		
 		try {
 			const value = username.trim();
 			if (!value) {
@@ -96,22 +101,14 @@ const Friends: React.FC = () => {
 				return;
 			}
 
-			const res = await fetch(API_PROTOCOL.ADD_FRIEND.path, {
-				method: API_PROTOCOL.ADD_FRIEND.method,
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ username: value }),
-				credentials: "include", // include cookies
+			const data: FriendRequestResponse = await apiFetch(API_PROTOCOL.ADD_FRIEND.path, {
+			method: API_PROTOCOL.ADD_FRIEND.method,
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ username: value }),
 			});
-			if (res.status === 404) {
-				setErr(t("error.user.notFound"));
-				setBusyAdd(false);
-				return;
-			}
-			if (!res.ok) throw new Error("Failed to add friend.");
 
-			const data: FriendRequestResponse = await res.json();
 			if (data.status !== "ADDED" || !data.friend) {
-				throw new Error(data.error || "Could not add friend.");
+			throw new Error(data.error); // no fallback text
 			}
 
 			//setFriends((prev) => [...prev, data.friend!].slice(0, MAX_FRIENDS));
@@ -120,6 +117,7 @@ const Friends: React.FC = () => {
 			setOpenAdd(false);
 			await refreshSession(); // Refresh user data in AuthContext to update friends list there too
 		} catch (e: any) {
+			if (e.sessionExpired) return; // let apiFetch redirect handle it
 			setErr(t("error.friends.addFailed"));
 		} finally {
 			setBusyAdd(false);
@@ -132,17 +130,14 @@ const Friends: React.FC = () => {
 		setMsg(null);
 		try {
 			
-			const res = await fetch(API_PROTOCOL.REMOVE_FRIEND.path, {
-				method: API_PROTOCOL.REMOVE_FRIEND.method,
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ friend_id: friendId }),
-				credentials: "include",
+			const data: FriendRequestResponse = await apiFetch(API_PROTOCOL.REMOVE_FRIEND.path, {
+			method: API_PROTOCOL.REMOVE_FRIEND.method,
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ friend_id: friendId }),
 			});
-			if (!res.ok) throw new Error("Failed to remove friend.");
 
-			const data: FriendRequestResponse = await res.json();
 			if (data.status !== "REMOVED") {
-				throw new Error(data.error || "Could not remove friend.");
+			throw new Error(data.error);
 			}
 
 			setFriends((prev) => prev.filter((f) => f.user_id !== friendId));
@@ -150,6 +145,7 @@ const Friends: React.FC = () => {
 			setMsg(t("common.friends.removed"));
 			await refreshSession(); // Refresh user data in AuthContext to update friends list there too
 		} catch (e: any) {
+			if (e.sessionExpired) return; // redirect already triggered by apiFetch
 			setErr(t("error.friends.removeFailed"));
 		} finally {
 			setRemoving(false);

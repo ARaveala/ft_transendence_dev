@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useTranslation } from "../shared/Translation";
 import { useAuth } from "../context/AuthContext";
+import { useApiFetch } from "../utils/apiFetch";
+
 import type {
 	ChangeLanguagePayload,
 	ChangeLanguageResponse,
@@ -64,6 +66,10 @@ const SettingsPage: React.FC = () => {
 	const [deleting, setDeleting] = useState(false);
 	const [deleted, setDeleted] = useState(false);
 	const [deleteError, setDeleteError] = useState<string | null>(null);
+
+	// Use apiFetch hook
+	const apiFetch = useApiFetch();
+
 
 	useEffect(() => {
 
@@ -251,26 +257,33 @@ const SettingsPage: React.FC = () => {
 	}
 
 	async function saveLanguage() {
-		setBusy(true); setMsg(null); setErr(null);
+		setBusy(true);
+		setMsg(null);
+		setErr(null);
+
 		try {
 			const payload: ChangeLanguagePayload = { language };
-			const res = await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
-				method: API_PROTOCOL.CHANGE_LANGUAGE.method,
-				headers: { "Content-Type": "application/json" },
-				credentials: "include",
-				body: JSON.stringify(payload),
-			});
-			if (!res.ok) throw new Error("Failed to update language.");
+			const data: ChangeLanguageResponse = await apiFetch(
+				API_PROTOCOL.CHANGE_LANGUAGE.path,
+				{
+					method: API_PROTOCOL.CHANGE_LANGUAGE.method,
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload),
+				}
+			);
 
-			const data = (await res.json()) as ChangeLanguageResponse;
-			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update language.");
-			
+			if (data.status !== "UPDATED") {
+				throw new Error(data.error || "Failed to update language.");
+			}
+
 			setLang(language);
 			localStorage.setItem("serverLang", language);
 			setMsg(t("common.language.updated"));
 			setOpenRow(null);
 			await refreshSession();
+
 		} catch (e: any) {
+			if (e.sessionExpired) return; // let apiFetch handle redirect on 401
 			setErr(t("error.language.updateFailed"));
 		} finally {
 			setBusy(false);
@@ -283,16 +296,18 @@ const SettingsPage: React.FC = () => {
 			const value = usernameInput.trim();
 			if (value.length < 3 || value.length > 15) throw new Error(t("error.username.length"));
 			const payload: ChangeUsernamePayload = { username: value };
-			const res = await fetch(API_PROTOCOL.CHANGE_USERNAME.path, {
-				method: API_PROTOCOL.CHANGE_USERNAME.method,
-				headers: { "Content-Type": "application/json" },
-				credentials: "include",
-				body: JSON.stringify(payload),
-			});
-			if (!res.ok) throw new Error("Failed to update username.");
+			const data: ChangeUsernameResponse = await apiFetch(
+				API_PROTOCOL.CHANGE_USERNAME.path,
+				{
+					method: API_PROTOCOL.CHANGE_USERNAME.method,
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload),
+				}
+			);
 
-			const data = (await res.json()) as ChangeUsernameResponse;
-			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update username.");
+			if (data.status !== "UPDATED") {
+				throw new Error(data.error || "Failed to update username.");
+			}
 
 			setMsg(t("common.username.updated"));
 			resetUsernameForm();
@@ -301,6 +316,7 @@ const SettingsPage: React.FC = () => {
 			await refreshSession();
 			setUsername(value);
 		} catch (e: any) {
+			if (e.sessionExpired) return; 
 			setErr(t("error.username.updateFailed"));
 		} finally {
 			setBusy(false);
