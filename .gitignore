@@ -1,8 +1,8 @@
 # dependencies
 
 frontend/node_modules/
-backend/node_modules
-
+backend/node_modules/
+CLI/node_modules/
 # build output
 dist/
 dist-ssr/
@@ -27,25 +27,15 @@ pnpm-debug.log*
 #.env
 #.env.*
 
-# logs
-<<<<<<<<< Temporary merge branch 1
-backend/logUtils/logs/
-
-# nodemodules
 
 # database
 backend/data/new.sqlite-shm
 backend/data/new.sqlite-wal
-=========
 backend/logUtils/logs/*
 backend/logs
 
 
-#database
 
 backend/data/database.sqlite-shm
 backend/data/database.sqlite-wal
-backend/data/new.sqlite-shm
-backend/data/new.sqlite-wal
->>>>>>>>> Temporary merge branch 2
 backend/data/new.sqlite
