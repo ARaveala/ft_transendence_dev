@@ -65,6 +65,16 @@ const HomePage: React.FC = () => {
 	const navigate = useNavigate();
 	const { isLoggedIn, user, refreshSession } = useAuth(); // Access authentication state and functions
 
+	// Inline notice (replaces window.alert)
+	//const [notice, setNotice] = useState<{ type: "success" | "error" | "info"; msg: string } | null>(null);
+	//const showNotice = (type: "success" | "error" | "info", msg: string) => setNotice({ type, msg});
+
+	//useEffect(() => {
+	//	if (!notice) return;
+	//	const id = setTimeout(() => setNotice(null), 6000);
+	//	return () => clearTimeout(id);
+	//}, [notice]);
+
 	//Force english landing page when logged out
 	const forcedOnce = useRef(false);
 	useEffect(() => {
@@ -177,8 +187,8 @@ const HomePage: React.FC = () => {
 
 		// Redirect to profile if login or registration was successful
 		// navigate("/profile");
-		} catch (err) {
-		alert(err);
+		} catch (err: any) {
+			alert(t("home.alert.requestFailed"));
 		}
 	};
 
@@ -216,12 +226,12 @@ const HomePage: React.FC = () => {
             setTempAuthToken(null);
 
         } catch (err) {
-            alert(err);
+            alert(t("home.2fa.verifyFailed"));
         }
     };
 
 	return (
-		<CenteredContainer> 
+		<CenteredContainer>
 		{/* Semi-transparent card wrapper for Home page content */}
         <div className="w-full max-w-md bg-gray-900/90 rounded-xl p-8 text-white shadow-2xl flex flex-col items-center space-y-8">
 			{/* Language flags */}
@@ -274,29 +284,29 @@ const HomePage: React.FC = () => {
 		mode={modalMode}
 	/>
 	{is2faStep && (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-			<div className="bg-white p-6 rounded-lg shadow-xl text-black">
-				<h2 className="text-xl font-bold mb-4">Enter Verification Code</h2>
-				<p className="mb-4">Open your authenticator app and enter the 6-digit code.</p>
+		<div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+			<div className="w-full max-w-md bg-gray-900/90 border border-gray-700 rounded-xl p-6 text-white shadow-2xl">
+				<h2 className="text-2xl font-bold mb-2">{t("home.2fa.title")}</h2>
+				<p className="text-sm text-gray-300 mb-4">{t("home.2fa.instructions")}</p>
 				<input
 					type="text"
 					value={otp}
 					onChange={(e) => setOtp(e.target.value)}
-					className="w-full p-2 border rounded-md text-center text-2xl tracking-widest text-black"
+					className="w-full p-3 border border-gray-700 bg-gray-900 rounded-md text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-600"
                     maxLength={6}
 					placeholder="123456"
 				/>
 				<button
 					onClick={handle2faVerifySubmit}
-					className="w-full mt-4 px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600 transition"
+					className="w-full mt-4 px-6 py-3 bg-green-600 text-white rounded hover:bg-green-700 transition"
 				>
-					Verify
+					{t("home.2fa.verify")}
                 </button>
 				<button
 					onClick={() => setIs2faStep(false)}
-					className="w-full mt-2 px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition"
+					className="w-full mt-2 px-6 py-3 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
 				>
-                Cancel
+                {t("common.cancel")}
             </button>
 			</div>
 		</div>
