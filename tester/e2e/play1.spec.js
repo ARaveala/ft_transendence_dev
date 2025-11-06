@@ -13,7 +13,7 @@ test('test', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Username' }).click();
   await page.getByRole('textbox', { name: 'Username' }).fill(user);
   await page.getByRole('textbox', { name: 'Username' }).press('Tab');
-  await page.getByRole('textbox', { name: 'Password' }).fill('asdasd');
+  await page.getByRole('textbox', { name: 'Password' }).fill('asdasdasd');
   page.once('dialog', dialog => {
     console.log(`Dialog message: ${dialog.message()}`);
     dialog.dismiss().catch(() => {});

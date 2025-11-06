@@ -4,6 +4,8 @@ import { API_PROTOCOL } from "../../../shared/api-protocols";
 import { VerifyPlayerPayload, VerifyPlayerResponse } from "../../../shared/payloads";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
+import { useApiFetch } from "../../utils/apiFetch";
+import { useTranslation } from "../../shared/Translation";
 
 // Username: must start with letter, 6-12 chars, letters, numbers, underscore allowed
 const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]{5,11}$/;
@@ -39,12 +41,15 @@ const emptyPlayerForm = (): PlayerFormData => ({ username: "", password: "", ali
 const PlayerList: React.FC<PlayerListProps> = ({
 	tournament, onRemovePlayer, onAliasChanged
 	}) => {
+	const { t } = useTranslation();
 	const { setTournament, refreshSession } = useAuth();
 	const [formData, setFormData] = useState<FormData>({});
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [loading, setLoading] = useState<string | null>(null);
 	const [isEditingAlias, setIsEditingAlias] = useState<boolean>(false);
 	const [tempAlias, setTempAlias] = useState('');
+	const apiFetch = useApiFetch();
+
 
 	const self = tournament.players.find(p => p.isSelf);
 	const backendAlias = self?.alias ?? "";
@@ -138,17 +143,17 @@ const PlayerList: React.FC<PlayerListProps> = ({
 		
 		// Validate alias
 		if (!ALIAS_REGEX.test(aliasToUse)) {
-			localErrors.alias = "Alias must be 5–10 chars (letters, numbers, underscores).";
+			localErrors.alias = t("error.alias.format");
 		}
 
 		// Validate username + password for non-self players
 		if (!player.isSelf) {
 			if (!USERNAME_REGEX.test(data?.username ?? "")) {
-				localErrors.username = "Invalid username format";
+				localErrors.username = t("auth.error.usernameFormat");
 			}
 
 			if (!PASSWORD_REGEX.test(data?.password ?? "")) {
-				localErrors.password = "Invalid password format";
+				localErrors.password = t("auth.error.passwordFormat");
 			}
 		}
 
@@ -161,7 +166,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 		);
 
 		if (duplicate) {
-			localErrors.alias = "Alias must be unique.";
+			localErrors.alias = t("error.alias.unique");
 		}
 
 		// If any frontend error exists -> stops
@@ -192,30 +197,17 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			};
 
 			// API call to backend to verify entered player
-			const res = await fetch(API_PROTOCOL.VERIFY_PLAYER.path, {
+				const response: VerifyPlayerResponse = await apiFetch(API_PROTOCOL.VERIFY_PLAYER.path, {
 				method: API_PROTOCOL.VERIFY_PLAYER.method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
-				credentials: "include",
 			});
 
-			if (!res.ok) {
-				let msg = "Verification failed.";
-				try {
-					const body = await res.json();
-					if (body?.error) msg = body.error;
-				} catch {}
-
-				// Assign backend error inline
-				setErrors(prev => ({
-					...prev,
-					[role]: { alias: msg }
-				}));
-
-				return;
+			if (response.status === "OK" && response.tournament) {
+				setTournament(response.tournament);
+				await refreshSession();
 			}
 
-			const response: VerifyPlayerResponse = await res.json();
 			if (response.status === "OK" && response.tournament) {
 			// Update the tournament in context
 				setTournament(response.tournament);
@@ -240,12 +232,13 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				}
 			}
 			
-		} catch (err: any) {
-			console.error("Error verifying player:", err);
-			setErrors(prev => ({
-				...prev,
-				[role]: {alias: err.message ||  "Network error. Please try again." }
-			}));
+			} catch (err: any) {
+				if (err.sessionExpired) return; // let apiFetch handle redirect
+				console.error("Error verifying player:", err);
+				setErrors(prev => ({
+					...prev,
+					[role]: { alias: err.message || t("error.network") }
+				}));
 		} finally {
 			setLoading(null);
 		}
@@ -301,88 +294,86 @@ const PlayerList: React.FC<PlayerListProps> = ({
 						</span>
 					)}
 				</span>
-				{/* Inputs + Errors column */}
-				<div className="flex flex-col w-full">
-					{/* Inputs row */}
-					<div className="flex flex-col sm:flex-row flex-wrap w-full gap-2 items-stretch sm:items-center">
-						{/* Username */}
-						<input
-							type="text"
-							placeholder="Username"
-							disabled={player.isSelf || isPlayerReady}
-							value={player.isSelf || isPlayerReady ? player.username : data.username}
-							onChange={(e) => updateField(role, "username", e.target.value)}
-							className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
-								${fieldErrs.username ? "border-red-500" : "border-gray-300"}
-								${player.isSelf || isPlayerReady
-								? `${isPlayerReady ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
-								: "bg-gray-900 text-white"
-							}`}
-						/>
+			
+				<div className="flex flex-col sm:flex-row flex-wrap w-full gap-2 items-stretch sm:items-center">
+					{/* Username */}
+					<input
+						type="text"
+						placeholder={t("auth.username")}
+						disabled={player.isSelf || isPlayerReady}
+						value={player.isSelf || isPlayerReady ? player.username : data.username}
+						onChange={(e) => updateField(role, "username", e.target.value)}
+						className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
+							${fieldErrs.username ? "border-red-500" : "border-gray-300"}
+							${player.isSelf || isPlayerReady
+							? `${isPlayerReady ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
+							: "bg-gray-900 text-white"
+						}`}
+					/>
 
-						{/* Password */}
-						<input
-							type="password"
-							placeholder="Password"
-							disabled={player.isSelf || isPlayerReady}
-							value={player.isSelf || isPlayerReady ? "********" : data.password}
-							onChange={(e) => updateField(role, "password", e.target.value)}
-							className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
-								${fieldErrs.password ? "border-red-500" : "border-gray-300"}
-								${player.isSelf || isPlayerReady
-								? `${isPlayerReady ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
-								: "bg-gray-900 text-white"
-							}`}
-						/>
+					{/* Password */}
+					<input
+						type="password"
+						placeholder={t("auth.password")}
+						disabled={player.isSelf || isPlayerReady}
+						value={player.isSelf || isPlayerReady ? "********" : data.password}
+						onChange={(e) => updateField(role, "password", e.target.value)}
+						className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
+							${fieldErrs.password ? "border-red-500" : "border-gray-300"}
+							${player.isSelf || isPlayerReady
+							? `${isPlayerReady ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
+							: "bg-gray-900 text-white"
+						}`}
+					/>
 
-						{/* Alias */}
-						<input
-							type="text"
-							placeholder="Alias"
-							disabled={isAliasLocked}
-							value={
-							player.isSelf
-								? tempAlias
-								: data.alias || player.alias || ""
+					{/* Alias */}
+					<input
+						type="text"
+						placeholder={t("common.alias")}
+						disabled={isAliasLocked}
+						value={
+						player.isSelf
+							? tempAlias
+							: data.alias || player.alias || ""
+						}
+						onChange={(e) => updateField(role, "alias", e.target.value)}
+						className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto 
+							${fieldErrs.alias ? "border-red-500" : "border-gray-300"}
+							${isAliasLocked
+							? "bg-gray-900 cursor-not-allowed"
+							: "bg-gray-900"
 							}
-							onChange={(e) => updateField(role, "alias", e.target.value)}
-							className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto 
-								${fieldErrs.alias ? "border-red-500" : "border-gray-300"}
-								${isAliasLocked
-								? "bg-gray-900 cursor-not-allowed"
-								: "bg-gray-900"
-								}
-								${isPlayerReady ? "text-indigo-400" : "text-white"}
-							`}
-							/>
+							${isPlayerReady ? "text-indigo-400" : "text-white"}
+						`}
+						/>
 
-						{/* Action Button (Other players) */}
-						{!player.isSelf && (
-							<Button
-								onClick={() =>
-									isPlayerReady
-										? handleRemovePlayer(role)
-										: handleAddPlayer(role, player)
-								}
-								disabled={isCurrentlyLoading}
-								className="min-w-[6.3rem]"
+					{/* Action Buttons (Other players) */}
+					{!player.isSelf && !isPlayerReady && (
+						<Button
+							onClick={() => handleAddPlayer(role, player)}
+							disabled={isCurrentlyLoading}
+							className="min-w-[6.3rem]"
 							>
-								{isCurrentlyLoading
-									? isPlayerReady 
-										? "Removing..."
-										: "Adding..."
-									: isPlayerReady
-										? "Remove"
-										: "Add Player"}
-							</Button>
-						)}
+								{isCurrentlyLoading ? t("tournament.adding") : t("tournament.addPlayer")}
+						</Button>
+					)}
 
-						{/* Action Buttons (Player1) */}
-						{player.isSelf && (
-							<div className="flex items-center gap-2">
-								{/* Set/Edit Alias button */}
-								<Button
-									onClick={() => {
+					{!player.isSelf && isPlayerReady && (
+						<Button
+							onClick={() => handleRemovePlayer(role)}
+							disabled={isCurrentlyLoading}
+							className="min-w-[6.3rem]"
+							>
+								{t("common.remove")}
+						</Button>
+					)}
+
+					{/* Action Buttons (Player1) */}
+					{player.isSelf && (
+						<div className="flex items-center gap-2">
+							{/* Set/Edit Alias button */}
+							<Button
+								onClick={() => {
 									if (isPlayerReady && !isEditingAlias) {
 										setIsEditingAlias(true);
 										setTempAlias(player.alias || "");
@@ -391,23 +382,23 @@ const PlayerList: React.FC<PlayerListProps> = ({
 										handleAddPlayer(role, player);
 									}
 								}}
-									// Check completion against the dedicated logic now
-									disabled={isCurrentlyLoading}
-									className="min-w-[6.3rem]"
+								// Check completion against the dedicated logic now
+								disabled={isCurrentlyLoading}
+								className="min-w-[6.3rem]"
 								>
-									{isCurrentlyLoading
-									? "Saving..."
-									: !isPlayerReady
-										? "Set Alias"
-										: (isEditingAlias  || aliasChanged)
-											? "Save Alias" 
-											: "Edit Alias"}
-								</Button>
-							</div>
-						)}
-					</div>
-			
-					{/* Inline field errors (shown only after clicking button) */}
+								{isCurrentlyLoading
+								? t("common.saving")
+								: !isPlayerReady
+									? t("tournament.setAlias")
+									: (isEditingAlias  || aliasChanged)
+										? t("tournament.saveAlias")
+										: t("tournament.editAlias")}
+							</Button>
+						</div>
+					)}
+				</div>
+				
+				{/* Inline field errors (shown only after clicking button) */}
 					<div className="mt-1">
 						{fieldErrs.username && (
 							<div className="text-red-500 text-sm">{fieldErrs.username}</div>
@@ -421,7 +412,6 @@ const PlayerList: React.FC<PlayerListProps> = ({
 					</div>
 				</div>
 			</div>
-		</div>
 		);
 	});
 

@@ -3,7 +3,7 @@ const { API_PROTOCOL } = require('@sharedApi');
 const {log} = require('@logger');
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'auth' }); // scoped logger
-
+const signSchema = require('@schemas/signSchema.js');
 const speakeasy = require('speakeasy'); // for creating 2FA secrets
 const qrcode = require('qrcode');      // creating qrcodes
 const tempSetupSecrets = new Map();
@@ -24,7 +24,7 @@ defaults
 async function registerUser(fastify, options) {
 	const {secure, DBinsert,} = options;
 	fastify.post(API_PROTOCOL.REGISTER_USER.path, {
-	schema: { body: schemas.RegisterUser }
+	schema: signSchema,
 	}, async (request, reply) => {
 		/** @type {RegisterUserPayload} */
 		const { username, password} = request.body;
@@ -52,6 +52,7 @@ async function loginUser(fastify, options) {
     fastify.route({
         method: API_PROTOCOL.LOGIN_USER.method,
         url: API_PROTOCOL.LOGIN_USER.path,
+        schema: signSchema,
         handler: async (request, reply) => {
             const { username, password } = request.body;
             flog.info({ function: 'loginUser' }, `Incoming login attempt for user: ${username}`);
@@ -162,7 +163,7 @@ async function deleteUser(fastify, option) {
 /* Generates 2FA secret and QR code, stores secret temporarily in memory */
 async function setupTwoFactor(fastify, options) {
     const { secure } = options;
-    fastify.post('/api/2fa/setup', {}, async (request, reply) => {
+    fastify.post(API_PROTOCOL.TFA_SETUP.path, {}, async (request, reply) => {
         flog.info({ function: 'setupTwoFactor' }, 'Starting 2FA setup process.');
         try {
             const token = request.cookies.auth_token;
@@ -192,7 +193,7 @@ async function setupTwoFactor(fastify, options) {
 /* verifies first OTP, saves PLAIN TEXT secret atm to DB, enables 2FA flag */
 async function verifyTwoFactor(fastify, options) {
     const { secure, DBupdate } = options;
-    fastify.post('/api/2fa/verify', {}, async (request, reply) => {
+    fastify.post(API_PROTOCOL.TFA_VERIFY.path, {}, async (request, reply) => {
         const { otp } = request.body;
         flog.info({ function: 'verifyTwoFactor' }, 'Attempting first OTP verification for setup.');
         try {
@@ -235,7 +236,7 @@ async function verifyTwoFactor(fastify, options) {
 /* Disables 2FA in the database */
 async function disableTwoFactor(fastify, options) {
     const { secure, DBupdate } = options;
-    fastify.post('/api/2fa/disable', {}, async (request, reply) => {
+    fastify.post(API_PROTOCOL.TFA_DISABLE.path, {}, async (request, reply) => {
         flog.info({ function: 'disableTwoFactor' }, 'Attempting to disable 2FA.');
         try {
             const token = request.cookies.auth_token;
@@ -259,7 +260,7 @@ async function disableTwoFactor(fastify, options) {
 /* Checks the DB if 2FA is enabled for user */
 async function getTwoFactorStatus(fastify, options) {
     const { secure, DBget } = options;
-    fastify.get('/api/2fa/status', {}, async (request, reply) => {
+    fastify.get(API_PROTOCOL.TFA_STATUS.path, {}, async (request, reply) => {
         flog.debug({ function: 'getTwoFactorStatus' }, 'Fetching 2FA status for user');
         try {
             const token = request.cookies.auth_token;
@@ -285,7 +286,7 @@ async function getTwoFactorStatus(fastify, options) {
 /* Verifies OTP during login using PLAIN TEXT secret from DATABASE */ //this to be ignored also in authook
 async function verifyLoginTwoFactor(fastify, options) {
     const { secure, DBget } = options;
-    fastify.post('/api/2fa/login-verify', {}, async (request, reply) => {
+    fastify.post(API_PROTOCOL.TFA_LOGIN_VERIFY.path, {}, async (request, reply) => {
         const { otp, tempAuthToken } = request.body;
         flog.info({ function: 'verifyLoginTwoFactor' }, 'Attempting 2FA login verification.');
         try {

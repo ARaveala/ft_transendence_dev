@@ -6,7 +6,7 @@ const flog = logger.child({ fileContext: 'game.js' });
 const {
 	miniLogin
 } = require('@db/get.js');
-
+const signSchema = require('@schemas/signSchema.js');
 const {log} = require('@logger');
 //const {
 //	getUserIdFromToken,
@@ -171,6 +171,7 @@ async function createGame(fastify, options) {
 
 async function joinGame(fastify, options) {
 		const {secure} = options;
+        schema: signSchema,
 		fastify.post(API_PROTOCOL.JOIN_GAME.path, {
 	}, async (request, reply) => {
 	//type: guest/login/ai
@@ -217,7 +218,7 @@ async function joinGame(fastify, options) {
 }
 
 
-function startGameCore(secure, gameId) {
+function startGameCore(reply, secure, gameId) {
 		const game = getGame(gameId);
 		flog.warn({function: 'startGameCore', game: game, gameid: gameId}, 'checking that game exists ????????');
 		if (!game) return reply.code(404).send({ error: 'Game not found' });
@@ -256,7 +257,7 @@ async function startGame(fastify, options) {
 		const token = request.cookies.auth_token;
 		const userId = secure.getUserIdFromToken(token);
 
-		const playerTokens = startGameCore(secure, gameId);
+		const playerTokens = startGameCore(reply, secure, gameId);
 		//flog.warn({fucntion: "startgame", playerTokens, playerTokens},"checking tokens valid ");
 		reply.send({ status: 'ready', gameId, playerTokens });
 		// if remote playe we would send each player seperatley to their own game.html, they would not go through the test harness anymore

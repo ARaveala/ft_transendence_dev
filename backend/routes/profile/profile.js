@@ -2,7 +2,8 @@ const { API_PROTOCOL } = require('@sharedApi');
 const {logger} = require('@logger');
 const { saveAndGetAvatarUrl, deleteOldAvatar } = require('./save_avatar.js'); // <-- Note the new import
 const flog = logger.child({ fileContext: 'profile.js' }); // scoped logger
-
+const usernameSchema = require('@schemas/usernameSchema.js');
+const passwordSchema = require('@schemas/passwordSchema.js');
 const {
 	getTournamentState,
 } = require('@Rtour/tournament.js');
@@ -153,14 +154,14 @@ async function getUser(fastify, options) {
 	//		flog.info({function: 'getUser', friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory(userId);
 			
-			const brackets = await DBtour.getBrackets(profile.active_tournament_id);
-			let fullBracket = []; 
-			if (Array.isArray(brackets) && brackets.length >= 3) {
-				fullBracket = [
-					[brackets[0][0], brackets[1][0]], // extract game1 and game2
-					[brackets[2][0]]                  // extract game3
-				];
-			}
+//			const brackets = await DBtour.getBrackets(profile.active_tournament_id);
+//			let fullBracket = []; 
+//			if (Array.isArray(brackets) && brackets.length >= 3) {
+//				fullBracket = [
+//					[brackets[0][0], brackets[1][0]], // extract game1 and game2
+//					[brackets[2][0]]                  // extract game3
+//				];
+//			}
 			//const tid = await DBget.getActiveTournamentId(userId);
 			//const { password, ...safeUser } = profile;
 			mockProfile.username = profile.username;
@@ -176,9 +177,9 @@ async function getUser(fastify, options) {
 			//mockP
 			console.log("show mock profile", mockProfile);
 			mockProfile.tournament = profile.active_tournament_id === 0 ? null : await getTournamentState(profile.active_tournament_id);
-			if (mockProfile.tournament) {
-				mockProfile.tournament.bracket = brackets.length === 0 ? [] : fullBracket;
-			}
+		//	if (mockProfile.tournament) {
+		//		mockProfile.tournament.bracket = brackets.length === 0 ? [] : fullBracket;
+		//	}
 			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
@@ -192,8 +193,8 @@ async function updateUsername(fastify, options) {
 	fastify.route({
 		method: API_PROTOCOL.CHANGE_USERNAME.method,
 		url: API_PROTOCOL.CHANGE_USERNAME.path,
+		schema: usernameSchema, 
 		handler: async (request, reply) => {
-		//schema: { body: schemas.ChangeUsername }, dosnt exist yet 
 		const { username } = request.body;
 		try {
 
@@ -239,8 +240,8 @@ async function updatePassword(fastify, options) {
 	fastify.route({
 		method: API_PROTOCOL.CHANGE_PASSWORD.method,
 		url: API_PROTOCOL.CHANGE_PASSWORD.path,
+		schema: passwordSchema, 
 		handler: async (request, reply) => {
-		//schema: { body: schemas.ChangeUsername }, dosnt exist yet 
 		const { current_password, new_password } = request.body;
 		try {
 
