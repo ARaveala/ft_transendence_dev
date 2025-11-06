@@ -3,6 +3,7 @@ import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useTranslation } from "../shared/Translation";
 import defaultAvatar from "../assets/avatars/default-avatar.png";
 import { useAuth } from "../context/AuthContext";
+import PlayerProfileModal from "../components/profile/PlayerProfileModal";
 
 
 type Friend = {
@@ -23,6 +24,7 @@ const MAX_FRIENDS = 20;
 const Friends: React.FC = () => {
 	const { t } = useTranslation();
 	const {isLoggedIn, user, loading, refreshSession } = useAuth(); //now using AuthContext to get user info
+	const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
 
 	// Inline status
 	const [msg, setMsg] = useState<string | null>(null);
@@ -215,7 +217,7 @@ const Friends: React.FC = () => {
 					<div className="text-gray-400">{t("friends.list.empty")}</div>
 				) : (
 					<div className="space-y-3">
-						{friends.map((f) => {
+						{friends.map((f: Friend) => {
 							const avatarSrc =
 								f.avatar ??
 								(f as any).avatarFile ??
@@ -234,17 +236,24 @@ const Friends: React.FC = () => {
 											}}
 										/>
 										<div>
-											<div className="font-semibold">{f.username}</div>
+											{/* Username button opens the modal */}
+											 <button
+												type="button"
+												onClick={() => setSelectedPlayer(f.user_id)}
+												className="font-semibold text-indigo-400 hover:text-indigo-300 underline"
+											>
+												{f.username}
+											</button>
 											<div className="flex items-center gap-1 text-sm">
-											<span
-											className={
-											"inline-block w-2 h-2 rounded-full " +
-											(f.online_status ? "bg-green-400" : "bg-gray-500")
-											}
-											/>
-											<span className={f.online_status ? "text-green-300" : "text-gray-400"}>
-											{f.online_status ? t("common.online") : t("common.offline")}
-											</span>
+												<span
+													className={
+														"inline-block w-2 h-2 rounded-full " +
+															(f.online_status ? "bg-green-400" : "bg-gray-500")
+														}
+													/>
+												<span className={f.online_status ? "text-green-300" : "text-gray-400"}>
+													{f.online_status ? t("common.online") : t("common.offline")}
+												</span>
 											</div>
 										</div>
 									</div>
@@ -263,23 +272,23 @@ const Friends: React.FC = () => {
 									<div className="px-4 pb-4">
 										<div className="border border-red-500/30 bg-red-900/10 rounded p-4">
 											<h3 className="text-red-400 font-semibold mb-2">
-											{t("friends.confirmRemove.title")}
+												{t("friends.confirmRemove.title")}
 											</h3>
 											<p className="text-sm text-red-200 mb-3">
-											{t("friends.confirmRemove.text")}
+												{t("friends.confirmRemove.text")}
 											</p>
 											<div className="flex gap-2">
-											<PrimaryTiny
-											onClick={() => confirmRemove(f.user_id)}
-											disabled={removing}
-											>
-											{t("common.remove")}
-											</PrimaryTiny>
-											<SecondaryTiny
-											onClick={() => setRemoveConfirmId(null)}
-											disabled={removing}
-											>
-											{t("common.cancel")}
+												<PrimaryTiny
+													onClick={() => confirmRemove(f.user_id)}
+													disabled={removing}
+													>
+													{t("common.remove")}
+												</PrimaryTiny>
+												<SecondaryTiny
+													onClick={() => setRemoveConfirmId(null)}
+													disabled={removing}
+													>
+													{t("common.cancel")}
 											</SecondaryTiny>
 											</div>
 										</div>
@@ -292,7 +301,13 @@ const Friends: React.FC = () => {
 				)}
 			</section>
 		</div>
-	  </div>
+			{selectedPlayer && (
+				<PlayerProfileModal
+					userId={selectedPlayer}
+					onClose={() => setSelectedPlayer(null)}
+				/>
+			)}
+		</div>
 	);
 };
 

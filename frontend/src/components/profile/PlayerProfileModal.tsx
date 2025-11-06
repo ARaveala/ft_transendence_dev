@@ -16,7 +16,7 @@ const handleFetchOtherUser = async (userId: string) => {
 
 		const res = await fetch(url.toString(), {
 		method: API_PROTOCOL.GET_OTHER_PLAYER_PROFILE.method,
-		credentials: "include",
+		credentials: 'include',
 		});
 
 		if (!res.ok) {
@@ -121,26 +121,52 @@ export default function PlayerProfileModal({ userId, onClose }: PlayerProfileMod
 				</div>
 
 				{/* Stats */}
-				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+				<div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
 					<Stat label="Victories 🏅" value={profile.victories} />
 					<Stat label="Losses 💣" value={profile.losses} />
 					<Stat label="Matches 🕹️" value={profile.totalMatches} />
-					<Stat label="Tournament Wins 🏆" value={profile.tournamentWins ?? 0} />
 				</div>
 
 				{/* Match history */}
 				<div className="rounded-lg border border-gray-700 bg-gray-800/40 p-4 max-h-64 overflow-auto">
-					<h3 className="font-semibold mb-2">Recent Matches</h3>
+					<h3 className="font-semibold mb-2">Match History</h3>
 
-					{(!profile.matchHistory || profile.matchHistory.length === 0) && (
+					{(!profile.matchHistory || profile.matchHistory.length === 0) ? (
 						<div className="text-gray-400">No match history available.</div>
-					)}
+					) : (
+						<div className="overflow-x-auto">
+							<table className="w-full text-left border border-gray-700 rounded-lg">
+								<thead className="bg-gray-800/50">
+									<tr>
+										<th className="px-3 py-2 text-sm font-semibold">Opponent</th>
+										<th className="px-3 py-2 text-sm font-semibold">Result</th>
+										<th className="px-3 py-2 text-sm font-semibold">Score</th>
+										<th className="px-3 py-2 text-sm font-semibold">Time</th>
+									</tr>
+								</thead>
+								<tbody className="divide-y divide-gray-700">
+									{profile.matchHistory.slice(0, 10).map((m, idx) => {
+										const result = (m.result || "").toLowerCase();
+										const resultClass =
+											result === "win" ? "text-emerald-400" :
+											result === "loss" ? "text-rose-400" :
+											"text-gray-300";
 
-					{profile.matchHistory?.slice(0, 10).map((m, idx) => (
-						<div key={idx} className="text-gray-300 text-sm py-1 border-b border-gray-700/40">
-						vs <span className="text-indigo-300">{m.opponent}</span> — {m.result}
-						</div>
-					))}
+									return (
+										<tr key={`${m.opponent}-${m.timestamp}-${idx}`} className="border-t border-gray-700">
+											<td className="px-3 py-2 text-sm">{m.opponent}</td>
+											<td className={`px-3 py-2 text-sm ${resultClass}`}>
+												{result ? result.charAt(0).toUpperCase() + result.slice(1) : "-"}
+											</td>
+											<td className="px-3 py-2 text-sm">{m.score}</td>
+											<td className="px-3 py-2 text-sm">{new Date(m.timestamp).toLocaleString()}</td>
+										</tr>
+									);
+								})}
+							</tbody>
+						</table>
+					</div>
+					)}
 				</div>
 			</div>
 		</div>

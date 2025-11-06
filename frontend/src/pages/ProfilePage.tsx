@@ -138,14 +138,14 @@ const Profile: React.FC = () => {
 				</div>
 			</section>
 		</div>
-		{selectedPlayer && (
-			<PlayerProfileModal
-			userId={selectedPlayer}
-			onClose={() => setSelectedPlayer(null)}
-	/>
-)}
+			{selectedPlayer && (
+				<PlayerProfileModal
+				userId={selectedPlayer}
+				onClose={() => setSelectedPlayer(null)}
+				/>
+			)}
 		</div>
-		);
+	);
 };
 
 function StatCard({ 

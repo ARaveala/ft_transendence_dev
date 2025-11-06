@@ -27,27 +27,40 @@ const {
  */
 
  async function getFriendProfile(fastify, options) {
-	const { DBget } = options;
+	const { DBget, secure } = options;
 	fastify.get(API_PROTOCOL.GET_OTHER_PLAYER_PROFILE.path,{ //get friend profile
 	}, async (request, reply) => {
 		const token = request.cookies.auth_token;
+		console.log("Request headers:", request.headers);
 		if (!token) {
-		 console.warn("Unauthorized access to /api/profile — no valid user ID");
-		 reply.code(401).send({ error: "Unauthorized" });
-		 return;
+			console.warn("Unauthorized access - no auth_token cookie found");
+			reply.code(401).send({ error: "Unauthorized" });
+			return;
 		}
+		console.log("Token found:", token);
+
 		let loggedInUser;
 		try {
 			loggedInUser = secure.getUserIdFromToken(token); // might throw if expired
+			console.log("Decoded token:", loggedInUser);
 		} catch (err) {
-			console.warn(`Unauthorized access to ${request.url} — ${err.name}`);
+			console.error("Error decoding token:", err);
 			return reply.code(401).send({ error: err.name });
 		}
-		 const targetUserId = request.query.user_id;
 
-		if (!targetUserId || !targetUserId.id) {
-			return reply.code(401).send({ error: "Invalid token" });
+		if (!loggedInUser || loggedInUser.error) {
+			console.warn("Invalid token object:", loggedInUser);
+			return reply.code(401).send({ error: loggedInUser?.error || "Invalid token" });
 		}
+
+		const targetUserId = Number(request.query.user_id);
+		if (isNaN(targetUserId)) {
+			console.warn("Invalid or missing target user_id in query:", request.query.user_id);
+			return reply.code(400).send({ error: "Missing target user_id" });
+		}
+
+		console.log(`Fetching profile for user ID ${targetUserId}, requested by logged in user ID ${loggedInUser.id}`);
+		
 		const mockProfile = {
 				username: "PlayerOne",
 				avatarFile: undefined,
@@ -58,10 +71,17 @@ const {
 				matches: 22,
 				matchHistory: [],
 			};
-		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
+		console.log('Fetching user with ID:', targetUserId, 'requested by logged in user:', loggedInUser.id);
 		try {
-			const profile = await DBget.fetchUser({userId});
-			const matchHistory = await DBget.getMatchHistory(userId.id);
+			console.log("Calling DBget.fetchUser...");
+			const profile = await DBget.fetchUser({ userId: { id: targetUserId } }); 
+			if (!profile) {
+				console.warn("User not found in DB:", targetUserId);
+				return reply.code(404).send({ error: "User not found" });
+			}
+			console.log("Calling DBget.getMatchHistory...");
+			const matchHistory = await DBget.getMatchHistory(targetUserId);
+			console.log("Match history:", matchHistory);
 			
 			mockProfile.username = profile.username;
 			mockProfile.avatarFile = profile.avatar_file;
@@ -73,7 +93,7 @@ const {
 			mockProfile.matchHistory = matchHistory || [];
 			console.log("show mock profile", mockProfile);
 
-			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
+			flog.warn({finalMockProfile: mockProfile}, "FULL OTHER USER PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
 			reply.code(500).send(err);
