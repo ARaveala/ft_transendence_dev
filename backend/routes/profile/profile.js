@@ -48,9 +48,9 @@ async function getUser(fastify, options) {
 			mockProfile.friends = friends || [];
 			mockProfile.matchHistory = matchHistory || [];
 			//mockP
-			console.log("show mock profile", mockProfile);
+//			console.log("show mock profile", mockProfile);
 			mockProfile.tournament = profile.active_tournament_id === 0 ? null : await getTournamentState(profile.active_tournament_id);
-			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
+//			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
 			reply.code(500).send(err);
@@ -74,7 +74,7 @@ async function getFriendProfile(fastify, options) {
 				matches: 22,
 				matchHistory: [],
 			};
-		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
+	//	console.log('Fetching user with ID:', userId, 'with type', typeof userId);
 		try {
 			const profile = await DBget.fetchUser({userId});
 			const matchHistory = await DBget.getMatchHistory(userId.id);
@@ -87,9 +87,9 @@ async function getFriendProfile(fastify, options) {
 			mockProfile.losses = profile.losses;
 			mockProfile.totalMatches = profile.total_games;
 			mockProfile.matchHistory = matchHistory || [];
-			console.log("show mock profile", mockProfile);
+	//		console.log("show mock profile", mockProfile);
 
-			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
+	//		flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
 			reply.code(500).send(err);

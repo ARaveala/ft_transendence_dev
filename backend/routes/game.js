@@ -203,8 +203,10 @@ async function joinGame(fastify, options) {
 function startGameCore(reply, secure, gameId) {
 		const game = getGame(gameId);
 //		flog.warn({function: 'startGameCore', game: game, gameid: gameId}, 'checking that game exists ????????');
-		if (!game) return reply.code(404).send({ error: 'Game not found' });
-				if (game.players.size < 2) {
+		if (!game) {
+			return reply.code(404).send({ error: 'Game not found' });
+		}
+		if (game.players.size < 2) {
 			return reply.code(400).send({ error: 'Not enough players to start' });
 		}
 		const playerTokens = {};
@@ -234,10 +236,10 @@ async function startGame(fastify, options) {
 	const {gameId} = request.body;
     try {
 		const playerTokens = startGameCore(reply, secure, gameId);
-		reply.send({ status: 'ready', gameId, playerTokens });
+		return reply.send({ status: 'ready', gameId, playerTokens });
 		} catch (err) {
 			flog.error({function: "startGame", errormsg: err.message, errorstack: err.stack}, "what error");
-			reply.code(400).send({ error: 'Game initialization failed' });
+			return reply.code(400).send({ error: 'Game initialization failed' });
 		}
   });
 }
