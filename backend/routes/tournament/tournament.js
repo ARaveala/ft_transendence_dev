@@ -53,6 +53,7 @@ function buildTournamentPlayerList(players) {
 			role: `player${i}`,
 			status: "waiting",
 			score: 0,
+			isSelf: false,
 			isVerified: false
 		});
 	 }
@@ -181,8 +182,6 @@ async function verifyPlayer(fastify, options){
 }
 async function createMatchWithBracket(DBtour, game, tournamentId, playerA, playerB, round) {
 	const gameId = game.createGameCore(
-//		const payload = playerA ? { id: playerA.user_id } : {};
-
 		playerA?.user_id,
 		'tournament',
 		'local',

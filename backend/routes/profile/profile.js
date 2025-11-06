@@ -8,12 +8,81 @@ const {
 	getTournamentState,
 } = require('@Rtour/tournament.js');
 
+ async function getFriendProfile(fastify, options) {
+	const { DBget } = options;
+	fastify.get(API_PROTOCOL.GET_OTHER_PLAYER_PROFILE.path,{ //get friend profile
+	}, async (request, reply) => {
+
+		const targetUserId =  Number(request.query.user_id);
+		if (isNaN(targetUserId)) {
+			console.warn("Invalid or missing target user_id in query:", request.query.user_id);
+			return reply.code(400).send({ error: "Missing target user_id" });
+		}
+		
+		const mockProfile = {
+				username: "PlayerOne",
+				avatarFile: undefined,
+				rank: 5,
+				score: 1200,
+				victories: 20,
+				losses: 7,
+				matches: 22,
+				matchHistory: [],
+			};
+		try {
+			const profile = await DBget.fetchUser( targetUserId ); 
+			if (!profile) {
+				console.warn("User not found in DB:", targetUserId);
+				return reply.code(404).send({ error: "User not found" });
+			}
+			
+			const matchHistory = await DBget.getMatchHistory(targetUserId);
+	
+			mockProfile.username = profile.username;
+			mockProfile.avatarFile = profile.avatar_file;
+			mockProfile.rank = profile.rank;
+			mockProfile.score = profile.score;
+			mockProfile.victories = profile.wins;
+			mockProfile.losses = profile.losses;
+			mockProfile.totalMatches = profile.total_games;
+			mockProfile.matchHistory = matchHistory || [];
+			console.log("show mock profile", mockProfile);
+
+			flog.warn({finalMockProfile: mockProfile}, "FULL OTHER USER PROFILE SENT TO FRONTEND");
+			reply.send(mockProfile);
+		} catch (err) {
+			flog.error({fucntion: "get freind profile", err: err.stack}, "AAAAAAAAAAAAaaAAAA erro stack ");
+			reply.code(500).send(err);
+		}
+	});
+}
+
+
 // this should be getProfile
 async function getUser(fastify, options) {
 	const { DBget, secure, DBtour } = options;
 	fastify.get(API_PROTOCOL.GET_PROFILE.path,{
 	}, async (request, reply) => {
+		// just for testing check no fail after remove
 		userId = request.userId;
+		
+		//const token = request.cookies.auth_token;
+		//if (!token) {
+		// console.warn("Unauthorized access to /api/profile — no valid user ID");
+		// reply.code(401).send({ error: "Unauthorized" });
+		// return;
+		//}
+		//let userId;
+		//try {
+		//	userId = secure.getUserIdFromToken(token); // might throw if expired
+		//} catch (err) {
+		//	console.warn(`Unauthorized access to ${request.url} — ${err.name}`);
+		//	return reply.code(401).send({ error: err.name });
+		//}
+//
+		//if (!userId || !userId.id) {
+		//	return reply.code(401).send({ error: "Invalid token" });
+		//}
 		const mockProfile = {
 				username: "PlayerOne",
 				avatarFile: undefined,
@@ -33,10 +102,23 @@ async function getUser(fastify, options) {
 		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
 		try {
 			const profile = await DBget.fetchUser(userId);
+			console.log("WHAT IS TID :", profile.active_tournament_id);
+
 			//flog.warn({function: "getProfile", totalGames: profile.total_games}, "can we see total matches updated and recived==============================");
 			const friends = await DBget.getFriendsForPlayer(userId);
-	//		flog.info({function: 'getUser', friends}, 'checking friend object');
+			flog.info({function: 'getUser', friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory(userId);
+			
+//			const brackets = await DBtour.getBrackets(profile.active_tournament_id);
+//			let fullBracket = []; 
+//			if (Array.isArray(brackets) && brackets.length >= 3) {
+//				fullBracket = [
+//					[brackets[0][0], brackets[1][0]], // extract game1 and game2
+//					[brackets[2][0]]                  // extract game3
+//				];
+//			}
+			//const tid = await DBget.getActiveTournamentId(userId);
+			//const { password, ...safeUser } = profile;
 			mockProfile.username = profile.username;
 			mockProfile.avatarFile = profile.avatar_file;
 			mockProfile.mfa_enabled = profile.mfa_enabled === 1; // convert to boolean
@@ -51,45 +133,6 @@ async function getUser(fastify, options) {
 //			console.log("show mock profile", mockProfile);
 			mockProfile.tournament = profile.active_tournament_id === 0 ? null : await getTournamentState(profile.active_tournament_id);
 //			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
-			reply.send(mockProfile);
-		} catch (err) {
-			reply.code(500).send(err);
-		}
-	});
-}
-
-async function getFriendProfile(fastify, options) {
-	const { DBget } = options;
-	fastify.get(API_PROTOCOL.GET_PROFILE.path,{//get friend profile
-	}, async (request, reply) => {
-		const userId = request.body.userId
-
-		const mockProfile = {
-				username: "PlayerOne",
-				avatarFile: undefined,
-				rank: 5,
-				score: 1200,
-				victories: 20,
-				losses: 7,
-				matches: 22,
-				matchHistory: [],
-			};
-	//	console.log('Fetching user with ID:', userId, 'with type', typeof userId);
-		try {
-			const profile = await DBget.fetchUser({userId});
-			const matchHistory = await DBget.getMatchHistory(userId.id);
-			
-			mockProfile.username = profile.username;
-			mockProfile.avatarFile = profile.avatar_file;
-			mockProfile.rank = profile.rank;
-			mockProfile.score = profile.score;
-			mockProfile.victories = profile.wins;
-			mockProfile.losses = profile.losses;
-			mockProfile.totalMatches = profile.total_games;
-			mockProfile.matchHistory = matchHistory || [];
-	//		console.log("show mock profile", mockProfile);
-
-	//		flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
 			reply.code(500).send(err);
@@ -359,5 +402,6 @@ async function profileRoutes(fastify, options) {
 	await uploadAvatarFileRoute(fastify, options); // POST for file upload
 	await updateLanguage(fastify, options);
 	await updateTwoFactor(fastify, options);
+	await getFriendProfile(fastify, options);
 }
 module.exports = profileRoutes
