@@ -24,6 +24,7 @@ async function startGameCLI() {
         if (!loginRes.ok) {
             console.error('❌ Login failed. Check your credentials.');
             const errorText = await loginRes.text();
+            console.error(loginRes);
             console.error('Server response:', errorText);
             return;
         }

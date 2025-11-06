@@ -75,7 +75,7 @@ async function loginUser(fastify, options) {
                 }
             } catch (err) {
                 flog.error({ function: 'loginUser', error: err }, 'Error during login:', err);
-				reply.code(500).send(err);
+				reply.code(err.code).send(err);
             }
         }
     });
