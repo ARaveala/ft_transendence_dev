@@ -32,7 +32,6 @@ test('test', async ({ page }) => {
   await page.locator('form').getByRole('button', { name: 'Register' }).click();
   await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
 
-  await page.getByText('HomeGameTournamentLeaderboardFriendsProfileSettingsExit').click();
   await page.getByRole('link', { name: 'Exit' }).click();
   await expect(page.getByRole('heading', { name: 'Logout' })).toBeVisible();
 

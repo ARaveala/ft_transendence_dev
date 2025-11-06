@@ -181,15 +181,15 @@ async function miniLogin(username, password) {
   return new Promise((resolve, reject) => {
     db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
       if (err) {
-        return reject({ error: 'Database error' });
+        return reject({ error: 'Database error', code: 401 });
       }
       if (!row) {
-        return reject({ error: 'User not found' });
+        return reject({ error: 'User not found', code: 401 });
       }
 
       // TEMP: plain text password check for testing only
       if (row.password !== password) {
-        return reject({ error: 'Invalid password' });
+        return reject({ error: 'Invalid password', code: 401 });
       }
       // Return minimal info — no profile data
 	  flog.info({ function: 'miniLogin', userId: row.id}, 'mini login success ');
