@@ -30,36 +30,37 @@ const {
 	const { DBget, secure } = options;
 	fastify.get(API_PROTOCOL.GET_OTHER_PLAYER_PROFILE.path,{ //get friend profile
 	}, async (request, reply) => {
-		const token = request.cookies.auth_token;
+		//const token = request.cookies.auth_token;
 		console.log("Request headers:", request.headers);
-		if (!token) {
-			console.warn("Unauthorized access - no auth_token cookie found");
-			reply.code(401).send({ error: "Unauthorized" });
-			return;
-		}
-		console.log("Token found:", token);
+		loggedInUser = request.userId;
+		//if (!token) {
+		//	console.warn("Unauthorized access - no auth_token cookie found");
+		//	reply.code(401).send({ error: "Unauthorized" });
+		//	return;
+		//}
+		//console.log("Token found:", token);
 
-		let loggedInUser;
-		try {
-			loggedInUser = secure.getUserIdFromToken(token); // might throw if expired
-			console.log("Decoded token:", loggedInUser);
-		} catch (err) {
-			console.error("Error decoding token:", err);
-			return reply.code(401).send({ error: err.name });
-		}
-
-		if (!loggedInUser || loggedInUser.error) {
-			console.warn("Invalid token object:", loggedInUser);
-			return reply.code(401).send({ error: loggedInUser?.error || "Invalid token" });
-		}
-
+		//let loggedInUser;
+		//try {
+		//	loggedInUser = secure.getUserIdFromToken(token); // might throw if expired
+		//	console.log("Decoded token:", loggedInUser);
+		//} catch (err) {
+		//	console.error("Error decoding token:", err);
+		//	return reply.code(401).send({ error: err.name });
+		//}
+//
+		//if (!loggedInUser || loggedInUser.error) {
+		//	console.warn("Invalid token object:", loggedInUser);
+		//	return reply.code(401).send({ error: loggedInUser?.error || "Invalid token" });
+		//}
+//
 		const targetUserId = Number(request.query.user_id);
 		if (isNaN(targetUserId)) {
 			console.warn("Invalid or missing target user_id in query:", request.query.user_id);
 			return reply.code(400).send({ error: "Missing target user_id" });
 		}
 
-		console.log(`Fetching profile for user ID ${targetUserId}, requested by logged in user ID ${loggedInUser.id}`);
+		console.log(`Fetching profile for user ID ${targetUserId}, requested by logged in user ID ${loggedInUser}`);
 		
 		const mockProfile = {
 				username: "PlayerOne",
@@ -71,10 +72,10 @@ const {
 				matches: 22,
 				matchHistory: [],
 			};
-		console.log('Fetching user with ID:', targetUserId, 'requested by logged in user:', loggedInUser.id);
+		console.log('Fetching user with ID:', targetUserId, 'requested by logged in user:', loggedInUser);
 		try {
 			console.log("Calling DBget.fetchUser...");
-			const profile = await DBget.fetchUser({ userId: { id: targetUserId } }); 
+			const profile = await DBget.fetchUser({ id: targetUserId }); 
 			if (!profile) {
 				console.warn("User not found in DB:", targetUserId);
 				return reply.code(404).send({ error: "User not found" });
@@ -108,24 +109,24 @@ async function getUser(fastify, options) {
 	fastify.get(API_PROTOCOL.GET_PROFILE.path,{
 	}, async (request, reply) => {
 		// just for testing check no fail after remove
-
-		const token = request.cookies.auth_token;
-		if (!token) {
-		 console.warn("Unauthorized access to /api/profile — no valid user ID");
-		 reply.code(401).send({ error: "Unauthorized" });
-		 return;
-		}
-		let userId;
-		try {
-			userId = secure.getUserIdFromToken(token); // might throw if expired
-		} catch (err) {
-			console.warn(`Unauthorized access to ${request.url} — ${err.name}`);
-			return reply.code(401).send({ error: err.name });
-		}
-
-		if (!userId || !userId.id) {
-			return reply.code(401).send({ error: "Invalid token" });
-		}
+		userId = request.userId;
+		//const token = request.cookies.auth_token;
+		//if (!token) {
+		// console.warn("Unauthorized access to /api/profile — no valid user ID");
+		// reply.code(401).send({ error: "Unauthorized" });
+		// return;
+		//}
+		//let userId;
+		//try {
+		//	userId = secure.getUserIdFromToken(token); // might throw if expired
+		//} catch (err) {
+		//	console.warn(`Unauthorized access to ${request.url} — ${err.name}`);
+		//	return reply.code(401).send({ error: err.name });
+		//}
+//
+		//if (!userId || !userId.id) {
+		//	return reply.code(401).send({ error: "Invalid token" });
+		//}
 		const mockProfile = {
 				username: "PlayerOne",
 				avatarFile: undefined,
@@ -148,9 +149,9 @@ async function getUser(fastify, options) {
 			//console.log("WHAT IS TID :", profile.active_tournament_id);
 
 			//flog.warn({function: "getProfile", totalGames: profile.total_games}, "can we see total matches updated and recived==============================");
-			const friends = await DBget.getFriendsForPlayer(userId.id);
+			const friends = await DBget.getFriendsForPlayer(userId);
 	//		flog.info({function: 'getUser', friends}, 'checking friend object');
-			const matchHistory = await DBget.getMatchHistory(userId.id);
+			const matchHistory = await DBget.getMatchHistory(userId);
 			
 			const brackets = await DBtour.getBrackets(profile.active_tournament_id);
 			let fullBracket = []; 

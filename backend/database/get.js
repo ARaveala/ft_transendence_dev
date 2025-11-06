@@ -32,7 +32,7 @@ this could be managed by routes calling 3 fucntions     const player = await db.
 
 async function fetchUser({ userId }) {
 	console.log('Finside db::fetching user with ID:', userId);
-	const test = userId.id;
+	const test = userId;
 		return new Promise((resolve, reject) => {
 			db.get('SELECT * FROM users WHERE id = ?', [test], (err, row) =>{
 				if (err) {
