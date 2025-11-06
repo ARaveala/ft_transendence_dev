@@ -33,7 +33,7 @@
   "settings.item.language": "Välj nytt språk",
   "settings.title.username": "Byt användarnamn",
   "settings.item.newUsername": "Ange nytt användarnamn",
-  "settings.username.notice": "3-15 tecken",
+  "settings.username.notice": "6-12 tecken",
   "settings.title.password": "Byt lösenord",
   "settings.item.passwordCurrent": "Nuvarande lösenord",
   "settings.item.passwordNew": "Nytt lösenord",
@@ -187,6 +187,7 @@
 
   "error.username.length": "Användarnamnet måste vara 3–15 tecken.",
   "error.username.updateFailed": "Det gick inte att uppdatera användarnamnet.",
+  "error.username.taken": "Användarnamnet är inte tillgängligt.",
   "error.password.length": "Det nya lösenordet måste vara minst 8 tecken.",
   "error.password.match": "Lösenorden matchar inte.",
   "error.password.required": "Nuvarande lösenord krävs.",

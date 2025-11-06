@@ -173,10 +173,9 @@ async function updateUsername(fastify, options) {
 					error: 'no such user'
 				})
 			}
-
 			reply.code(200).send({
 				status: 'UPDATED',
-				profile: profile,
+				//profile: profile,
 			});
 		} catch (err) {
 			console.log(('Error during login:', err));
