@@ -236,6 +236,9 @@ async function startGame(fastify, options) {
 	const {gameId} = request.body;
     try {
 		const playerTokens = startGameCore(reply, secure, gameId);
+		if (!playerTokens){
+			return;
+		}
 		return reply.send({ status: 'ready', gameId, playerTokens });
 		} catch (err) {
 			flog.error({function: "startGame", errormsg: err.message, errorstack: err.stack}, "what error");
