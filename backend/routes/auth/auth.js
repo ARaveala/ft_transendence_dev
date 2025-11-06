@@ -6,7 +6,8 @@ const flog = logger.child({ fileContext: 'auth' }); // scoped logger
 
 const speakeasy = require('speakeasy'); // for creating 2FA secrets
 const qrcode = require('qrcode');      // creating qrcodes
-const tempSetupSecrets = new Map();
+
+const { encrypt, decrypt } = require('./crypto');
 
 /**
  * @type {import('../../shared/payloads').RegisterUserPayload}
@@ -161,7 +162,7 @@ async function deleteUser(fastify, option) {
  */
 /* Generates 2FA secret and QR code, stores secret temporarily in memory */
 async function setupTwoFactor(fastify, options) {
-    const { secure } = options;
+    const { secure, DBget, DBupdate} = options;
     fastify.post(API_PROTOCOL.TFA_SETUP.path, {}, async (request, reply) => {
         flog.info({ function: 'setupTwoFactor' }, 'Starting 2FA setup process.');
         try {
@@ -171,11 +172,18 @@ async function setupTwoFactor(fastify, options) {
                  throw new Error("Invalid user token for 2FA setup.");
             }
 
+			const isEnabled = await DBget.is2FaEnabled(userId.id);
+            if (isEnabled) {
+                flog.warn({ function: 'setupTwoFactor', userId: userId.id }, 'User tried setup but 2FA is already enabled.');
+                return reply.code(400).send({ error: '2FA is already enabled. Please disable it first to set up a new one.' });
+            }
+
             const secret = speakeasy.generateSecret({
-                name: `Ft_Transcendence (${userId.id})`
+                name: `Ft_Transcendence`
             });
 
-            tempSetupSecrets.set(userId.id, secret.base32);
+			const encryptedSecret = encrypt(secret.base32);
+			await DBupdate.update2fa(false, userId.id, encryptedSecret);
 
             flog.info({ function: 'setupTwoFactor', userId: userId.id }, `Generated temporary secret for user.`);
 
@@ -191,7 +199,7 @@ async function setupTwoFactor(fastify, options) {
 
 /* verifies first OTP, saves PLAIN TEXT secret atm to DB, enables 2FA flag */
 async function verifyTwoFactor(fastify, options) {
-    const { secure, DBupdate } = options;
+    const { secure, DBupdate, DBget } = options;
     fastify.post(API_PROTOCOL.TFA_VERIFY.path, {}, async (request, reply) => {
         const { otp } = request.body;
         flog.info({ function: 'verifyTwoFactor' }, 'Attempting first OTP verification for setup.');
@@ -202,13 +210,18 @@ async function verifyTwoFactor(fastify, options) {
                  throw new Error("Invalid user token for 2FA verification.");
             }
 
-            const plainTextSecret = tempSetupSecrets.get(userId.id);
-
-            if (!plainTextSecret) {
-                flog.warn({ function: 'verifyTwoFactor', userId: userId.id }, 'No temporary secret found for user.');
-                return reply.code(400).send({ error: 'No 2FA setup process started or secret expired. Please try again.' });
+			const isAlreadyEnabled = await DBget.is2FaEnabled(userId.id);
+            if (isAlreadyEnabled) {
+                return reply.code(400).send({ error: '2FA is already verified and enabled.' });
             }
 
+			const encryptedSecret = await DBget.get2FaSecret(userId.id);
+            if (!encryptedSecret) {
+                flog.warn({ function: 'verifyTwoFactor', userId: userId.id }, 'No temporary secret found in DB for user.');
+                return reply.code(400).send({ error: 'No 2FA setup process started. Please try again.' });
+            }
+
+            const plainTextSecret = decrypt(encryptedSecret);
             const isVerified = speakeasy.totp.verify({
                 secret: plainTextSecret,
                 encoding: 'base32',
@@ -217,9 +230,9 @@ async function verifyTwoFactor(fastify, options) {
 
             if (isVerified) {
                 flog.info({ function: 'verifyTwoFactor', userId: userId.id }, `Successfully verified OTP. Enabling 2FA in DB.`);
-                await DBupdate.update2fa(true, userId.id, plainTextSecret); // add to DB
+				const encryptedSecret = encrypt(plainTextSecret);
+                await DBupdate.update2fa(true, userId.id, encryptedSecret); // add to DB
                 flog.debug({ function: 'verifyTwoFactor', userId: userId.id }, 'DB update attempted (plain text).');
-                tempSetupSecrets.delete(userId.id);
                 reply.code(200).send({ verified: true });
             } else {
                 flog.warn({ function: 'verifyTwoFactor', userId: userId.id }, `Failed OTP verification during setup.`);
@@ -247,7 +260,6 @@ async function disableTwoFactor(fastify, options) {
             await DBupdate.update2fa(false, userId.id, null); // Pass null secret, false status
 
             flog.info({ function: 'disableTwoFactor', userId: userId.id }, '2FA disabled in DB for user.');
-            tempSetupSecrets.delete(userId.id);
             reply.code(200).send({ disabled: true });
         } catch (err) {
             flog.error({ function: 'disableTwoFactor', error: { message: err.message, stack: err.stack } }, 'An error occurred while disabling 2FA.');
@@ -296,13 +308,14 @@ async function verifyLoginTwoFactor(fastify, options) {
 
             const userId = decodedTempToken.id;
 
-            // assumes get2FaSecret returns the plain text base32 secret saved earlier
-            const plainTextSecret = await DBget.get2FaSecret(userId);
-            if (!plainTextSecret) {
+            const encryptedSecret= await DBget.get2FaSecret(userId);
+            if (!encryptedSecret) {
                 flog.warn({ function: 'verifyLoginTwoFactor', userId }, '2FA secret not found in DB for user during login.');
                 return reply.code(400).send({ error: '2FA is not properly configured for this user.' });
             }
 
+			const plainTextSecret = decrypt(encryptedSecret);
+				
             const isVerified = speakeasy.totp.verify({
                 secret: plainTextSecret,
                 encoding: 'base32',
