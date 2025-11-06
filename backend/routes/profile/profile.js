@@ -28,53 +28,15 @@ const {
  */
 
  async function getFriendProfile(fastify, options) {
-	const { DBget, secure } = options;
+	const { DBget } = options;
 	fastify.get(API_PROTOCOL.GET_OTHER_PLAYER_PROFILE.path,{ //get friend profile
 	}, async (request, reply) => {
 
-		try {
-			flog.info({ userId: request.userId, query: request.query }, "=== Starting getFriendProfile ===");
-			
-			const loggedInUser = request.userId;
-			flog.info({ loggedInUser }, "Got loggedInUser");
-			
-			if (!loggedInUser) {
-				return reply.code(401).send({ error: "Unauthorized" });
-			}
-
-			const targetUserId = Number(request.query.user_id);
-			flog.info({ targetUserId, isNaN: isNaN(targetUserId) }, "Parsed targetUserId");
-			
-			if (isNaN(targetUserId)) {
-				flog.warn({ query: request.query.user_id }, "Invalid or missing target user_id");
-				return reply.code(400).send({ error: "Missing or invalid user_id" });
-			}
-
-			flog.info({ targetUserId, loggedInUser }, "About to call DBget.fetchUser");
-			const profile = await DBget.fetchUser({ userId: targetUserId }); 
-			flog.info({ profile }, "Got profile from DB");
-			
-			// ... rest of the code
-		} catch (err) {
-			flog.error({ function: "getFriendProfile", err: err.message, stack: err.stack }, "CAUGHT ERROR in getFriendProfile");
-			return reply.code(500).send({ error: "Internal server error" });
-		}
-
-		const loggedInUser = request.userId;
-		if (!loggedInUser) {
-			console.warn("Unauthorized access - no auth_token cookie found");
-			reply.code(401).send({ error: "Unauthorized" });
-			return;
-		}
-		console.log("Token found:", token);
-
-		const targetUserId = Number(request.query.user_id);
+		const targetUserId =  Number(request.query.user_id);
 		if (isNaN(targetUserId)) {
 			console.warn("Invalid or missing target user_id in query:", request.query.user_id);
 			return reply.code(400).send({ error: "Missing target user_id" });
 		}
-
-		console.log(`Fetching profile for user ID ${targetUserId}, requested by logged in user ID ${loggedInUser}`);
 		
 		const mockProfile = {
 				username: "PlayerOne",
@@ -86,18 +48,15 @@ const {
 				matches: 22,
 				matchHistory: [],
 			};
-		console.log('Fetching user with ID:', targetUserId, 'requested by logged in user:', loggedInUser);
 		try {
-			console.log("Calling DBget.fetchUser...");
-			const profile = await DBget.fetchUser({ userId: targetUserId  }); 
+			const profile = await DBget.fetchUser({ userId: targetUserId }); 
 			if (!profile) {
 				console.warn("User not found in DB:", targetUserId);
 				return reply.code(404).send({ error: "User not found" });
 			}
-			console.log("Calling DBget.getMatchHistory...");
-			const matchHistory = await DBget.getMatchHistory(targetUserId);
-			console.log("Match history:", matchHistory);
 			
+			const matchHistory = await DBget.getMatchHistory(targetUserId);
+	
 			mockProfile.username = profile.username;
 			mockProfile.avatarFile = profile.avatar_file;
 			mockProfile.rank = profile.rank;
