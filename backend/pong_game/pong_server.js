@@ -149,7 +149,7 @@ function AISimulateKeyPress(keysDown) {
 
 function updateGame(state, player1, player2) {
 
-    // AI will simulate pressing keys. "true" condition is for testing, remove later
+    // AI will simulate pressing keys
     if (player2.type === "ai") {
         // clear keypresses 
         state.keysDown[2] = false;
