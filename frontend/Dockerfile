@@ -1,24 +1,39 @@
-# Use Node.js LTS image
-FROM node:20-alpine
+# --- Stage 1: Build the frontend ---
+FROM node:20-alpine AS build
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json + package-lock.json
+# Copy dependencies manifests
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install 
-RUN npm install -D @types/react @types/react-dom
+# Install dependencies (using CI mode for reproducibility)
+RUN npm ci
 
-# Copy the rest of the project
+# Copy the rest of the source code
 COPY . .
 
-# Build for production (optional if just testing dev server)
-# RUN npm run build
+# Set environment variable for API base (used at build time)
+# This URL points to the backend service name in docker-compose
+ARG VITE_API_BASE_URL=http://backend:3000
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
-# Expose port for Vite dev server
-EXPOSE 5173
+# Build for production
+RUN npm run build
 
-# Run the dev server
-CMD ["npm", "run", "dev", "--", "--host"]
+
+# --- Stage 2: Serve using Nginx ---
+FROM nginx:alpine
+
+# Copy the built React files from previous stage
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# (Optional) Replace default Nginx config to support SPA routing
+# This ensures react-router works properly on reload
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80 to the outside world
+EXPOSE 80
+
+# Run Nginx in the foreground
+CMD ["nginx", "-g", "daemon off;"]
