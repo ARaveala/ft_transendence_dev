@@ -13,16 +13,16 @@ import { useLocation } from "react-router-dom";
 
 // Import page components
 import LandingPage from "./pages/LandingPage";
-import HomePage from "./pages/HomePage";
 import Game from "./pages/GamePage";
 import Tournament from "./pages/TournamentLobby";
-import Leaderboard from "./pages/Leaderboard";
 import Friends from "./pages/Friends";
 import Profile from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import background from "./assets/background.png";
 import Exit from "./pages/Exit";
+import NotFound from "./pages/NotFound";
+
 
 
 // Import shared layout components
@@ -42,7 +42,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const location = useLocation();
 const { isLoggedIn } = useAuth(); // get login status
 
-// Show navbar if user is logged in OR if not on landing page
+// Show navbar if user is logged in OR if not on landing page.
 const showNavbar = isLoggedIn || location.pathname !== "/";
 
 return (
@@ -78,11 +78,10 @@ return (
     );
 };
 
+//Protected routes means user must be logged in to access these routes
 const protectedRoutes = [
-  { path: "/home", element: <HomePage /> },
   { path: "/game", element: <Game /> },
   { path: "/tournament", element: <Tournament /> },
-  { path: "/leaderboard", element: <Leaderboard /> },
   { path: "/friends", element: <Friends /> },
   { path: "/profile", element: <Profile /> },
   { path: "/settings", element: <SettingsPage /> },
@@ -108,6 +107,7 @@ export default function App() {
 								element={<ProtectedRoute>{element}</ProtectedRoute>}
 							/>
 						))}
+						<Route path="*" element={<NotFound />} />
 					</Routes>
 				</Layout>
 			</TranslationProvider>

@@ -4,6 +4,7 @@ import { TBD_PLAYER } from "../../../shared/constants";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
+import { useTranslation } from "../../shared/Translation";
 
 interface TournamentBracketProps {
 	onStartMatch?: (match: Match) => void;    // callback when a match start is requested
@@ -16,7 +17,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 	onCancel,
 	onClose
 }) => {
-
+	const { t } = useTranslation();
 	const { tournament } = useAuth(); // Always get the up-to-date tournament state
 
 	if (!tournament || !tournament.bracket || tournament.bracket.length < 2) {
@@ -65,9 +66,9 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 	<div className="flex flex-col items-center mt-8 mt:mt-10 gap-4 md:gap-8 relative px-4">
 		{/* Winner */}
 		<div className="flex flex-col items-center">
-			<h3 className="font-bold text-base md:text-lg mb-2">Winner</h3>
+			<h3 className="font-bold text-base md:text-lg mb-2">{t("tournament.winner")}</h3>
 			<div className="p-2 md:p-3 border-2 border-cyan-600 bg-black text-white font-semibold rounded-xl w-32 md:w-40 text-center text-sm md:text-base">
-				{"🏆  " + (finalMatch?.winner ?? "TBD")}
+				{"🏆  " + (finalMatch?.winner ?? t("tournament.tbd"))}
 			</div>
 		</div>
 
@@ -83,12 +84,12 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 			<div className="relative flex justify-center gap-2 sm:gap-8 md:gap-48 lg:gap-72 items-center">
 				<div className="flex flex-col items-center gap-2 relative">
 					<div className="p-2 md:p-3 border-2 border-purple-600 bg-black text-white rounded-xl w-32 md:w-40 text-center text-sm md:text-base">
-						{firstRound[0].winner ?? "TBD"}
+						{firstRound[0].winner ?? t("tournament.tbd")}
 					</div>
 				</div>
 				<div className="flex flex-col items-center gap-2 relative">
 					<div className="p-2 md:p-3 border-2 border-purple-600 bg-black text-white rounded-xl w-32 md:w-40 text-center text-sm md:text-base">
-						{firstRound[1].winner ?? "TBD"}
+						{firstRound[1].winner ?? t("tournament.tbd")}
 					</div>
 				</div>
 			
@@ -123,7 +124,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 					}
 				`}
 				> 
-					Play Final
+					{t("tournament.playFinal")}
 				</Button>
 		</div>
 
@@ -167,7 +168,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 							}
 						`}
 					>
-						Play Match {idx + 1}
+						{t("tournament.playMatch")} {idx + 1}
 					</Button>	
 				</div>
 			))}
@@ -178,13 +179,13 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 					{/*
 					{allMatchesFinished ? (
 						<Button onClick={onClose}>
-							Close Tournament
+							{t("tournament.close")}
 						</Button>
 					)}
 					*/}
 						{onCancel && (
 							<Button onClick={onCancel}>
-								Cancel Tournament
+								{t("tournament.cancel")}
 							</Button>
 						)}
 				</div>
