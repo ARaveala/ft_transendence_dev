@@ -7,11 +7,6 @@ const passwordSchema = require('@schemas/passwordSchema.js');
 const {
 	getTournamentState,
 } = require('@Rtour/tournament.js');
-/**
- * 
-    const player = await db.getPlayerById(playerId);
-    const friends = await db.getFriendsForPlayer(playerId);
-    const matchHistory = await db.getMatchHistory(playerId);
 
     const profile = {
       username: player.username,
@@ -149,12 +144,48 @@ async function getUser(fastify, options) {
 			mockProfile.friends = friends || [];
 			mockProfile.matchHistory = matchHistory || [];
 			//mockP
-			console.log("show mock profile", mockProfile);
+//			console.log("show mock profile", mockProfile);
 			mockProfile.tournament = profile.active_tournament_id === 0 ? null : await getTournamentState(profile.active_tournament_id);
-		//	if (mockProfile.tournament) {
-		//		mockProfile.tournament.bracket = brackets.length === 0 ? [] : fullBracket;
-		//	}
-			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
+//			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
+			reply.send(mockProfile);
+		} catch (err) {
+			reply.code(500).send(err);
+		}
+	});
+}
+
+async function getFriendProfile(fastify, options) {
+	const { DBget } = options;
+	fastify.get(API_PROTOCOL.GET_PROFILE.path,{//get friend profile
+	}, async (request, reply) => {
+		const userId = request.body.userId
+
+		const mockProfile = {
+				username: "PlayerOne",
+				avatarFile: undefined,
+				rank: 5,
+				score: 1200,
+				victories: 20,
+				losses: 7,
+				matches: 22,
+				matchHistory: [],
+			};
+	//	console.log('Fetching user with ID:', userId, 'with type', typeof userId);
+		try {
+			const profile = await DBget.fetchUser({userId});
+			const matchHistory = await DBget.getMatchHistory(userId.id);
+			
+			mockProfile.username = profile.username;
+			mockProfile.avatarFile = profile.avatar_file;
+			mockProfile.rank = profile.rank;
+			mockProfile.score = profile.score;
+			mockProfile.victories = profile.wins;
+			mockProfile.losses = profile.losses;
+			mockProfile.totalMatches = profile.total_games;
+			mockProfile.matchHistory = matchHistory || [];
+	//		console.log("show mock profile", mockProfile);
+
+	//		flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
 			flog.error({fucntion: "get  profile", err: err.message}, "AAAAAAAAAbbbbbbbAAAaaAAAA erro stack ");
@@ -173,8 +204,7 @@ async function updateUsername(fastify, options) {
 		const { username } = request.body;
 		try {
 
-			const token = request.cookies.auth_token;
-			const userId = secure.getUserIdFromToken(token);
+			const userId = request.userId;
 			if (userId){
 				const check = await DBget.checkUsernameAvailable(username);
 				console.log('checking check', check)
@@ -185,11 +215,11 @@ async function updateUsername(fastify, options) {
 						error: 'username not available'
 					})
 				}	
-				const res = await DBupdate.updateUsername(username, userId.id);
+				const res = await DBupdate.updateUsername(username, userId);
 				console.log('checking res', res);
 			}
 
-			const profile = await DBget.fetchUser({userId});
+			const profile = await DBget.fetchUser(userId);
 			if (!profile) {
 				console.log('error in fetching user id or profile ');
 				reply.code(404).send({
@@ -220,8 +250,7 @@ async function updatePassword(fastify, options) {
 		const { current_password, new_password } = request.body;
 		try {
 
-			const token = request.cookies.auth_token;
-			const userId = secure.getUserIdFromToken(token);
+			const userId = request.userId;
 			if (userId){
 				const check = await DBget.checkPasswordMatch(current_password);
 				console.log('checking check', check)
@@ -234,7 +263,7 @@ async function updatePassword(fastify, options) {
 					})
 				}
 				//update password after checks valid
-				const res = await DBupdate.updatePassword(new_password, userId.id);
+				const res = await DBupdate.updatePassword(new_password, userId);
 				console.log('checking res', res);
 			}
 			reply.code(200).send({
@@ -261,16 +290,9 @@ async function uploadAvatarFileRoute(fastify, options) {
 			let newAvatarUrl = null; // Initialize to track the newly saved file
 			
 			try {
-				const token = request.cookies.auth_token;
-				const userId = secure.getUserIdFromToken(token);
-
-				if (!userId) {
-					reply.code(401).send({ status: 'ERROR', error: 'Unauthorized' });
-					return;
-				}
-
+				const userId = request.userId;
 				// 1. Fetch current user data to get the old avatar URL for later deletion
-				const currentUserData = await DBget.fetchUser({ userId });
+				const currentUserData = await DBget.fetchUser( userId );
 				const oldAvatarUrl = currentUserData ? currentUserData.avatar_file : null;
 
 				// Parse the file data from the multipart request
@@ -289,10 +311,10 @@ async function uploadAvatarFileRoute(fastify, options) {
 }
 
 				// 2. Save the new file and get its public URL
-				newAvatarUrl = await saveAndGetAvatarUrl(data, userId.id);
+				newAvatarUrl = await saveAndGetAvatarUrl(data, userId);
 
 				// 3. Update the user's database entry with the new URL
-				const updateCheck = await DBupdate.changeAvatar(newAvatarUrl, userId.id);
+				const updateCheck = await DBupdate.changeAvatar(newAvatarUrl, userId);
 
 				if (updateCheck.error) {
 					flog.error({ error: updateCheck.error }, 'Failed to update database with new avatar URL. Attempting file rollback.');
@@ -337,14 +359,12 @@ async function updateAvatar(fastify, options) {
 		const { avatar } = request.body;
 		try {
 
-			const token = request.cookies.auth_token;
-			const userId = secure.getUserIdFromToken(token);
+			const userId = request.userId;
 			if (userId){
-				const check = await DBupdate.changeAvatar(avatar, userId.id);
+				const check = await DBupdate.changeAvatar(avatar, userId);
 				console.log('checking check', check)
 				//might need more in depth error handling
 				if (check.error) {
-					//update the username
 					reply.code(400).send({
 						status: 'ERROR',
 						error: 'not valid avatar?'// other errors?
@@ -371,15 +391,12 @@ async function updateLanguage(fastify, options) {
 		//schema: { body: schemas.updateLanguage }, dosnt exist yet 
 		const { language } = request.body;
 		try {
-
-			const token = request.cookies.auth_token;
-			const userId = secure.getUserIdFromToken(token);
+			const userId = request.uiserId;
 			if (userId){
-				const check = await DBupdate.changeLanguage(language, userId.id);
+				const check = await DBupdate.changeLanguage(language, userId);
 				console.log('checking check Language', check)
 				//might need more in depth error handling
 				if (check.error) {
-					//update the username
 					reply.code(400).send({
 						status: 'ERROR',
 						error: 'not valid Language?'// other errors?
@@ -407,15 +424,12 @@ async function updateTwoFactor(fastify, options) {
 		const { twoFactor } = request.body;
 		flog.debug({ function: 'updateTwoFactor', body: request.body }, 'Toggling Two Factor Authentication , inc body');
 		try {
-			
-			const token = request.cookies.auth_token;
-			const userId = secure.getUserIdFromToken(token);	
+			const userId = request.userId;
 			if (userId){
-				const check = await DBupdate.update2fa(userId.id);
+				const check = await DBupdate.update2fa(userId);
 				console.log('checking check Two Factor', check)
 				//might need more in depth error handling
 				if (check.error) {
-					//update the username
 					reply.code(400).send({
 						status: 'ERROR',
 						error: 'not valid Two Factor?'// other errors?
