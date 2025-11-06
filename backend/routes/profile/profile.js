@@ -31,30 +31,30 @@ const {
 	const { DBget, secure } = options;
 	fastify.get(API_PROTOCOL.GET_OTHER_PLAYER_PROFILE.path,{ //get friend profile
 	}, async (request, reply) => {
-		//const token = request.cookies.auth_token;
+		const token = request.cookies.auth_token;
 		console.log("Request headers:", request.headers);
 		loggedInUser = request.userId;
-		//if (!token) {
-		//	console.warn("Unauthorized access - no auth_token cookie found");
-		//	reply.code(401).send({ error: "Unauthorized" });
-		//	return;
-		//}
-		//console.log("Token found:", token);
+		if (!token) {
+			console.warn("Unauthorized access - no auth_token cookie found");
+			reply.code(401).send({ error: "Unauthorized" });
+			return;
+		}
+		console.log("Token found:", token);
 
-		//let loggedInUser;
-		//try {
-		//	loggedInUser = secure.getUserIdFromToken(token); // might throw if expired
-		//	console.log("Decoded token:", loggedInUser);
-		//} catch (err) {
-		//	console.error("Error decoding token:", err);
-		//	return reply.code(401).send({ error: err.name });
-		//}
-//
-		//if (!loggedInUser || loggedInUser.error) {
-		//	console.warn("Invalid token object:", loggedInUser);
-		//	return reply.code(401).send({ error: loggedInUser?.error || "Invalid token" });
-		//}
-//
+		let loggedInUser;
+		try {
+			loggedInUser = secure.getUserIdFromToken(token); // might throw if expired
+			console.log("Decoded token:", loggedInUser);
+		} catch (err) {
+			console.error("Error decoding token:", err);
+			return reply.code(401).send({ error: err.name });
+		}
+
+		if (!loggedInUser || loggedInUser.error) {
+			console.warn("Invalid token object:", loggedInUser);
+			return reply.code(401).send({ error: loggedInUser?.error || "Invalid token" });
+		}
+
 		const targetUserId = Number(request.query.user_id);
 		if (isNaN(targetUserId)) {
 			console.warn("Invalid or missing target user_id in query:", request.query.user_id);
@@ -76,7 +76,7 @@ const {
 		console.log('Fetching user with ID:', targetUserId, 'requested by logged in user:', loggedInUser);
 		try {
 			console.log("Calling DBget.fetchUser...");
-			const profile = await DBget.fetchUser({ id: targetUserId }); 
+			const profile = await DBget.fetchUser({ targetUserId }); 
 			if (!profile) {
 				console.warn("User not found in DB:", targetUserId);
 				return reply.code(404).send({ error: "User not found" });
@@ -98,6 +98,7 @@ const {
 			flog.warn({finalMockProfile: mockProfile}, "FULL OTHER USER PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
+			flog.error({fucntion: "get freind profile", err: err.stack}, "AAAAAAAAAAAAaaAAAA erro stack ");
 			reply.code(500).send(err);
 		}
 	});
@@ -111,6 +112,7 @@ async function getUser(fastify, options) {
 	}, async (request, reply) => {
 		// just for testing check no fail after remove
 		userId = request.userId;
+		
 		//const token = request.cookies.auth_token;
 		//if (!token) {
 		// console.warn("Unauthorized access to /api/profile — no valid user ID");
@@ -147,11 +149,11 @@ async function getUser(fastify, options) {
 		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
 		try {
 			const profile = await DBget.fetchUser({userId});
-			//console.log("WHAT IS TID :", profile.active_tournament_id);
+			console.log("WHAT IS TID :", profile.active_tournament_id);
 
 			//flog.warn({function: "getProfile", totalGames: profile.total_games}, "can we see total matches updated and recived==============================");
 			const friends = await DBget.getFriendsForPlayer(userId);
-	//		flog.info({function: 'getUser', friends}, 'checking friend object');
+			flog.info({function: 'getUser', friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory(userId);
 			
 //			const brackets = await DBtour.getBrackets(profile.active_tournament_id);
@@ -183,6 +185,7 @@ async function getUser(fastify, options) {
 			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
+			flog.error({fucntion: "get  profile", err: err.message}, "AAAAAAAAAbbbbbbbAAAaaAAAA erro stack ");
 			reply.code(500).send(err);
 		}
 	});

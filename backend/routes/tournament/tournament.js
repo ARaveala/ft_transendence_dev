@@ -179,7 +179,7 @@ async function verifyPlayer(fastify, options){
 }
 async function createMatchWithBracket(DBtour, game, tournamentId, playerA, playerB, round) {
 	const gameId = game.createGameCore(
-		playerA ? { id: playerA.user_id } : undefined,
+		playerA?.user_id,
 		'tournament',
 		'local',
 		playerA?.alias

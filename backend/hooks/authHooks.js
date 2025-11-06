@@ -13,6 +13,7 @@ const excludedPaths = [
 	API_PROTOCOL.LOGIN_USER, //post
 	API_PROTOCOL.REGISTER_USER, //post
 	API_PROTOCOL.GET_PROFILE, //get
+	API_PROTOCOL.GET_OTHER_PLAYER_PROFILE,
 	API_PROTOCOL.TFA_LOGIN_VERIFY,
 ]
 //if we make the routes include query strings or dynamic segments
