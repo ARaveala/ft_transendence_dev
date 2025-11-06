@@ -6,6 +6,9 @@ const signSchema = require('@schemas/signSchema.js');
 const speakeasy = require('speakeasy'); // for creating 2FA secrets
 const qrcode = require('qrcode');      // creating qrcodes
 const tempSetupSecrets = new Map();
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 
 /**
  * @type {import('../../shared/payloads').RegisterUserPayload}
@@ -30,7 +33,11 @@ async function registerUser(fastify, options) {
 //		flog.info( {function: 'registerUser'}, `see trace.log/server.log for body/verbose`);
 //		flog.trace({ function: 'registerUser', payload: request.body }, 'Incoming body');
 		try {
-			const result = await DBinsert.insertUser({ username, password, score, status });
+			const hashedPassword = await bcrypt.hash(password, saltRounds);
+			flog.info( {function: 'registerUser', hash: hashedPassword}, `tracking hash`);
+
+			const result = await DBinsert.insertUser({ username, hashedPassword, score, status });
+			flog.info( {function: 'registerUser'}, `insertion completed`);
 
 			const token = secure.generateToken(result, username);
 			secure.setAuthCookie(reply, token)
@@ -53,7 +60,9 @@ async function loginUser(fastify, options) {
             const { username, password } = request.body;
 //            flog.info({ function: 'loginUser' }, `Incoming login attempt for user: ${username}`);
             try {
-                const result = await DBget.miniLogin(username, password);
+				//const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+				const result = await DBget.miniLogin(username, password);
                 if (!result) {
                     return reply.code(401).send({ error: "Invalid username or password." });
                 }

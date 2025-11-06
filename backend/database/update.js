@@ -2,6 +2,11 @@ const db = require('./initDB');
 // const updateScoreSchema = require('@schemas/updateScore.js');
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'DB/update.js' }); // scoped logger
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+//function updateOnlineStatus(userId) {
+//	flog.info({function: "updateOnlineStatus"})
+//}
 
 function updateUserScore({userId, score}) {
 	console.log('updating score for user:', { userId, score });
@@ -43,20 +48,20 @@ function updateUsername(username, userId) {
 	});
 }
 
-function updatePassword(password, userId) {
-	console.log('updating username for user:', { password, userId});
+function updatePassword(hashedPassword, userId) {
+	console.log('updating username for user:', { hashedPassword, userId});
 
 	return new Promise((resolve, reject) => {
 		db.run(
 			`UPDATE users SET password = ? WHERE id = ?`,
-			[password, userId],
+			[hashedPassword, userId],
 			function (err) {
 				if (err) {
 					reject({ error: 'Failed to update the password', details: err});
 				} else if (this.changes === 0) {
 					reject({ error: 'User not found , no changes made' });
 				} else {
-					resolve({ message: 'password updated', userId: userId, newPassword: password});
+					resolve({ message: 'password updated', userId: userId, newPassword: hashedPassword});
 				}
 			}
 		);

@@ -27,12 +27,12 @@ avatarFile: "avatars/avatar1.png",
 				friends: 0 (format unknown)
 				matchHistory: 0 (format unknown)
  */
-function insertUser({ username, password}) {
+function insertUser({ username, hashedPassword}) {
 
     return new Promise((resolve, reject) => {
         db.run(
             `INSERT INTO users (username, password, avatar_file) VALUES (?, ?, ?)`,
-            [username, password, 'frontend/src/assets/avatars/avatar1.png'],
+            [username, hashedPassword, 'frontend/src/assets/avatars/avatar1.png'],
             function (err) {
                 if (err) {
                     reject({ error: 'Failed to add user', details: err });
@@ -47,7 +47,7 @@ function insertUser({ username, password}) {
 
 function insertFriend(friendId, userId) {
 	flog.info({ function: 'insertFRiend' }, 'inserting friend');
-	flog.debug({ function: 'insertFRiend', friend: friendId, user: userId }, 'checking ids');
+//	flog.debug({ function: 'insertFRiend', friend: friendId, user: userId }, 'checking ids');
 
   return new Promise((resolve, reject) => {
     db.serialize(() => {
@@ -56,9 +56,9 @@ function insertFriend(friendId, userId) {
         [userId, friendId],
         function (err) {
           if (err) {
-			flog.warn({ function: 'insertFRiend', error: err }, 'what error');
+			//flog.warn({ function: 'insertFRiend', error: err }, 'what error');
 
-            reject({ error: 'Failed to add friend', details: err });
+            return reject({ error: 'Failed to add friend', details: err });
           } else {
 				flog.debug({ function: 'insertFRiend', friend: friendId, user: userId }, 'what went in ');
                 db.all(
@@ -70,7 +70,7 @@ function insertFriend(friendId, userId) {
                 } else {
                   flog.info({ function: 'insertFriend', friends: rows }, 'Current friends for user');
                 }
-				resolve({ message: 'friend added' }); // Now safe to use in registerUser
+				return resolve({ message: 'friend added' }); // Now safe to use in registerUser
               }
             );
           }

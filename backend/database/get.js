@@ -1,7 +1,7 @@
 const db = require('./initDB.js');
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'get.js' }); // scoped logger
-
+const bcrypt = require('bcrypt');
 // naming can be changed 
 // get each element from database , such as score, name , status
 // userId is passed as ({object}) not (value) to allow adjustmenst such as do not show password
@@ -161,16 +161,28 @@ async function checkUsernameAvailable( username ) {
 		});
 }
 
-async function checkPasswordMatch( password ) {
+async function checkPasswordMatch( userId, password ) {
 	console.log('Fetching user with password:', );
 		return new Promise((resolve, reject) => {
-			db.get('SELECT * FROM users WHERE password = ?', [password], (err, row) =>{
-				if (err || !row) {
-					reject({ error: 'password does not match' });
-				} else {
-					resolve({ok: 'password match'});
-				}
-			});
+			db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) =>{
+			    if (err) {
+        			return reject({ error: 'Database error', code: 500 });
+      			}
+    			if (!row) {
+        			return reject({ error: 'User not found', code: 404 });
+      			}
+		    	bcrypt.compare(password, row.password, (err, isMatch) => {
+        			if (err) {
+        				return reject({ error: 'Hash comparison failed', code: 500 });
+        			}
+        			if (!isMatch) {
+          				return reject({ error: 'Invalid password', code: 401 });
+        			}
+				});
+        		resolve({ ok: 'Password match', userId: row.id });
+			}
+		)
+			
 		});
 }
 // mini example of checking player exists and password matches . 
@@ -180,17 +192,24 @@ async function miniLogin(username, password) {
 
   return new Promise((resolve, reject) => {
     db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
-      if (err) {
-        return reject({ error: 'Database error', code: 401 });
-      }
-      if (!row) {
-        return reject({ error: 'User not found', code: 401 });
-      }
-
-      // TEMP: plain text password check for testing only
-      if (row.password !== password) {
-        return reject({ error: 'Invalid password', code: 401 });
-      }
+		if (err) {
+		  return reject({ error: 'Database error', code: 401 });
+		}
+		if (!row) {
+		  return reject({ error: 'User not found', code: 401 });
+		}
+		  // Compare hashed password
+		bcrypt.compare(password, row.password, (err, isMatch) => {
+			if (err) {
+			  return reject({ error: 'Hash comparison failed', code: 500 });
+			}
+			if (!isMatch) {
+			  return reject({ error: 'Invalid password', code: 401 });
+			}
+	//      // TEMP: plain text password check for testing only
+//      if (row.password !== password) {
+//        return reject({ error: 'Invalid password', code: 401 });
+      })
       // Return minimal info — no profile data
 	  flog.info({ function: 'miniLogin', userId: row.id}, 'mini login success ');
       resolve({ id: row.id});
