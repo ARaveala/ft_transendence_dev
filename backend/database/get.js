@@ -30,11 +30,11 @@ this could be managed by routes calling 3 fucntions     const player = await db.
     const matchHistory = await db.getMatchHistory(playerId);
  */
 
-async function fetchUser({ userId }) {
-	console.log('Finside db::fetching user with ID:', userId);
-	const test = userId.id;
+async function fetchUser(userId ) {
+	//console.log('Finside db::fetching user with ID:', userId);
+	//const test = userId.id;
 		return new Promise((resolve, reject) => {
-			db.get('SELECT * FROM users WHERE id = ?', [test], (err, row) =>{
+			db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) =>{
 				if (err) {
 					console.error('DB error:', err);
 					reject({ error: 'DB error fecth' });

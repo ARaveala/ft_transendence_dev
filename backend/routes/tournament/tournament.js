@@ -53,6 +53,7 @@ function buildTournamentPlayerList(players) {
 			role: `player${i}`,
 			status: "waiting",
 			score: 0,
+			isSelf: false,
 			isVerified: false
 		});
 	 }
@@ -116,6 +117,7 @@ async function createTournament(fastify, options){
  			try{
 				const userId = request.userId;
 				const tournamentId = await DBtour.createTournament();
+				flog.warn({function: "create tournamnet", tidbeforeset: tournamentId});
 				currentTournamentId = tournamentId; // set global variable to current tournament id
 				await DBtour.createTournamentPlayer(tournamentId, userId, "", 1, "player1", true, true);
 				const tournamentState = await getTournamentState(tournamentId);
@@ -153,7 +155,9 @@ async function verifyPlayer(fastify, options){
 					tournamentState = await getTournamentState(currentTournamentId);
 				} else {
 					const otherUserId = await DBget.miniLogin(username, password);
+					//flog.warn({fucntion: "verify player", othrId: otherUserId.id});
 					if (otherUserId) {
+						flog.warn({fiucntion: "verify player", otherid: otherUserId.id}, "seeing if undefined, should not be");
 						await DBtour.createTournamentPlayer(currentTournamentId, otherUserId.id, alias, Number(role.replace('player','')), role, true, false);
 						await DBtour.updatePlayerReadyStatus(currentTournamentId, otherUserId.id, 'ready');
 
@@ -178,7 +182,7 @@ async function verifyPlayer(fastify, options){
 }
 async function createMatchWithBracket(DBtour, game, tournamentId, playerA, playerB, round) {
 	const gameId = game.createGameCore(
-		playerA ? { id: playerA.user_id } : undefined,
+		playerA?.user_id,
 		'tournament',
 		'local',
 		playerA?.alias
