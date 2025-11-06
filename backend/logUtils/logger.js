@@ -84,12 +84,13 @@ const logger = pino(
 	// Server.log output (pretty..ish, all levels abobe debug) 
 	{
 		level: 'debug',
-		target: 'pino-pretty',
+		target: 'pino/file',
 		options: {
-			colorize: false,
-			translateTime: 'yyyy-mm-dd HH:MM:ss',
-			ignore: 'pid,hostname',
-			destination: './logs/server.log'
+			//colorize: false,
+			//translateTime: 'yyyy-mm-dd HH:MM:ss',
+			//ignore: 'pid,hostname',
+			destination: './logs/server.log',
+			mkdir: true
         }
       },
 
