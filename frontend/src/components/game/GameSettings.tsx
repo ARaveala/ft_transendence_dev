@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "../../shared/Translation";
 
 interface GameSettingsProps {
 onConfirm: (settings: {
@@ -12,6 +13,7 @@ onBack?: () => void;
 }
 
 const GameSettings: React.FC<GameSettingsProps> = ({ onConfirm, onBack }) => {
+const { t } = useTranslation();
 const [ballSpeed, setBallSpeed] = useState(4);
 const [paddleSize, setPaddleSize] = useState(150);
 const [paddleSpeed, setPaddleSpeed] = useState(10);
@@ -20,10 +22,10 @@ const [powerUp, setPowerUp] = useState(false);
 
 return (
 	<div className="max-w-xl mx-auto p-6 bg-gray-800 text-white rounded-lg shadow-lg flex flex-col space-y-4">
-	<h2 className="text-2xl font-bold text-teal-400 text-center">Game Settings</h2>
+	<h2 className="text-2xl font-bold text-teal-400 text-center">{t("game.settings.title")}</h2>
 
 	<div>
-		<label>Ball Speed: {ballSpeed}</label>
+		<label>{t("game.settings.ballSpeed")}: {ballSpeed}</label>
 		<input
 		type="range"
 		min="1"
@@ -35,7 +37,7 @@ return (
 	</div>
 
 	<div>
-		<label>Paddle Size: {paddleSize}px</label>
+		<label>{t("game.settings.paddleSize")}: {paddleSize} {t("game.common.px")}</label>
 		<input
 		type="range"
 		min="100"
@@ -47,7 +49,7 @@ return (
 	</div>
 
 	<div>
-		<label>Paddle Speed: {paddleSpeed}</label>
+		<label>{t("game.settings.paddleSpeed")}: {paddleSpeed}</label>
 		<input
 		type="range"
 		min="1"
@@ -59,7 +61,7 @@ return (
 	</div>
 
 	<div>
-		<label>Max Score: {maxScore}</label>
+		<label>{t("game.settings.maxScore")}: {maxScore}</label>
 		<input
 		type="number"
 		min="1"
@@ -75,7 +77,7 @@ return (
 	</div>
 
 	<div className="flex items-center justify-between mt-4">
-	<span>Power Up</span>
+	<span>{t("game.settings.powerUp")}</span>
 	<button
 		type="button"
 		className={`w-12 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out
@@ -95,7 +97,7 @@ return (
 			className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded"
 			onClick={onBack}
 		>
-			Back
+			{t("game.action.back")}
 		</button>
 		)}
 		<button
@@ -104,7 +106,7 @@ return (
 			onConfirm({ ballSpeed, paddleSize, paddleSpeed, maxScore, powerUp })
 		}
 		>
-		Confirm
+		{t("game.action.confirm")}
 		</button>
 	</div>
 	</div>

@@ -7,6 +7,7 @@ import { useAuth } from "../../context/AuthContext";
 import { StartTournamentPayload, StartTournamentResponse, RemovePlayerPayload, RemovePlayerResponse } from '../../../shared/payloads';
 import Button from "../ui/Button";
 import { useApiFetch } from "../../utils/apiFetch";
+import { useTranslation } from "../../shared/Translation";
 
 
 interface TournamentSetupProps {
@@ -15,6 +16,7 @@ interface TournamentSetupProps {
 }
 
 const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamentStarted }) => {
+	const { t } = useTranslation();
 	const { tournament, setTournament, refreshSession } = useAuth();
 	const apiFetch = useApiFetch();
 	const [loading, setLoading] = useState(false);
@@ -31,13 +33,13 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 	}, [refreshSession]);
 
 	if (loadingSession) {
-		return <div className="text-gray-300 mt-8">Loading tournament...</div>;
+		return <div className="text-gray-300 mt-8">{t("tournament.loading")}</div>;
 	}
 
 	if (!tournament) {
 		return (
 			<div className="text-gray-300 mt-8">
-				No tournament loaded. Please create one first.
+				{t("tournament.noTournament")}
 			</div>
 		);
 	}
@@ -128,7 +130,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 			<div className="mt-3 space-y-6">
 				{setupInProgress && (
 				<div>
-					<p className="text-gray-300 mb-4 ml-8">Players</p>
+					<p className="text-gray-300 mb-4 ml-8">{t("tournament.players")}</p>
 
 					<PlayerList
 						tournament={tournament}
@@ -140,7 +142,7 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 
 				<div className="flex gap-6 mt-6 ml-7">
 					<Button onClick={onCancel} disabled={loading}>
-						Cancel tournament
+						{t("tournament.cancel")}
 					</Button>
 
 					<Button
@@ -148,10 +150,10 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 						disabled={!tournamentCanStart || loading || aliasChanged}
 					>
 						{loading
-							? "Processing..."
+							? t("common.processing")
 							: tournament.can_start
-							? "Start Tournament"
-							: "Start Tournament"}
+							? t("tournament.start")
+							: t("tournament.start")}
 					</Button>
 				</div>
 			</div>
