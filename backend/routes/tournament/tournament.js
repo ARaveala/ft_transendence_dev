@@ -193,7 +193,7 @@ async function createMatchWithBracket(DBtour, game, tournamentId, playerA, playe
 	gameObj.tid = tournamentId;
 
 	if (playerB) {
-		game.addPlayer(gameId, playerB.user_id.id, {
+		game.addPlayer(gameId, playerB.user_id, {
 			type: 'login',
 			ws: undefined,
 			role: 'player2',
