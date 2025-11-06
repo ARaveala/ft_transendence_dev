@@ -40,16 +40,24 @@ services:
       dockerfile: Dockerfile
     environment:
       VAULT_DEV_ROOT_TOKEN: myroot
+      VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_API_ADDR: http://127.0.0.1:8200
     volumes:
       - ./volumes/backend_secrets:/run/secrets
     networks:
       - app-net
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /run/secrets/app.env && grep -q '^JWT_SECRET=' /run/secrets/app.env"]
+      interval: 5s
+      timeout: 2s
+      retries: 30
     # restart: unless-stopped
 
   backend:
     container_name: backend
     depends_on:
-      - vault
+      vault:
+        condition: service_healthy
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -60,6 +68,10 @@ services:
     - "3000" # Expose backend API port
     networks:
       - app-net
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_API_ADDR: http://vault:8200
+
     # healthcheck:
     #   # bookworm-slim: install curl in the Dockerfile (see below)
     #   test: ["CMD-SHELL", "curl -fsk http://localhost:3000/ >/dev/null || exit 1"]

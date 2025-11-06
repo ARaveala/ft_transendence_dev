@@ -1,7 +1,7 @@
 
 	require('module-alias/register'); // enables aliases
 	// env file
-	require('dotenv').config();
+	require('dotenv').config({ path: process.env.SECRETS_FILE || '/run/secrets/app.env' });
 	// Import the Fastify framework
 	// Create a Fastify instance
 	// logger is enabled for debugging purposes

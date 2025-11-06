@@ -1,6 +1,18 @@
 exit_after_auth = false
 pid_file = "/tmp/vault-agent.pid"
 
+vault {
+  address = "http://127.0.0.1:8200"
+
+  tls_skip_verify = true
+
+  retry {
+    min = "250ms"
+    max = "5s"
+  }
+}
+
+
 auto_auth {
     method "token_file" {
         config = {
