@@ -12,7 +12,6 @@ const { UNAUTHORIZED } = ERROR_CODES;
 const excludedPaths = [
 	API_PROTOCOL.LOGIN_USER, //post
 	API_PROTOCOL.REGISTER_USER, //post
-	API_PROTOCOL.GET_PROFILE, //get
 	API_PROTOCOL.TFA_LOGIN_VERIFY,
 ]
 //if we make the routes include query strings or dynamic segments
@@ -36,12 +35,12 @@ async function authHook(fastify, options) {
 		const path = request.routeOptions?.url || request.raw.url;
 
 		//		const path = request.routerPath;
-		flog.debug({ function: "authHook", path, match: excludedPaths.includes(path) }, "Exclusion check");
+	//	flog.debug({ function: "authHook", path, match: excludedPaths.includes(path) }, "Exclusion check");
 
 //const path = request.routerPath;
 		const method = request.method;
 		// for tester maybe only
-		flog.warn({fucntion : 'authHook', method: method}, "lets see if we catch the head method");
+	//	flog.warn({fucntion : 'authHook', method: method}, "lets see if we catch the head method");
 		//if (request.method === 'HEAD') return;
 
 		const isExcluded = excludedPaths.some(route =>
@@ -60,14 +59,14 @@ async function authHook(fastify, options) {
 	//	}
 
 		const token = request.cookies?.auth_token;
-		flog.debug({function: "authHook", token: token},'cookie requested');
+	//	flog.debug({function: "authHook", token: token},'cookie requested');
 		try {
 			const result = secure.getUserIdFromTokenH(token);
 			flog.debug({function: "authHook", result: result},'id decoded');
 			if (result?.id) {
 				
 				request.userId = result.id.id;
-				flog.debug({ function: "authHook", userId: request.userId }, 'userId set in hook');
+	//			flog.debug({ function: "authHook", userId: request.userId }, 'userId set in hook');
 
 //				flog.debug({fucntion: "authHook", sending: result.id}, "ARE WE STEPPING INTO ATTATCHING THE ID ");
 			} else if (result.error) {

@@ -10,3 +10,4 @@ How to use tester:
 5. "npx playwright test" starts tester when app is running
 6. Utils has random username generator.
 7. Recommended to delete users after, since there is a very small chance the same username is randomized again later
+8. Tester will fail if the user is already registered. Remove backend/data/* to clear

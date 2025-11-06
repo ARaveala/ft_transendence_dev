@@ -1,11 +1,8 @@
 const {logger} = require('@logger');
-//const { createTournamentPlayer, getTournamentPlayerById } = require('../../database/tournament');
 const flog = logger.child({ fileContext: 'game.js' });
 // all these should be swapped for context files, either or
 // 2 different approaches
-const {
-	miniLogin
-} = require('@db/get.js');
+const { miniLogin } = require('@db/get.js');
 const signSchema = require('@schemas/signSchema.js');
 const {log} = require('@logger');
 //const {
@@ -17,8 +14,6 @@ const { API_PROTOCOL } = require('@sharedApi');
 
 
 const games = new Map(); // gameId -> { owner, players, state, loop }
-// this fucntion maybe should handle 1 user at a Time,
-// this insinuates cookie is sent, remember to include on front end
 
 /**
  *
@@ -52,6 +47,14 @@ function generateRandomId() {
   return Math.random().toString(36).substring(2, 10);
 }
 
+/**
+ * Creates a map for game object 
+ * 
+ * @param {*} owner who srated the game
+ * @param {*} mode was prep for if remote play , not really required anymore , but left open for potential usage
+ * @param {*} type type of player 2 , logged in, guest or ai
+ * @returns new generated id used as key for game map , 
+ */
 function createGameMap(owner, mode, type) {
 	const gameId = generateRandomId();// may need to stringyfy
 	games.set(gameId, {
@@ -92,48 +95,29 @@ function createGameMap(owner, mode, type) {
 
 
 function getGame(gameId) {
-	log('GETGAME', 'geting game called');
 	return games.get(gameId);
 }
 
-//function getPlayers(players, playerId) {
-//	return
-//}
 function deleteGame(gameId) {
   games.delete(gameId);
 }
 
 
 function addPlayer(gameId, playerId, playerData) {
-//	log('ADD_PLAYER',`addPlayer called with:${gameId}, ${JSON.stringify(playerId)}, ${JSON.stringify(playerData)}`);
-//	console.log('Type of game.players:', game.players instanceof Map);
-
-	flog.debug({function: "addplayer"}, 'checking add player initilized');
 	const game = games.get(gameId);
 	if (!game) {
 		flog.error({fucntion: "addplayer"}, 'error game not found');
 		throw new Error('Game not found');
 	}
-	console.log('Before adding:', Array.from(game.players.entries()));
 	game.players.set(playerId, playerData);
-	flog.debug({function :"addplayer", players: Array.from(game.players.entries())}, 'After adding:');
+//	flog.debug({function :"addplayer", players: Array.from(game.players.entries())}, 'After adding:');
 }
-//player role also send
+
 function createGameCore(userId, type, mode, alias) {
 	try{
-//		flog.debug({function : "createGameCore"});
-
-		flog.warn({function: "createGameCore"}, "CREATEGAMECORE HAS BEEN INITIATED");
-		//if (userId === undefined)
-		//{
-		//	if undefined no owner 
-		//}
-		//flog.debug({function: 'createGameCore', id: userId, type: type, mode: mode, alias: alias}, "entering the fucntion now ");
 		const gameId = createGameMap(userId, type, mode);
-		//flog.debug({function : "createGameCore", gameid: gameId}, 'did game id get made');
-		//flog.debug({function: 'createGameCore', gameId}, 'game id should be created')
 		if (userId)
-			addPlayer(gameId, userId.id, {type: "login", ws: undefined, role: "player1", alias: alias, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+			addPlayer(gameId, userId, {type: "login", ws: undefined, role: "player1", alias: alias, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
 		return gameId;
 
 	} catch {
@@ -142,6 +126,12 @@ function createGameCore(userId, type, mode, alias) {
 	}
 }
 
+/**
+ * Creates a game and applies current user as player , should remote play be attempted must make sure to check who is owner of game , 
+ * so second player can be added using join game instead.
+ * @param {*} fastify 
+ * @param {*} options 
+ */
 async function createGame(fastify, options) {
 		const {secure} = options;
 		fastify.post(API_PROTOCOL.CREATE_GAME.path, {
@@ -150,18 +140,8 @@ async function createGame(fastify, options) {
 
 	   try {
 
-		const token = request.cookies.auth_token;
-		//log('CREATE_GAME', `checking token ${token}`);
-		// this also verifies the token
-		const user1 = secure.getUserIdFromToken(token); //this should throw bad session or something
-	    flog.warn({function: 'CREATE_GAME', userid: user1}, `checking id `);
-		const gameId = createGameCore(user1, type, mode, undefined)
-	//    flog.warn({function: 'CREATE_GAME', userid: gameId}, `checking gameid `);
-
-		// local or remote should be type, mode is vs or tournament
-		//const gameId = createGameMap(user1, type, mode);
-		//addPlayer(gameId, user1.id, {type: "login", ws: undefined, role: "player1", alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
-		//log('CREATE_GAME', `creat game results of game sessions ${JSON.stringify(getGame(gameId))}`);
+		const userId = request.userId;
+		const gameId = createGameCore(userId, type, mode, undefined)
 		reply.send({ status: 'game created' , gameId});
 	   } catch (err) {
 	     reply.code(400).send({ error: 'Game initialization failed' });
@@ -169,131 +149,114 @@ async function createGame(fastify, options) {
 	 });
 }
 
+/**
+ * checks player 2 relevent data , provides a token for player 2, if guest token will have word guest infront , if ai , token will have ai in front.
+ * 
+ * Second player is then added to game object and verification is sent to front end, 
+ * 
+ * This function is skipped in tournament logic.
+ * @param {*} fastify 
+ * @param {*} options 
+ */
 async function joinGame(fastify, options) {
 		const {secure} = options;
         schema: signSchema,
 		fastify.post(API_PROTOCOL.JOIN_GAME.path, {
 	}, async (request, reply) => {
-	//type: guest/login/ai
-	//mode:local/remote
 		const {gameId, type, mode, username, password, player_count} = request.body;
 		try {
-			if (mode === "remote"){
-				const token = request.cookies.auth_token;
-			// this also verifies the token
-				const userId = secure.getUserIdFromToken(token);
-				addPlayer(gameId, userId.id, {type: "login", ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+//			const verifyUser = request.userId;
+			let userId;
+			if (type === "login") {
+				const idObj = await miniLogin(username, password);
+				userId = idObj.id;
+				// if fails tell user can not register here
 			}
-			else {
-
-				const token = request.cookies.auth_token;
-			// this also verifies the token
-				const verifyUser = secure.getUserIdFromToken(token);
-				console.log('justi usgage', verifyUser);
-				let userId;
-				if (type === "login") {
-					const idObj = await miniLogin(username, password);
-					userId = idObj.id;
-
-					// if fails tell user can not register here
-				}
-				else if (type === "guest") {
-					userId = 'Guest_' + generateRandomId();
-
-				}
-				else if (type === "ai") {
-					userId = 'AI' + generateRandomId();
-				}
-
-				addPlayer(gameId, userId, {type: type, ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
-				log('JOIN_GAME', `added player ${JSON.stringify(getGame(gameId))}`);
+			else if (type === "guest") {
+				userId = 'Guest_' + generateRandomId();
 			}
-				reply.send({ player: "player"+player_count, status: 'ready', });
-				} catch (err) {
-				reply.code(400).send({ error: 'player can not be added' });
+			else if (type === "ai") {
+				userId = 'AI' + generateRandomId();
+			}
+
+			addPlayer(gameId, userId, {type: type, ws: undefined, role: "player"+player_count, alias: undefined, ready: false, disconnectedAt: undefined, pauseTimeout: undefined, score: 0});
+			reply.send({ player: "player"+player_count, status: 'ready', });
+			} catch (err) {
+			reply.code(400).send({ error: 'player can not be added' });
 		}
 
 
 	});
 }
 
-
+/**
+ * Checks game is existing and that both players have been loaded in, creates websoket tokens, 
+ * which are shorted lived , these tokens will be used once , then the opened websocket is attahced to players.
+ * 
+ * 2 tokens are not necisarily needed, especially without remote play , this could be tweaked or utalized better
+ * 
+ * @param {*} reply from start game so function can send reply as it dosnt have fastify parameter
+ * @param {*} secure from contex.js because parameters do not have option
+ * @param {*} gameId id of the game we are starting , that has already loaded data
+ * @returns 
+ */
 function startGameCore(reply, secure, gameId) {
+	flog.warn({fucntion: "stargamecore", gameid: gameId}, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 		const game = getGame(gameId);
-		flog.warn({function: 'startGameCore', game: game, gameid: gameId}, 'checking that game exists ????????');
-		if (!game) return reply.code(404).send({ error: 'Game not found' });
-				if (game.players.size < 2) {
-			log('START_GAME',`not enough players to start`);
+//		flog.warn({function: 'startGameCore', game: game, gameid: gameId}, 'checking that game exists ????????');
+		if (!game) {
+//			return {error: 'Game not found', code: 404};
+			return reply.code(404).send({ error: 'Game not found' });
+		}
+		if (game.players.size < 2) {
+//			return { error: 'Not enough players to start', code: 400 };
 			return reply.code(400).send({ error: 'Not enough players to start' });
 		}
-		//log('START_GAME',`debug1`);
-    	// Generate WS tokens for each player unless ai?
 		const playerTokens = {};
 		for (const [playerId, playerData] of game.players) {
 			const role = playerData.role;
 			playerTokens[role] = secure.generateWsToken(playerId, gameId);
 		}
 //		log('START_GAME',`debug2`);
+// this is for remot eplay but how is fronte end handling it 
 		if (Object.keys(playerTokens).length < 2){
-			log("player tokens is not the size of 2-----------------------------------");
+			flog.warn({function: "start game core"}, "player tokens is not the size of 2-----------------------------------");
 		}
 		game.phase = 'starting';
 		return playerTokens;
-		// do i need to also send type and mode of the game
-		//console.log("show me the tokens ", JSON.stringify(playerTokens[0], JSON.stringify(playerTokens[1])));
-
-
 }
 
+/**
+ * Opens and verifies game, sends websocket tokens to front end with relevant game id
+ * @param {*} fastify 
+ * @param {*} options check relevent contex.js
+ */
 async function startGame(fastify, options) {
 		const {secure} = options;
 		fastify.post(API_PROTOCOL.START_GAME.path, {
 	}, async (request, reply) => {
 
 	const {gameId} = request.body;
-	log('START_GAME',`starting game`);
-    try {
-//		log('START_GAME',`debug1`);
-		const token = request.cookies.auth_token;
-		const userId = secure.getUserIdFromToken(token);
+	flog.warn({fucntion: "stargamecore", gameid: gameId}, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
+	try {
 		const playerTokens = startGameCore(reply, secure, gameId);
-		//flog.warn({fucntion: "startgame", playerTokens, playerTokens},"checking tokens valid ");
-		reply.send({ status: 'ready', gameId, playerTokens });
-		// if remote playe we would send each player seperatley to their own game.html, they would not go through the test harness anymore
-		} catch (err) {
-			flog.error({function: "startGame", errormsg: err.message, errorstack: err.stack}, "what error");
-			reply.code(400).send({ error: 'Game initialization failed' });
+		//if (playerTokens.error){
+		//	//if (!reply.sent){
+		//		return reply.code(playerTokens.code).send({error: playerTokens.error});
+		//	//}
+		//}
+		if (!reply.sent){
+			return reply.send({ status: 'ready', gameId, playerTokens });
 		}
-
-
-//		const token = request.cookies.auth_token;
-//		// this also verifies the token
-//		const user1 = secure.getUserIdFromToken(token);
-//		//verify user1 is the owner of the gameid
-//		//Checks that all required players are present in games.get(gameId).players.
-//		// so if mode is vs check there are 2 players
-//
-//
-//
-//    	// Create game session
-//		const user1Token = generateWsToken(user1, gameId);
-//		const user2Token = generateWsToken(user2, gameId);
-
-
-	  /** example on how these tokens might be created
-	   * const player1Token = jwt.sign(
-  { playerId: user1.id, gameId: gameId, role: 'player1' },
-  secretKey,
-  { expiresIn: '15m' }
-);
-	   */
-
-      // Return gameId and WebSocket token
-	  // geneateWstoken is short lived and used once only to validate on game init.
-	  // these can inlcude also game session id . remeber to apply reasonably experation
-      //reply.send({ status: 'ready', gameId, player1: user1Token, player2: user2Token });
-
+		} catch (err) {
+			//if (!reply.sent) {
+				flog.error({function: "startGame", errormsg: err.message, errorstack: err.stack}, "what error");
+				if (!reply.sent){
+					return reply.code(500).send({ error: 'Game initialization failed' });
+				}
+			//return reply.code(400).send({ error: 'Game initialization failed' });
+		}
   });
 }
 
@@ -303,30 +266,11 @@ async function gameRoutes(fastify, options) {
 	await joinGame(fastify, options);
 	getGame();
 	generateRandomId();
-
-	//await updateProfile(fastify, options);
 }
-//module.exports = gameRoutes;
+
 
 module.exports = {gameRoutes, startGame, joinGame, createGame, getGame, generateRandomId,
 	createGameCore, addPlayer, startGameCore,
 };
 
-//front end connects to websocket like so
-/**async function gameRoutes(fastify, options) {
-  await createGame(fastify, options);
-  await startGame(fastify, options);
-  await joinGame(fastify, options);
-}
- * const ws = new WebSocket('ws://localhost:3000/ws');
-
-ws.onopen = () => {
-  ws.send(JSON.stringify({
-    type: 'init',
-    gameId: 'abc123',
-    wsToken: 'secureTokenHere'
-  }));
-};
-
- */
 

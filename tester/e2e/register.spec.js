@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-const { randomUsername, randomizeNUsernames } = require('./utils');
+const { randomUsername, randomizeNUsernames } = require('./utils.js');
 test('test', async ({ page }) => {
     const username = randomUsername();
   await page.goto('http://localhost:5173/');
