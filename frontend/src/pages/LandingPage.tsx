@@ -64,26 +64,20 @@ const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]{5,11}$/;
 // Password: 8-16 chars, letters, numbers and allowed special chars
 const PASSWORD_REGEX = /^[a-zA-Z0-9!@#$%^&*()_\-+=.]{8,16}$/;
 
-function validateRegisterInput(username: string, password: string) {
+function validateRegisterInput(username: string, password: string, t: (k:string)=>string) {
 	const errors: { username?: string; password?: string } = {};
 
-	if (!USERNAME_REGEX.test(username)) {
-		errors.username =
-			"Username must be 6–12 characters, start with a letter, and contain only letters, numbers, or underscores.";
-	}
+	if (!USERNAME_REGEX.test(username)) { errors.username = t("auth.error.usernameFormat"); }
 
-	if (!PASSWORD_REGEX.test(password)) {
-		errors.password =
-			"Password must be 8–16 characters and may include letters, numbers, and !@#$%^&*()_-+=.";
-	}
+	if (!PASSWORD_REGEX.test(password)) { errors.password = t("auth.error.passwordFormat"); }
 	return errors;
 }
 
-function validateLoginInput(username: string, password: string) {
+function validateLoginInput(username: string, password: string, t: (k:string)=>string) {
 	const errors: { username?: string; password?: string } = {};
 
 	if (!USERNAME_REGEX.test(username) || !password) {
-		errors.username = "Invalid username or password.";
+		errors.username = t("auth.error.invalidCredentials");
 	}
 	return errors;
 }
@@ -124,10 +118,10 @@ const HomePage: React.FC = () => {
 		let errors;
 
 		if (modalMode === "register") {
-			errors = validateRegisterInput(data.username, data.password);
+			errors = validateRegisterInput(data.username, data.password, t);
 	
 		} else {
-			errors = validateLoginInput(data.username, data.password);
+			errors = validateLoginInput(data.username, data.password, t);
 		}
 
 		if (Object.keys(errors).length > 0) {
@@ -163,7 +157,7 @@ const HomePage: React.FC = () => {
 
 		if (!res.ok) {
 			const error = await res.json();
-			throw new Error(error?.error || "Request failed");
+			throw new Error(error?.error || t("auth.error.requestFailed"));
 		}
 
 		if (modalMode === "register") {
@@ -204,7 +198,7 @@ const HomePage: React.FC = () => {
 
 			if (!res.ok) {
 				const error = await res.json();
-				throw new Error(error?.error || "2FA verification failed.");
+				throw new Error(error?.error || t("home.2fa.verifyFailed"));
 			}
 
 			//try {
@@ -287,29 +281,30 @@ const HomePage: React.FC = () => {
 		inlineErrors={inlineErrors}
 	/>
 	{is2faStep && (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-			<div className="bg-white p-6 rounded-lg shadow-xl text-black">
-				<h2 className="text-xl font-bold mb-4">Enter Verification Code</h2>
-				<p className="mb-4">Open your authenticator app and enter the 6-digit code.</p>
+		<div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+			<div className="w-full max-w-md bg-gray-900/90 border border-gray-700 rounded-xl p-6 text-white shadow-2xl">
+				<h2 className="text-2xl font-bold mb-2">{t("home.2fa.title")}</h2>
+				<p className="text-sm text-gray-300 mb-4">{t("home.2fa.instructions")}</p>
 				<input
 					type="text"
 					value={otp}
 					onChange={(e) => setOtp(e.target.value)}
-					className="w-full p-2 border rounded-md text-center text-2xl tracking-widest text-black"
+					className="w-full p-3 border border-gray-700 bg-gray-900 rounded-md text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-600"
 					maxLength={6}
 					placeholder="123456"
 				/>
 				<button
 					onClick={handle2faVerifySubmit}
-					className="w-full mt-4 px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600 transition"
+					className="w-full mt-4 px-6 py-3 bg-green-600 text-white rounded hover:bg-green-700 transition"
+					
 				>
-					Verify
+					{t("home.2fa.verify")}
 				</button>
 				<button
 					onClick={() => setIs2faStep(false)}
-					className="w-full mt-2 px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition"
+					className="w-full mt-2 px-6 py-3 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
 				>
-				Cancel
+                	{t("common.cancel")}
 			</button>
 			</div>
 		</div>

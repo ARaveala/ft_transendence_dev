@@ -5,6 +5,7 @@ import { VerifyPlayerPayload, VerifyPlayerResponse } from "../../../shared/paylo
 import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
 import { useApiFetch } from "../../utils/apiFetch";
+import { useTranslation } from "../../shared/Translation";
 
 // Username: must start with letter, 6-12 chars, letters, numbers, underscore allowed
 const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]{5,11}$/;
@@ -40,6 +41,7 @@ const emptyPlayerForm = (): PlayerFormData => ({ username: "", password: "", ali
 const PlayerList: React.FC<PlayerListProps> = ({
 	tournament, onRemovePlayer, onAliasChanged
 	}) => {
+	const { t } = useTranslation();
 	const { setTournament, refreshSession } = useAuth();
 	const [formData, setFormData] = useState<FormData>({});
 	const [errors, setErrors] = useState<FormErrors>({});
@@ -141,17 +143,17 @@ const PlayerList: React.FC<PlayerListProps> = ({
 		
 		// Validate alias
 		if (!ALIAS_REGEX.test(aliasToUse)) {
-			localErrors.alias = "Alias must be 5–10 chars (letters, numbers, underscores).";
+			localErrors.alias = t("error.alias.format");
 		}
 
 		// Validate username + password for non-self players
 		if (!player.isSelf) {
 			if (!USERNAME_REGEX.test(data?.username ?? "")) {
-				localErrors.username = "Invalid username format";
+				localErrors.username = t("auth.error.usernameFormat");
 			}
 
 			if (!PASSWORD_REGEX.test(data?.password ?? "")) {
-				localErrors.password = "Invalid password format";
+				localErrors.password = t("auth.error.passwordFormat");
 			}
 		}
 
@@ -164,7 +166,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 		);
 
 		if (duplicate) {
-			localErrors.alias = "Alias must be unique.";
+			localErrors.alias = t("error.alias.unique");
 		}
 
 		// If any frontend error exists -> stops
@@ -235,7 +237,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				console.error("Error verifying player:", err);
 				setErrors(prev => ({
 					...prev,
-					[role]: { alias: err.message || "Network error. Please try again." }
+					[role]: { alias: err.message || t("error.network") }
 				}));
 		} finally {
 			setLoading(null);
@@ -296,7 +298,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				{/* Username */}
 				<input
 					type="text"
-					placeholder="Username"
+					placeholder={t("auth.username")}
 					disabled={player.isSelf || isPlayerReady}
 					value={player.isSelf || isPlayerReady ? player.username : data.username}
 					onChange={(e) => updateField(role, "username", e.target.value)}
@@ -311,7 +313,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				{/* Password */}
 				<input
 					type="password"
-					placeholder="Password"
+					placeholder={t("auth.password")}
 					disabled={player.isSelf || isPlayerReady}
 					value={player.isSelf || isPlayerReady ? "********" : data.password}
 					onChange={(e) => updateField(role, "password", e.target.value)}
@@ -326,7 +328,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 				{/* Alias */}
 				<input
 					type="text"
-					placeholder="Alias"
+					placeholder={t("common.alias")}
 					disabled={isAliasLocked}
 					value={
 					player.isSelf
@@ -351,7 +353,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 						disabled={isCurrentlyLoading}
 						className="min-w-[6.3rem]"
 						>
-							{isCurrentlyLoading ? "Adding..." : "Add Player"}
+							{isCurrentlyLoading ? t("tournament.adding") : t("tournament.addPlayer")}
 					</Button>
 				)}
 
@@ -361,7 +363,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 						disabled={isCurrentlyLoading}
 						className="min-w-[6.3rem]"
 						>
-							Remove
+							{t("common.remove")}
 					</Button>
 				)}
 
@@ -385,12 +387,12 @@ const PlayerList: React.FC<PlayerListProps> = ({
 						className="min-w-[6.3rem]"
 					>
 						{isCurrentlyLoading
-						? "Saving..."
+						? t("common.saving")
 						: !isPlayerReady
-							? "Set Alias"
+							? t("tournament.setAlias")
 							: (isEditingAlias  || aliasChanged)
-								? "Save Alias" 
-								: "Edit Alias"}
+								? t("tournament.saveAlias")
+								: t("tournament.editAlias")}
 					</Button>
 					</div>
 				 )}
