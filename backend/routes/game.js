@@ -204,10 +204,12 @@ function startGameCore(reply, secure, gameId) {
 		const game = getGame(gameId);
 //		flog.warn({function: 'startGameCore', game: game, gameid: gameId}, 'checking that game exists ????????');
 		if (!game) {
-			return reply.code(404).send({ error: 'Game not found' });
+			return {error: 'Game not found', code: 404};
+//			return reply.code(404).send({ error: 'Game not found' });
 		}
 		if (game.players.size < 2) {
-			return reply.code(400).send({ error: 'Not enough players to start' });
+			return { error: 'Not enough players to start', code: 400 };
+//			return reply.code(400).send({ error: 'Not enough players to start' });
 		}
 		const playerTokens = {};
 		for (const [playerId, playerData] of game.players) {
@@ -236,8 +238,8 @@ async function startGame(fastify, options) {
 	const {gameId} = request.body;
     try {
 		const playerTokens = startGameCore(reply, secure, gameId);
-		if (!playerTokens){
-			return;
+		if (playerTokens.error){
+			return reply.code(playerTokens.code).send(playerTokens.error);
 		}
 		return reply.send({ status: 'ready', gameId, playerTokens });
 		} catch (err) {
