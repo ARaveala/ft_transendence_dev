@@ -31,29 +31,42 @@ const {
 	const { DBget, secure } = options;
 	fastify.get(API_PROTOCOL.GET_OTHER_PLAYER_PROFILE.path,{ //get friend profile
 	}, async (request, reply) => {
-		const token = request.cookies.auth_token;
-		console.log("Request headers:", request.headers);
-		loggedInUser = request.userId;
-		if (!token) {
+
+		try {
+			flog.info({ userId: request.userId, query: request.query }, "=== Starting getFriendProfile ===");
+			
+			const loggedInUser = request.userId;
+			flog.info({ loggedInUser }, "Got loggedInUser");
+			
+			if (!loggedInUser) {
+				return reply.code(401).send({ error: "Unauthorized" });
+			}
+
+			const targetUserId = Number(request.query.user_id);
+			flog.info({ targetUserId, isNaN: isNaN(targetUserId) }, "Parsed targetUserId");
+			
+			if (isNaN(targetUserId)) {
+				flog.warn({ query: request.query.user_id }, "Invalid or missing target user_id");
+				return reply.code(400).send({ error: "Missing or invalid user_id" });
+			}
+
+			flog.info({ targetUserId, loggedInUser }, "About to call DBget.fetchUser");
+			const profile = await DBget.fetchUser({ userId: targetUserId }); 
+			flog.info({ profile }, "Got profile from DB");
+			
+			// ... rest of the code
+		} catch (err) {
+			flog.error({ function: "getFriendProfile", err: err.message, stack: err.stack }, "CAUGHT ERROR in getFriendProfile");
+			return reply.code(500).send({ error: "Internal server error" });
+		}
+
+		const loggedInUser = request.userId;
+		if (!loggedInUser) {
 			console.warn("Unauthorized access - no auth_token cookie found");
 			reply.code(401).send({ error: "Unauthorized" });
 			return;
 		}
 		console.log("Token found:", token);
-
-		let loggedInUser;
-		try {
-			loggedInUser = secure.getUserIdFromToken(token); // might throw if expired
-			console.log("Decoded token:", loggedInUser);
-		} catch (err) {
-			console.error("Error decoding token:", err);
-			return reply.code(401).send({ error: err.name });
-		}
-
-		if (!loggedInUser || loggedInUser.error) {
-			console.warn("Invalid token object:", loggedInUser);
-			return reply.code(401).send({ error: loggedInUser?.error || "Invalid token" });
-		}
 
 		const targetUserId = Number(request.query.user_id);
 		if (isNaN(targetUserId)) {
@@ -76,7 +89,7 @@ const {
 		console.log('Fetching user with ID:', targetUserId, 'requested by logged in user:', loggedInUser);
 		try {
 			console.log("Calling DBget.fetchUser...");
-			const profile = await DBget.fetchUser({ targetUserId }); 
+			const profile = await DBget.fetchUser({ userId: targetUserId  }); 
 			if (!profile) {
 				console.warn("User not found in DB:", targetUserId);
 				return reply.code(404).send({ error: "User not found" });
