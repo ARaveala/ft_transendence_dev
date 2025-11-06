@@ -27,12 +27,6 @@ return (
 		{t("nav.tournament")}
 	</Link>
 	<Link
-		to="/leaderboard"
-		className="px-3 py-1 rounded hover:bg-gray-700 transition-colors"
-	>
-		{t("nav.leaderboard")}
-	</Link>
-	<Link
 		to="/friends"
 		className="px-3 py-1 rounded hover:bg-gray-700 transition-colors"
 	>
