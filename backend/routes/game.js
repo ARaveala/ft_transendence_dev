@@ -6,7 +6,7 @@ const flog = logger.child({ fileContext: 'game.js' });
 const {
 	miniLogin
 } = require('@db/get.js');
-
+const signSchema = require('@schemas/signSchema.js');
 const {log} = require('@logger');
 //const {
 //	getUserIdFromToken,
@@ -171,6 +171,7 @@ async function createGame(fastify, options) {
 
 async function joinGame(fastify, options) {
 		const {secure} = options;
+        schema: signSchema,
 		fastify.post(API_PROTOCOL.JOIN_GAME.path, {
 	}, async (request, reply) => {
 	//type: guest/login/ai

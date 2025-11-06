@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "../../shared/Translation";
 
 interface MiniLoginProps {
 		gameId:string;
@@ -10,6 +11,7 @@ const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]{5,11}$/;  // 6–12 chars
 const PASSWORD_REGEX = /^[a-zA-Z0-9!@#$%^&*()_\-+=.]{8,16}$/; // 8–16 chars
 
 const MiniLogin: React.FC<MiniLoginProps> = ({gameId, onLoginSuccess, onCancel }) => {
+		const { t } = useTranslation();
 		const [username, setUsername] = useState("");
 		const [password, setPassword] = useState("");
 		const [loading, setLoading] = useState(false);
@@ -26,11 +28,11 @@ const MiniLogin: React.FC<MiniLoginProps> = ({gameId, onLoginSuccess, onCancel }
 			const newErrors: typeof errors = {};
 
 			if (!USERNAME_REGEX.test(username.trim())) {
-				newErrors.username = "Invalid username format.";
+				newErrors.username = t("auth.error.usernameFormat");
 			}
 
 			if (!PASSWORD_REGEX.test(password.trim())) {
-				newErrors.password = "Invalid password format.";
+				newErrors.password = t("auth.error.passwordFormat");
 			}
 
 			setErrors(newErrors);
@@ -65,12 +67,12 @@ const MiniLogin: React.FC<MiniLoginProps> = ({gameId, onLoginSuccess, onCancel }
 			const data = await res.json();
 
 			if (!res.ok || data.error) {
-				throw new Error(data.error || "Mini login failed");
+				throw new Error(data.error || t("error.auth.miniLoginFailed"));
 			}
 			
 			onLoginSuccess(data.playerToken);
 		} catch (err: any) {
-			setErrors({ general: err?.message || "Second player login failed" });
+			setErrors({ general: err?.message || t("auth.error.secondPlayerLoginFailed") });
 		} finally {
 			setLoading(false);
 		}
@@ -78,15 +80,13 @@ const MiniLogin: React.FC<MiniLoginProps> = ({gameId, onLoginSuccess, onCancel }
 
 	return (
 		<div className="w-full max-w-md bg-gray-900/90 rounded-xl p-6 text-white shadow-lg">
-			<h2 className="text-teal-400 text-2xl font-bold mb-5 text-center mt-1">
-				Log in as Player 2
-			</h2>
+			<h2 className="text-teal-400 text-2xl font-bold mb-2 text-center">{t("auth.loginAsPlayer2")}</h2>
 			<form onSubmit={handleSubmit} className="flex flex-col space-y-4">
 				{/* Username */}
 				<div>
 					<input
 						type="text"
-						placeholder="Username"
+						placeholder={t("auth.username")}
 						value={username}
 						onChange={(e) => setUsername(e.target.value)}
 						className={`w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400
@@ -102,7 +102,7 @@ const MiniLogin: React.FC<MiniLoginProps> = ({gameId, onLoginSuccess, onCancel }
 				<div>
 					<input
 						type="password"
-						placeholder="Password"
+						placeholder={t("auth.password")}
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 						className={`w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 
@@ -125,14 +125,14 @@ const MiniLogin: React.FC<MiniLoginProps> = ({gameId, onLoginSuccess, onCancel }
 						disabled={loading}
 						className="px-6 py-2 bg-indigo-600 rounded hover:bg-indigo-700 transition"
 					>
-						{loading ? "Logging in..." : "Log in"}
+						{loading ? t("auth.loggingIn") : t("auth.logIn")}
 					</button>
 					<button
 						type="button"
 						onClick={onCancel}
 						className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition"
 					>
-						Cancel
+						{t("common.cancel")}
 					</button>
 				</div>
 			</form>
@@ -141,4 +141,3 @@ const MiniLogin: React.FC<MiniLoginProps> = ({gameId, onLoginSuccess, onCancel }
 };
 
 export default MiniLogin;
-
