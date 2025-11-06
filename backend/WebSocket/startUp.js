@@ -76,7 +76,7 @@ function setUpWebSockets(server) {
 				// some kind of pause logic here 
 				const player = ws.player;//players.get(playerId);
 				flog.info({ function: 'setupwebsockets', playerId: ws.playerId, gameId: ws.gameId }, 'player details in trace');
-				flog.trace({ function: 'setupwebsockets', playerId: player });
+				//flog.trace({ function: 'setupwebsockets', playerId: player });
 				//console.log('checking if player exists on disconnect', player, 'is there a game id', ws.gameId, 'access anything', ws.player.ready);
 				if (player) {
 					
