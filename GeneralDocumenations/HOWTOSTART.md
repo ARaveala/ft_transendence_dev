@@ -90,7 +90,7 @@ How to test:
 ```
 export VAULT_ADDR="http://127.0.0.1:8200"
 vault login myroot
-vault kv put secret/app JWT_SECRET="rotated-$(date + %s)"  DB_USER="pong" DB_PASS="super-strong" API_KEY_PAYMENT="pk_test_123"
+vault kv put secret/app JWT_SECRET="rotated-$(date +%s)"  DB_USER="pong" DB_PASS="super-strong" API_KEY_PAYMENT="pk_test_123"
 vault kv get secret/app
 
 docker compose exec backend sh -lc 'sed -n "1,20p" /run/secrets/app.env'
