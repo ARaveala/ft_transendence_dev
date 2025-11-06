@@ -201,15 +201,16 @@ async function joinGame(fastify, options) {
  * @returns 
  */
 function startGameCore(reply, secure, gameId) {
+	flog.warn({fucntion: "stargamecore", gameid: gameId}, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 		const game = getGame(gameId);
 //		flog.warn({function: 'startGameCore', game: game, gameid: gameId}, 'checking that game exists ????????');
 		if (!game) {
-			return {error: 'Game not found', code: 404};
-//			return reply.code(404).send({ error: 'Game not found' });
+//			return {error: 'Game not found', code: 404};
+			return reply.code(404).send({ error: 'Game not found' });
 		}
 		if (game.players.size < 2) {
-			return { error: 'Not enough players to start', code: 400 };
-//			return reply.code(400).send({ error: 'Not enough players to start' });
+//			return { error: 'Not enough players to start', code: 400 };
+			return reply.code(400).send({ error: 'Not enough players to start' });
 		}
 		const playerTokens = {};
 		for (const [playerId, playerData] of game.players) {
@@ -236,15 +237,25 @@ async function startGame(fastify, options) {
 	}, async (request, reply) => {
 
 	const {gameId} = request.body;
-    try {
+	flog.warn({fucntion: "stargamecore", gameid: gameId}, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
+	try {
 		const playerTokens = startGameCore(reply, secure, gameId);
-		if (playerTokens.error){
-			return reply.code(playerTokens.code).send(playerTokens.error);
+		//if (playerTokens.error){
+		//	//if (!reply.sent){
+		//		return reply.code(playerTokens.code).send({error: playerTokens.error});
+		//	//}
+		//}
+		if (!reply.sent){
+			return reply.send({ status: 'ready', gameId, playerTokens });
 		}
-		return reply.send({ status: 'ready', gameId, playerTokens });
 		} catch (err) {
-			flog.error({function: "startGame", errormsg: err.message, errorstack: err.stack}, "what error");
-			return reply.code(400).send({ error: 'Game initialization failed' });
+			//if (!reply.sent) {
+				flog.error({function: "startGame", errormsg: err.message, errorstack: err.stack}, "what error");
+				if (!reply.sent){
+					return reply.code(500).send({ error: 'Game initialization failed' });
+				}
+			//return reply.code(400).send({ error: 'Game initialization failed' });
 		}
   });
 }

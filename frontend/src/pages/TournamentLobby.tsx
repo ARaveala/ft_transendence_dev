@@ -200,8 +200,8 @@ const TournamentLobby: React.FC = () => {
 				console.error("Failed to start tournament game:", data.error || res.statusText);
 				return;
 			}
-			console.log("show me p1 id ", data.playerTokens.player1);
-			console.log("show me p2 id ", data.playerTokens.player2);
+			//console.log("show me p1 id ", data.playerTokens.player1);
+			//console.log("show me p2 id ", data.playerTokens.player2);
 
 			setPlayer1Token(data.playerTokens.player1);
 			setPlayer2Token(data.playerTokens.player2);
