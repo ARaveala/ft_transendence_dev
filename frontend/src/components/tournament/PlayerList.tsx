@@ -392,7 +392,7 @@ const PlayerList: React.FC<PlayerListProps> = ({
 							? t("tournament.setAlias")
 							: (isEditingAlias  || aliasChanged)
 								? t("tournament.saveAlias")
-								: t("tournamnet.editAlias")}
+								: t("tournament.editAlias")}
 					</Button>
 					</div>
 				 )}
