@@ -33,14 +33,29 @@ services:
       timeout: 3s
       retries: 5
       start_period: 10s
+  vault:
+    container_name: vault
+    build:
+      context: ./vault
+      dockerfile: Dockerfile
+    environment:
+      VAULT_DEV_ROOT_TOKEN: myroot
+    volumes:
+      - ./volumes/backend_secrets:/run/secrets
+    networks:
+      - app-net
+    # restart: unless-stopped
 
   backend:
     container_name: backend
+    depends_on:
+      - vault
     build:
       context: ./backend
       dockerfile: Dockerfile
     volumes:
       - ./volumes/backend_data:/app/data
+      - ./volumes/backend_secrets:/run/secrets
     expose:
     - "3000" # Expose backend API port
     networks:
