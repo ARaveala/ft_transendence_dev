@@ -61,7 +61,7 @@ const Exit: React.FC = () => {
 					// Case 3: user opened exit while logged out
 					<>
 						<p className="text-gray-300">{t("exit.alreadyLoggedOut")}</p>
-						<p className="text-gray-400 text-sm">{t("exit.logingPrompt")}</p>
+						<p className="text-gray-400 text-sm">{t("exit.loginPrompt")}</p>
 						<button
 							type="button"
 							onClick={() => navigate("/")}
