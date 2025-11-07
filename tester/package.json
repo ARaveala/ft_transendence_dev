@@ -13,6 +13,7 @@
   "type": "commonjs",
   "devDependencies": {
     "@playwright/test": "^1.56.1",
-    "@types/node": "^24.8.1"
+    "@types/node": "^24.8.1",
+    "playwright": "^1.56.1"
   }
 }

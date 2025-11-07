@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useTranslation } from "../shared/Translation";
 import { useAuth } from "../context/AuthContext";
+import { useApiFetch } from "../utils/apiFetch";
+
 import type {
 	ChangeLanguagePayload,
 	ChangeLanguageResponse,
@@ -57,6 +59,7 @@ const SettingsPage: React.FC = () => {
 	const [twoFactor, setTwoFactor] = useState(false);
 	const [qrCode, setQrCode] = useState<string | null>(null);
 	const [otp, setOtp] = useState<string>("");
+	const [showDisableConfirm, setShowDisableConfirm] = useState(false);
 	//const [twoFactor, setTwoFactor] = useState<boolean>(false);
 	//const [loadingTwoFA, setLoadingTwoFA] = useState<boolean>(false); //may need to update the code to remove this with the AuthContext additio
 
@@ -64,12 +67,18 @@ const SettingsPage: React.FC = () => {
 	const [deleting, setDeleting] = useState(false);
 	const [deleted, setDeleted] = useState(false);
 	const [deleteError, setDeleteError] = useState<string | null>(null);
+	const [confirmDelete, setConfirmDelete] = useState(false);
+
+	// Use apiFetch hook
+	const apiFetch = useApiFetch();
+
 
 	useEffect(() => {
 
 	const fetch2faStatus = async () => {
 		try {
-        const res = await fetch('/api/2fa/status', {
+        const res = await fetch(API_PROTOCOL.TFA_STATUS.path, {
+			method: API_PROTOCOL.TFA_STATUS.method,
 			credentials: "include"
 		});
         const data = await res.json();
@@ -126,6 +135,7 @@ const SettingsPage: React.FC = () => {
 	function reset2faForm() {
 		setQrCode(null);
 		setOtp("");
+		setShowDisableConfirm(false);
 	}
 
 	function closeAndReset(row: Exclude<Row, null>) {
@@ -250,26 +260,33 @@ const SettingsPage: React.FC = () => {
 	}
 
 	async function saveLanguage() {
-		setBusy(true); setMsg(null); setErr(null);
+		setBusy(true);
+		setMsg(null);
+		setErr(null);
+
 		try {
 			const payload: ChangeLanguagePayload = { language };
-			const res = await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
-				method: API_PROTOCOL.CHANGE_LANGUAGE.method,
-				headers: { "Content-Type": "application/json" },
-				credentials: "include",
-				body: JSON.stringify(payload),
-			});
-			if (!res.ok) throw new Error("Failed to update language.");
+			const data: ChangeLanguageResponse = await apiFetch(
+				API_PROTOCOL.CHANGE_LANGUAGE.path,
+				{
+					method: API_PROTOCOL.CHANGE_LANGUAGE.method,
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload),
+				}
+			);
 
-			const data = (await res.json()) as ChangeLanguageResponse;
-			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update language.");
-			
+			if (data.status !== "UPDATED") {
+				throw new Error(data.error || "Failed to update language.");
+			}
+
 			setLang(language);
 			localStorage.setItem("serverLang", language);
 			setMsg(t("common.language.updated"));
 			setOpenRow(null);
 			await refreshSession();
+
 		} catch (e: any) {
+			if (e.sessionExpired) return; // let apiFetch handle redirect on 401
 			setErr(t("error.language.updateFailed"));
 		} finally {
 			setBusy(false);
@@ -282,16 +299,18 @@ const SettingsPage: React.FC = () => {
 			const value = usernameInput.trim();
 			if (value.length < 3 || value.length > 15) throw new Error(t("error.username.length"));
 			const payload: ChangeUsernamePayload = { username: value };
-			const res = await fetch(API_PROTOCOL.CHANGE_USERNAME.path, {
-				method: API_PROTOCOL.CHANGE_USERNAME.method,
-				headers: { "Content-Type": "application/json" },
-				credentials: "include",
-				body: JSON.stringify(payload),
-			});
-			if (!res.ok) throw new Error("Failed to update username.");
+			const data: ChangeUsernameResponse = await apiFetch(
+				API_PROTOCOL.CHANGE_USERNAME.path,
+				{
+					method: API_PROTOCOL.CHANGE_USERNAME.method,
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload),
+				}
+			);
 
-			const data = (await res.json()) as ChangeUsernameResponse;
-			if (data.status !== "UPDATED") throw new Error(data.error || "Failed to update username.");
+			if (data.status !== "UPDATED") {
+				throw new Error(data.error || "Failed to update username.");
+			}
 
 			setMsg(t("common.username.updated"));
 			resetUsernameForm();
@@ -300,6 +319,7 @@ const SettingsPage: React.FC = () => {
 			await refreshSession();
 			setUsername(value);
 		} catch (e: any) {
+			if (e.sessionExpired) return; 
 			setErr(t("error.username.updateFailed"));
 		} finally {
 			setBusy(false);
@@ -316,25 +336,25 @@ const SettingsPage: React.FC = () => {
 				current_password: currentPassword,
 				new_password: newPassword,
 			};
-			const res = await fetch(API_PROTOCOL.CHANGE_PASSWORD.path, {
+			const data: ChangePasswordResponse = await apiFetch(
+			API_PROTOCOL.CHANGE_PASSWORD.path,
+			{
 				method: API_PROTOCOL.CHANGE_PASSWORD.method,
 				headers: { "Content-Type": "application/json" },
-				credentials: "include",
 				body: JSON.stringify(payload),
-			});
-			//if (!res.ok) throw new Error("Failed to update password.");
-
-			const data = (await res.json()) as ChangePasswordResponse;
-			if (!res.ok || data.status !== "UPDATED") {
-				throw new Error(t("error.password.currentIncorrect"));
 			}
+		);
 
+		if (data.status !== "UPDATED") {
+			throw new Error(data.error || t("error.password.currentIncorrect"));
+		}
 			setMsg(t("common.password.updated"));
 			resetPasswordForm();
 			setOpenRow(null);
 			setCurrentPassword(""); setNewPassword(""); setConfirmNewPassword("");
 		} catch (e: any) {
-			setErr(t("error.password.updateFailed"));
+		if (e.sessionExpired) return;
+		setErr(t("error.password.updateFailed"));
 		} finally {
 			setBusy(false);
 		}
@@ -344,13 +364,18 @@ const SettingsPage: React.FC = () => {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
 			const payload: UpdateProfilePayload = { avatar: selectedAvatar };
-			const res = await fetch(API_PROTOCOL.CHANGE_AVATAR.path, {
-				method: API_PROTOCOL.CHANGE_AVATAR.method,
-				headers: { "Content-Type": "application/json" },
-				credentials: "include",
-				body: JSON.stringify(payload),
-			});
-			if (!res.ok) throw new Error("Failed to update avatar.");
+			const data = await apiFetch(
+				API_PROTOCOL.CHANGE_AVATAR.path,
+				{
+					method: API_PROTOCOL.CHANGE_AVATAR.method,
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload),
+				}
+			);
+
+			if (data.status !== "UPDATED") {
+				throw new Error(data.error || "Failed to update avatar.");
+			}
 
 			setCurrentAvatar(selectedAvatar);
 			if (uploadPreview) {
@@ -363,6 +388,7 @@ const SettingsPage: React.FC = () => {
 			setOpenRow(null);
 			await refreshSession();
 		} catch (e: any) {
+			if (e.sessionExpired) return;
 			setErr(t("error.avatar.updateFailed"));
 		} finally {
 			setBusy(false);
@@ -435,35 +461,116 @@ const SettingsPage: React.FC = () => {
 
 	//2FA handlers
 	const handle2faCheckboxChange = async () => {
+		setMsg(null);
+		setErr(null);
 		if (!twoFactor && !qrCode) { // enabling 2FA
 			try {
-				const res = await fetch('/api/2fa/setup', { method: 'POST', credentials: "include" });
+				const res = await fetch(API_PROTOCOL.TFA_SETUP.path, {
+					method: API_PROTOCOL.TFA_SETUP.method,
+					credentials: "include"
+				});
 				const data = await res.json();
 				if (!res.ok) throw new Error(data.error || "Could not start 2FA setup.");
-				if (data.qrCodeUrl) { setQrCode(data.qrCodeUrl); }
-			} catch (err: any) { console.error("Failed to setup 2FA", err); alert(err.message || "Could not start 2FA setup."); }
-		}
-		else if (twoFactor) { //  disabling 2FA
-			if (window.confirm("Are you sure you want to disable 2FA?")) {
-				try {
-					const res = await fetch('/api/2fa/disable', { method: 'POST', credentials: "include" });
-					const data = await res.json();
-					if (!res.ok) throw new Error(data.error || "Failed to disable 2FA.");
-					if (data.disabled) { alert("2FA disabled."); setTwoFactor(false); setOpenRow(null); await refreshSession(); }
-				} catch (err: any) { alert(err.message || "Failed to disable 2FA."); }
+				if (data.qrCodeUrl) { 
+					setQrCode(data.qrCodeUrl);
+					setMsg(t("settings.twofa.setupStarted"));
+				} else {
+					throw new Error("No QR code received.");
+				}
+			} catch (err: any) {
+				//console.error("Failed to setup 2FA", err); alert(err.message || "Could not start 2FA setup.");
+				setErr(t("error.twofa.setupFailed"));
 			}
+			return;
+		}
+		if (twoFactor) {
+			setShowDisableConfirm(true);
 		}
 	};
 
-	const handleVerify2fa = async () => {
-		if (otp.length !== 6) { alert("Please enter a 6-digit code."); return; }
+	const cancel2faSetup = () => {
+		setQrCode(null);
+		setOtp("");
+		setMsg(null);
+		setErr(null);
+		setTwoFactor(false);
+	}
+
+	const confirmDisable2fa = async () => {
+		setBusy(true);
+		setErr(null);
+		setMsg(null);
 		try {
-			const res = await fetch('/api/2fa/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: "include", body: JSON.stringify({ otp }) });
+				const res = await fetch(API_PROTOCOL.TFA_DISABLE.path, {
+				method: API_PROTOCOL.TFA_DISABLE.method,
+				credentials: "include"
+			});
+			const data = await res.json();
+			if (!res.ok || !data.disabled) throw new Error(data.error || "Failed to disable 2FA.");
+			setTwoFactor(false);
+			setShowDisableConfirm(false);
+			setMsg(t("common.twofa.disabled"));
+			await refreshSession();
+		} catch (err: any) {
+			setErr(t("error.twofa.disableFailed"));
+		} finally {
+			setBusy(false);
+		}
+	};
+
+	const cancelDisableConfirm = () => {
+		setShowDisableConfirm(false);
+	};
+
+		
+		//else if (twoFactor) { //  disabling 2FA
+		//	if (window.confirm("Are you sure you want to disable 2FA?")) {
+		//		try {
+		//			const res = await fetch(API_PROTOCOL.TFA_DISABLE.path, {
+		//				method: API_PROTOCOL.TFA_DISABLE.method,
+		//				credentials: "include"
+		//			});
+		//			const data = await res.json();
+		//			if (!res.ok) throw new Error(data.error || "Failed to disable 2FA.");
+		//			if (data.disabled) { alert("2FA disabled."); setTwoFactor(false); setOpenRow(null); await refreshSession(); }
+		//		} catch (err: any) { alert(err.message || "Failed to disable 2FA."); }
+		//	}
+		//}
+	//};
+
+	const handleVerify2fa = async () => {
+		setMsg(null);
+		setErr(null);
+		if (otp.length !== 6) { 
+			//alert("Please enter a 6-digit code."); return;
+			setErr(t("error.twofa.codeLength"));
+			return;
+		}
+		try {
+			const res = await fetch(API_PROTOCOL.TFA_VERIFY.path, {
+				method: API_PROTOCOL.TFA_VERIFY.method,
+				headers: { 'Content-Type': 'application/json' },
+				credentials: "include",
+				body: JSON.stringify({ otp })
+			});
 			const data = await res.json();
 			if (!res.ok) throw new Error(data.error || "Failed to verify 2FA.");
-			if (data.verified) { alert("2FA enabled successfully!"); setTwoFactor(true); setQrCode(null); setOtp(""); setOpenRow(null); await refreshSession(); }
-			else { alert(data.error || "Invalid code, please try again."); }
-		} catch (err: any) { alert(err.message || "Failed to verify 2FA."); }
+			if (data.verified) { 
+				//alert("2FA enabled successfully!");
+				setTwoFactor(true);
+				setQrCode(null);
+				setOtp("");
+				setOpenRow(null);
+				setMsg(t("common.twofa.enabled"));
+				await refreshSession();
+			} else {
+				//alert(data.error || "Invalid code, please try again.");
+				setErr(t("error.twofaverifyFailed"));
+			}
+		} catch (_) {
+			//alert(err.message || "Failed to verify 2FA.");
+			setErr(t("error.twofa.verifyFailed"));
+		}
 	};
 
 	async function handleDeleteProfile() {
@@ -682,31 +789,54 @@ const SettingsPage: React.FC = () => {
 									onChange={handle2faCheckboxChange}
 									disabled={!!qrCode}
 									/>
-									<span className="text-sm">{t("settings.twofaLabel", "Enable Two-Factor Authentication")}</span>
+									<span className="text-sm">{t("settings.twofaLabel")}</span>
 								</label>
+						{showDisableConfirm && (
+							<div className="mt-3 p-4 rounded-lg border border-gray-700 bg-gray-900/60">
+								<h3 className="font-semibold text-lg">{t("settings.twofaDisableConfirmTitle")}</h3>
+								<p className="text-sm mt-1 text-gray-300">
+									{t("settings.twofaDisableConfirmText")}
+								</p>
+								<div className="mt-3 flex gap-2">
+									<PrimaryTiny onClick={confirmDisable2fa} disabled={busy}>
+										{t("common.disable")}
+									</PrimaryTiny>
+									<SecondaryTiny onClick={cancelDisableConfirm} disabled={busy}>
+										{t("common.cancel")}
+									</SecondaryTiny>
+								</div>
+							</div>
+						)}
 						{qrCode && (
-							<div className="mt-4 p-4 border rounded-lg bg-gray-50 text-gray-900">
-								<h3 className="font-semibold text-lg">{t("settings.twofaEnableTitle", "Enable Two-Factor Authentication")}</h3>
-								<p className="text-sm mt-1">{t("settings.twofaScanQR", "1. Scan this QR code with your authenticator app.")}</p>
-								<img src={qrCode} alt="2FA QR Code" className="my-3 mx-auto bg-white p-1" />
-								<p className="text-sm">{t("settings.twofaEnterCode", "2. Enter the 6-digit code from your app below.")}</p>
-								<div className="flex items-center mt-2">
+							<div className="mt-4 p-4 border border-gray-700 rounded-lg bg-gray-900/60 text-white">
+								<h3 className="font-semibold text-lg">{t("settings.twofaEnableTitle")}</h3>
+								<p className="text-sm mt-1">{t("settings.twofaScanQR")}</p>
+								<img
+									src={qrCode}
+									alt="2FA QR Code"
+									className="my-3 mx-auto bg-white p-1 rounded"
+								/>
+								<p className="text-sm">{t("settings.twofaEnterCode")}</p>
+								<div className="flex items-center gap-2 mt-2">
 									<input
 										type="text"
-										className="border p-2 rounded-md w-32 text-center text-black"
+										className="border border-gray-700 bg-gray-900 text-white p-2 rounded-md w-32 text-center tracking-widest"
 										placeholder="123456"
 										value={otp}
 										onChange={(e) => setOtp(e.target.value.replace(/\D/g,''))}
 										maxLength={6}
 									/>
 									<PrimaryTiny onClick={handleVerify2fa} disabled={busy}>
-										{t("common.verifyEnable", "Verify & Enable")}
+										{t("common.verifyEnable")}
 									</PrimaryTiny>
+									<SecondaryTiny onClick={cancel2faSetup} disabled={busy}>
+										{t("settings.twofaCancelSetup")}
+									</SecondaryTiny>
 								</div>
 							</div>
 						)}
-						{!qrCode && (
-                            <div className="mt-3 flex gap-2">
+						{!qrCode && !showDisableConfirm && (
+                        	<div className="mt-3 flex gap-2">
 							    <SecondaryTiny onClick={() => closeAndReset("twofa")} disabled={busy}>
 								    {t("common.cancel")}
 							    </SecondaryTiny>
@@ -717,29 +847,56 @@ const SettingsPage: React.FC = () => {
 			</section>
 
 			{/* Danger Zone */}
-			<section className="mt-6 border border-red-500/30 bg-red-900/10 rounded-lg p-4">
-				<h2 className="text-red-400 font-semibold mb-2">{t("settings.title.delete")}</h2>
-				<p className="text-sm text-red-200 mb-3">
-					{t("settings.delete.text")}
-				</p>
+		<section className="mt-6 border border-red-500/30 bg-red-900/10 rounded-lg p-4">
+		<h2 className="text-red-400 font-semibold mb-2">
+			{t("settings.title.delete")}
+		</h2>
 
-				{deleteError && <p className="text-red-300 text-sm mb-2">{deleteError}</p>}
-				{deleted && <p className="text-red-300 text-sm mb-2">{t("common.delete.success")}</p>}
+		{deleteError && <p className="text-red-300 text-sm mb-2">{deleteError}</p>}
+		{deleted && <p className="text-red-300 text-sm mb-2">{t("common.delete.success")}</p>}
+
+		{/* Delete confirmation logic */}
+		{confirmDelete ? (
+			<div className="border border-red-500/30 bg-red-900/10 rounded p-4 mt-3">
+			<p className="text-sm text-red-200 mb-3">
+				{t("settings.delete.text")}
+			</p>
+			<div className="flex gap-2">
 				<button
-					type="button"
-					onClick={handleDeleteProfile}
-					disabled={deleting || deleted}
-					className={`px-3 py-1.5 text-sm  rounded-md text-white ${
-						deleted
-							? "bg-red-600 cursor-not-allowed"
-							: deleting
-							 ? "bg-red-500 cursor-wait"
-							 : "bg-red-600 hover:bg-red-700"
-					}`}
+				type="button"
+				onClick={handleDeleteProfile}
+				disabled={deleting || deleted}
+				className="px-3 py-1.5 text-sm rounded-md text-white bg-red-600 hover:bg-red-700 disabled:cursor-not-allowed"
 				>
-					{deleted ? t("common.deleted") : deleting ? "Deleting..." : t("settings.item.delete")}
+				{deleting ? t("common.deleting") : t("game.action.confirm")}
 				</button>
-			</section>
+				<button
+				type="button"
+				onClick={() => setConfirmDelete(false)}
+				disabled={deleting}
+				className="px-3 py-1.5 text-sm rounded-md text-white bg-gray-600 hover:bg-gray-700 disabled:cursor-not-allowed"
+				>
+				{t("common.cancel")}
+				</button>
+			</div>
+			</div>
+		) : (
+			<button
+			type="button"
+			onClick={() => setConfirmDelete(true)}
+			disabled={deleting || deleted}
+			className={`px-3 py-1.5 text-sm rounded-md text-white ${
+				deleted
+				? "bg-red-600 cursor-not-allowed"
+				: deleting
+				? "bg-red-500 cursor-wait"
+				: "bg-red-600 hover:bg-red-700"
+			}`}
+			>
+			{deleted ? t("common.deleted") : t("settings.item.delete")}
+			</button>
+		)}
+		</section>
 		</div>
 		  </div>
 	);

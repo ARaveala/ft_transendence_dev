@@ -24,8 +24,8 @@ pnpm-debug.log*
 *.sw?
 
 # environment variables
-.env
-.env.*
+#.env
+#.env.*
 
 # logs
 <<<<<<<<< Temporary merge branch 1

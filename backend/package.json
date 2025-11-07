@@ -12,6 +12,7 @@
     "@fastify/multipart": "^7.7.3",
     "@fastify/websocket": "^11.2.0",
     "@sinclair/typebox": "^0.34.40",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.2.1",
     "fastify": "^4.29.1",
     "jsonwebtoken": "^9.0.2",
@@ -27,12 +28,11 @@
   "_moduleAliases": {
     "@db": "database",
     "@routes": "routes",
-    "@rUsers": "routes/user.js",
     "@schemas": "schemas",
     "@Wbs": "WebSocket",
     "@context": "routes/context.js",
-    "@sharedSchemas": "shared/schemas.js",
     "@sharedApi": "shared/apiProtocols.js",
+    "@sharedErr": "shared/errorCodes.js",
     "@sharedEcode": "shared/errorCodes.js",
     "@errors": "utils/errorFormatter.js",
     "@security": "security/security.js",
@@ -40,7 +40,8 @@
     "@Rprofile": "routes/profile",
     "@Rgame": "routes/game.js",
     "@logger": "logUtils/logger.js",
-	"@Rtour": "routes/tournament"
+    "@Rtour": "routes/tournament",
+    "@hooks": "hooks/"
   },
   "devDependencies": {
     "@fastify/static": "^6.12.0",
@@ -51,6 +52,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^7.2.1",
     "eslint-plugin-security": "^3.0.1",
-    "eslint-plugin-unicorn": "^48.0.1"
+    "eslint-plugin-unicorn": "^48.0.1",
+    "madge": "^8.0.0"
   }
 }

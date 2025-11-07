@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Button from "./Button";
 import { useTranslation } from "../../shared/Translation";
+import { passthrough } from "msw";
 
 // Props interface for the Modal component
 interface ModalProps {
@@ -11,16 +12,30 @@ interface ModalProps {
 		password: string;
 	}) => void;            // Callback to send the registration data to parent
 	mode?: "register" | "login"; // new prop to indicate mode
+	error?: string | null;  // backend error
+	inlineErrors?: { username?: string; password?: string };  // frontend error
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFormSubmit, mode = "register" }) => {
+const Modal: React.FC<ModalProps> = ({
+	isOpen,
+	onClose,
+	onFormSubmit,
+	mode = "register",
+	error,
+	inlineErrors = {},
+}) => {
 	const { t } = useTranslation();
 
 	// Local state to track form inputs
 	const [username, setUsername] = useState("");            // Username input
 	const [password, setPassword] = useState("");            // Password input
-	const [error, setError] = useState("");                  // Validation error message
 
+	React.useEffect(() => {
+		if (!isOpen) {
+			setUsername("");
+			setPassword("");
+		}
+	}, [isOpen]);
 	// If modal is not open, don't render anything
 	if (!isOpen) return null;
 
@@ -33,14 +48,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFormSubmit, mode = "re
 	// Handles form submission
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-
-		// Validates that username and password are provided
-		if (!username.trim() || !password.trim()) {
-			setError(t("error.auth.missingFields"));
-			return;
-		}
-		// Clears any previous errors
-		setError("");
 
 		// Calls parent's onSubmit callback with form data
 		onFormSubmit({
@@ -60,31 +67,45 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFormSubmit, mode = "re
 				</div>
 
 			<form className="px-5 pb-5 pt-3 space-y-3" onSubmit={handleSubmit}>
-				{error && <p className="text-sm text-red-400">{error}</p>}
-
 				{/* Username input */}
-				<input
-					type="text"
-					placeholder={t("auth.placeholder.username")}
-					value={username}
-					onChange={(e) => setUsername(e.target.value)}
-					className="w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					required
-				/>
+				<div>
+					<input
+						type="text"
+						placeholder={t("auth.placeholder.username")}
+						value={username}
+						onChange={(e) => setUsername(e.target.value)}
+						className="w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+						required
+					/>
+					{inlineErrors.username && (
+						<p className="text-xs text-red-400 mt-1">{inlineErrors.username}</p>
+					)}
+				</div>
 
 				{/* Password input */}
-				<input
-					type="password"
-					placeholder={t("auth.placeholder.password")}
-					value={password}
-					onChange={(e) => setPassword(e.target.value)}
-					className="w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					required
-				/>
+				<div>
+					<input
+						type="password"
+						placeholder={t("auth.placeholder.password")}
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						className="w-full rounded-md border border-gray-700 bg-gray-800/60 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+						required
+					/>
+					{inlineErrors.password && (
+						<p className="text-sm text-red-400 mt-1">
+							{inlineErrors.password}
+						</p>
+					)}
+					{/* Backend error (only shown if no inline errors) */}
+						{!inlineErrors.username && !inlineErrors.password && error && (
+							<p className="text-xs text-red-400 mt-1">{error}</p>
+						)}
+				</div>
 
 				{/* Submit and Close buttons */}
 				<div className="flex justify-between items-center mt-4">
-					<Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+					<Button type="submit" className="bg-indigo-600 hover:bg-blue-700">
 						{buttonText}
 					</Button>
 					<Button

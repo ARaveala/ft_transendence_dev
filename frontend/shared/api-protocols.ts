@@ -16,6 +16,11 @@ export const API_PROTOCOL = {
     method: 'GET',
   },
 
+  GET_OTHER_PLAYER_PROFILE: {
+    path: '/api/profile/other-user',
+    method: 'GET',
+  },
+
   UPDATE_PROFILE: {
     path: '/api/profile/update',
     method: 'POST',
@@ -57,7 +62,7 @@ export const API_PROTOCOL = {
   },
 
   CREATE_GAME: {
-    path:'/api/game/local',
+    path:'/api/create-game',
     method: 'POST',
   },
 
@@ -65,6 +70,11 @@ export const API_PROTOCOL = {
 		path: '/api/start-game',
 		method: 'POST',
 	},
+
+  JOIN_GAME: {
+    path: '/api/join-game',
+    method: 'POST',
+  },
 
   CREATE_TOURNAMENT: {
     path:'/api/tournaments',
@@ -111,6 +121,11 @@ export const API_PROTOCOL = {
     method: 'POST',
   },
 
+  TOURNAMENT_RESET: {
+	path: '/api/tournament/reset',
+	method: 'POST',
+  },
+
   LOGOUT_USER: {
 	  path: '/api/logout',
 	  method: 'POST',
@@ -151,8 +166,32 @@ export const API_PROTOCOL = {
   CHANGE_2FA: {
 	  path: '/api/profile/2fa',
 	  method: 'POST',
-  }
+  },
 
+  TFA_SETUP: {
+	path: '/api/2fa/setup',
+    method: 'POST',
+  },
+
+  TFA_VERIFY: {
+	path: '/api/2fa/verify',
+	method: 'POST',
+  },
+
+  TFA_DISABLE: {
+	path: '/api/2fa/disable',
+    method: 'POST',
+  },
+
+  TFA_STATUS: {
+	path: '/api/2fa/status',
+    method: 'GET',
+  },
+
+  TFA_LOGIN_VERIFY: {
+	path: '/api/2fa/login-verify',
+	method: 'POST',
+  }
 } as const;
 
 

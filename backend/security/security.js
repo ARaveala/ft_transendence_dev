@@ -34,13 +34,13 @@ function setAuthCookie(reply, token) {
   });
 }
 
-function clearAuthCookie(reply, token) {
-  reply.clearCookie('auth_token', token,{
+function clearAuthCookie(reply) {
+  reply.clearCookie('auth_token',{
 	expires: new Date(0),
 	httpOnly: true,
 	path:'/',
-	sameSite: 'lax',
-	secure: false
+	sameSite: 'lax', //this should be strict not dev
+	secure: false //this should be true when not dev
 ,	});
 }
 
@@ -66,7 +66,32 @@ function getUserIdFromToken(token) {
 	}
 }
 
+function getUserIdFromTokenH(token) {
+	log('GET USER ID FROM TOKEN', 'taking id from token');
+	if (!token) {
+		return {error: 'MISSING_TOKEN'};
+	}
+	try {
+		const decoded = jwt.verify(token, JWT_SECRET);
+		if (decoded === undefined) {
+			flog.warn( {function: 'getUserIdFromToken'}, 'Token verification returned undefined');
+			//return undefined;
+		}
+		log('GET USER ID FROM TOKEN', `decoded token ${JSON.stringify(decoded)}`);
+//		return JSON.stringify(decoded.id); // or whatever claim you expect
+		return {id: decoded.id}; // or whatever claim you expect
+	} catch (err) {
+		flog.error( {function: 'getUserIdFromToken', error: err}, 'Error verifying token');
+		if (err.name === 'TokenExpiredError') {
+		  return { error: 'TOKEN_EXPIRED' };
+		}
+		if (err.name === 'JsonWebTokenError') {
+		  return { error: 'INVALID_TOKEN' };
+		}
+		return { error: 'DEFAULT_AUTH' };
 
+	}
+}
 //Verify the token’s signature
 //Check its expiration
 //Extract the user ID from the payload
@@ -93,6 +118,7 @@ module.exports = { generateToken,
 	setAuthCookie,
 	verifyToken,
 	getUserIdFromToken,
+	getUserIdFromTokenH, //this is testing the hook
 	generateWsToken,
 	clearAuthCookie,
 	generateTemporaryToken,

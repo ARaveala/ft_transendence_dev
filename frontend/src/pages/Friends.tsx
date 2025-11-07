@@ -3,6 +3,8 @@ import { API_PROTOCOL } from "../../shared/api-protocols";
 import { useTranslation } from "../shared/Translation";
 import defaultAvatar from "../assets/avatars/default-avatar.png";
 import { useAuth } from "../context/AuthContext";
+import PlayerProfileModal from "../components/profile/PlayerProfileModal";
+import { useApiFetch } from "../utils/apiFetch"
 
 
 type Friend = {
@@ -23,6 +25,7 @@ const MAX_FRIENDS = 20;
 const Friends: React.FC = () => {
 	const { t } = useTranslation();
 	const {isLoggedIn, user, loading, refreshSession } = useAuth(); //now using AuthContext to get user info
+	const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
 
 	// Inline status
 	const [msg, setMsg] = useState<string | null>(null);
@@ -53,6 +56,9 @@ const Friends: React.FC = () => {
 		setErr(null);
 		setRemoveConfirmId((cur) => (cur === friendId ? null : friendId));
 	}
+	// Use apiFetch hook
+	const apiFetch = useApiFetch();
+
 
 	if (loading) return <div className="p-6">{t("friends.loading")}</div>;
 	if (!isLoggedIn) { //changed from !user to !isLoggedIn
@@ -73,6 +79,7 @@ const Friends: React.FC = () => {
 		setErr(null);
 		setMsg(null);
 		setBusyAdd(true);
+		
 		try {
 			const value = username.trim();
 			if (!value) {
@@ -96,22 +103,14 @@ const Friends: React.FC = () => {
 				return;
 			}
 
-			const res = await fetch(API_PROTOCOL.ADD_FRIEND.path, {
-				method: API_PROTOCOL.ADD_FRIEND.method,
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ username: value }),
-				credentials: "include", // include cookies
+			const data: FriendRequestResponse = await apiFetch(API_PROTOCOL.ADD_FRIEND.path, {
+			method: API_PROTOCOL.ADD_FRIEND.method,
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ username: value }),
 			});
-			if (res.status === 404) {
-				setErr(t("error.user.notFound"));
-				setBusyAdd(false);
-				return;
-			}
-			if (!res.ok) throw new Error("Failed to add friend.");
 
-			const data: FriendRequestResponse = await res.json();
 			if (data.status !== "ADDED" || !data.friend) {
-				throw new Error(data.error || "Could not add friend.");
+			throw new Error(data.error); // no fallback text
 			}
 
 			//setFriends((prev) => [...prev, data.friend!].slice(0, MAX_FRIENDS));
@@ -120,6 +119,7 @@ const Friends: React.FC = () => {
 			setOpenAdd(false);
 			await refreshSession(); // Refresh user data in AuthContext to update friends list there too
 		} catch (e: any) {
+			if (e.sessionExpired) return; // let apiFetch redirect handle it
 			setErr(t("error.friends.addFailed"));
 		} finally {
 			setBusyAdd(false);
@@ -132,17 +132,14 @@ const Friends: React.FC = () => {
 		setMsg(null);
 		try {
 			
-			const res = await fetch(API_PROTOCOL.REMOVE_FRIEND.path, {
-				method: API_PROTOCOL.REMOVE_FRIEND.method,
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ friend_id: friendId }),
-				credentials: "include",
+			const data: FriendRequestResponse = await apiFetch(API_PROTOCOL.REMOVE_FRIEND.path, {
+			method: API_PROTOCOL.REMOVE_FRIEND.method,
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ friend_id: friendId }),
 			});
-			if (!res.ok) throw new Error("Failed to remove friend.");
 
-			const data: FriendRequestResponse = await res.json();
 			if (data.status !== "REMOVED") {
-				throw new Error(data.error || "Could not remove friend.");
+			throw new Error(data.error);
 			}
 
 			setFriends((prev) => prev.filter((f) => f.user_id !== friendId));
@@ -150,6 +147,7 @@ const Friends: React.FC = () => {
 			setMsg(t("common.friends.removed"));
 			await refreshSession(); // Refresh user data in AuthContext to update friends list there too
 		} catch (e: any) {
+			if (e.sessionExpired) return; // redirect already triggered by apiFetch
 			setErr(t("error.friends.removeFailed"));
 		} finally {
 			setRemoving(false);
@@ -215,7 +213,7 @@ const Friends: React.FC = () => {
 					<div className="text-gray-400">{t("friends.list.empty")}</div>
 				) : (
 					<div className="space-y-3">
-						{friends.map((f) => {
+						{friends.map((f: Friend) => {
 							const avatarSrc =
 								f.avatar ??
 								(f as any).avatarFile ??
@@ -234,17 +232,24 @@ const Friends: React.FC = () => {
 											}}
 										/>
 										<div>
-											<div className="font-semibold">{f.username}</div>
+											{/* Username button opens the modal */}
+											 <button
+												type="button"
+												onClick={() => setSelectedPlayer(f.user_id)}
+												className="font-semibold text-indigo-400 hover:text-indigo-300 underline"
+											>
+												{f.username}
+											</button>
 											<div className="flex items-center gap-1 text-sm">
-											<span
-											className={
-											"inline-block w-2 h-2 rounded-full " +
-											(f.online_status ? "bg-green-400" : "bg-gray-500")
-											}
-											/>
-											<span className={f.online_status ? "text-green-300" : "text-gray-400"}>
-											{f.online_status ? t("common.online") : t("common.offline")}
-											</span>
+												<span
+													className={
+														"inline-block w-2 h-2 rounded-full " +
+															(f.online_status ? "bg-green-400" : "bg-gray-500")
+														}
+													/>
+												<span className={f.online_status ? "text-green-300" : "text-gray-400"}>
+													{f.online_status ? t("common.online") : t("common.offline")}
+												</span>
 											</div>
 										</div>
 									</div>
@@ -263,23 +268,23 @@ const Friends: React.FC = () => {
 									<div className="px-4 pb-4">
 										<div className="border border-red-500/30 bg-red-900/10 rounded p-4">
 											<h3 className="text-red-400 font-semibold mb-2">
-											{t("friends.confirmRemove.title")}
+												{t("friends.confirmRemove.title")}
 											</h3>
 											<p className="text-sm text-red-200 mb-3">
-											{t("friends.confirmRemove.text")}
+												{t("friends.confirmRemove.text")}
 											</p>
 											<div className="flex gap-2">
-											<PrimaryTiny
-											onClick={() => confirmRemove(f.user_id)}
-											disabled={removing}
-											>
-											{t("common.remove")}
-											</PrimaryTiny>
-											<SecondaryTiny
-											onClick={() => setRemoveConfirmId(null)}
-											disabled={removing}
-											>
-											{t("common.cancel")}
+												<PrimaryTiny
+													onClick={() => confirmRemove(f.user_id)}
+													disabled={removing}
+													>
+													{t("common.remove")}
+												</PrimaryTiny>
+												<SecondaryTiny
+													onClick={() => setRemoveConfirmId(null)}
+													disabled={removing}
+													>
+													{t("common.cancel")}
 											</SecondaryTiny>
 											</div>
 										</div>
@@ -292,7 +297,13 @@ const Friends: React.FC = () => {
 				)}
 			</section>
 		</div>
-	  </div>
+			{selectedPlayer && (
+				<PlayerProfileModal
+					userId={selectedPlayer}
+					onClose={() => setSelectedPlayer(null)}
+				/>
+			)}
+		</div>
 	);
 };
 

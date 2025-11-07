@@ -2,327 +2,424 @@ import React, { useState, useEffect } from "react";
 import type { TournamentPlayer, TournamentState } from "../../types/tournament";
 import { API_PROTOCOL } from "../../../shared/api-protocols";
 import { VerifyPlayerPayload, VerifyPlayerResponse } from "../../../shared/payloads";
+import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
+import { useApiFetch } from "../../utils/apiFetch";
+import { useTranslation } from "../../shared/Translation";
+
+// Username: must start with letter, 6-12 chars, letters, numbers, underscore allowed
+const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]{5,11}$/;
+
+// Password: 8-16 chars, letters, numbers and allowed special chars
+const PASSWORD_REGEX = /^[a-zA-Z0-9!@#$%^&*()_\-+=.]{8,16}$/;
+
+// Alias: 5–10 chars, letters/numbers/_
+const ALIAS_REGEX = /^[a-zA-Z0-9_]{5,10}$/;
 
 interface PlayerListProps {
-  tournament: TournamentState;
-  onTournamentUpdated: (updated: TournamentState) => void; 
-  onRemovePlayer: (role: string) => void;                // remove a player from the list
+	tournament: TournamentState;
+	onRemovePlayer: (role: string) => void;                // remove a player from the list
+	onAliasChanged?: (val: boolean) => void;
 }
 
 type PlayerFormData = {
-  username: string;
-  password: string;
-  alias: string;
+	username: string;
+	password: string;
+	alias: string;
 };
 
-type FormErrors = Record<string, string>;
+type FormErrors = Record<string, {
+	username?:string;
+	password?:string;
+	alias?: string;
+}>;
+
 type FormData = Record<string, PlayerFormData>;
 
-const FIXED_ROLES = ["player1", "player2", "player3", "player4"];
-
-const createEmptySlot = (role: string): TournamentPlayer => ({
-    role: role,
-    username: "",
-    alias: "",
-    status: "waiting",
-    isSelf: false,
-    isVerified: false,
-});
+const emptyPlayerForm = (): PlayerFormData => ({ username: "", password: "", alias: "" });
 
 const PlayerList: React.FC<PlayerListProps> = ({
-  tournament,
-  onTournamentUpdated,
-  onRemovePlayer,
- }) => {
-  const [formData, setFormData] = useState<FormData>({});
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [loading, setLoading] = useState<string | null>(null);
-  const [isEditingAlias, setIsEditingAlias] = useState<boolean>(false);
-  const [tempAlias, setTempAlias] = useState('');
+	tournament, onRemovePlayer, onAliasChanged
+	}) => {
+	const { t } = useTranslation();
+	const { setTournament, refreshSession } = useAuth();
+	const [formData, setFormData] = useState<FormData>({});
+	const [errors, setErrors] = useState<FormErrors>({});
+	const [loading, setLoading] = useState<string | null>(null);
+	const [isEditingAlias, setIsEditingAlias] = useState<boolean>(false);
+	const [tempAlias, setTempAlias] = useState('');
+	const apiFetch = useApiFetch();
 
-  useEffect(() => {
-    const initialFormData: FormData = {};
-    let selfAlias = '';
 
-    tournament.players.forEach(p => {
-      if (p.isSelf) {
-        // If editing, uses the existing local state value (which was set to "")
-        initialFormData[p.role] = formData[p.role] || {
-          username: p.username || "",
-          password: "",
-          alias: p.alias || "",
-        };
-      } else {
-          // 2. Capture the verified alias for the logged in player
-          selfAlias = p.alias || '';
-      }
-    });
+	const self = tournament.players.find(p => p.isSelf);
+	const backendAlias = self?.alias ?? "";
 
-    const selfPlayerRole = tournament.players.find(p => p.isSelf)?.role;
-    if (selfPlayerRole) {
-        initialFormData[selfPlayerRole] = {
-            username: tournament.players.find(p => p.isSelf)?.username || "",
-            password: "",
-            alias: selfAlias,
-        };
-    }
-    setFormData(initialFormData);
-    
-    if (!isEditingAlias) {
-        setTempAlias(selfAlias);
-    }
+	const aliasChanged =
+		isEditingAlias ||
+		tempAlias !== backendAlias ||
+		!ALIAS_REGEX.test(tempAlias);
 
-  }, [tournament.players.map(p => p.role).join("|")]);
 
-  const updateField = (role: string, field: keyof PlayerFormData, value: string) => {
-    const isSelfPlayer = tournament.players.find(p => p.role === role)?.isSelf;
+	useEffect(() => {
+		setFormData(prev => {
+		const next: FormData = { ...prev };
 
-    if (isSelfPlayer && field === 'alias') {
-        setTempAlias(value);
-    } else {
-        setFormData(prev => ({
-          ...prev,
-          [role]: {
-            ...prev[role],
-            [field]: value
-          }
-        }));
-    }
-    setErrors(prev => ({ ...prev, [role]: "" }));
-  };
+		tournament.players.forEach(p => {
+			if (!next[p.role]) {
+				if (p.isSelf) {
+					next[p.role] = {
+						username: p.username || "",
+						password: "",
+						alias: p.alias || "",
+					};
+				} else {
+					next[p.role] = {
+						username: "",
+						password: "",
+						alias: "",
+					};
+				}
+			}
+		});
 
-  const isFormComplete = (role: string, player: any): boolean => {
-    if (player.isSelf) {
-      // Check for alias validity in either the temp state or the verified state
-      return !!tempAlias;
-    }
-    
-    const data = formData[role];
-    return !!(data?.username && data?.password && data?.alias);
-  };
+		return next;
+		});
 
-  const handleAddPlayer = async (role: string, player: TournamentPlayer) => {
-    const data = formData[role];
-    let aliasToUse = player.isSelf ? tempAlias : data?.alias || '';
+		// Initialize tempAlias only when not editing and when it hasn't been set yet
+		const self = tournament.players.find(p => p.isSelf);
+		if (!isEditingAlias && tempAlias === "" && self?.alias) {
+			setTempAlias(self.alias);
+		}
 
-    // Frontend validation
-    if (aliasToUse.length < 5) {
-      setErrors(prev => ({ ...prev, [role]: "Alias must be at least 5 characters" }));
-      return;
-    }
+		// note: tempAlias is not reset when player list changes
+		// so user edits are preserved until they explicitly save
 
-    // Check alias uniqueness among verified players
-    const duplicate = tournament.players.some(
-      p => p.role !== role && p.isVerified && p.alias?.toLowerCase() === aliasToUse.toLowerCase()
-    );
-    if (duplicate) {
-      setErrors(prev => ({ ...prev, [role]: "Alias must be unique" }));
-      return;
-    }
+	}, [tournament.players, isEditingAlias]);
 
-    try {
-      setLoading(role);
+	const updateField = (role: string, field: keyof PlayerFormData, value: string) => {
+		const player = tournament.players.find((p) => p.role === role)!;
 
-      const payload: VerifyPlayerPayload = {
-        role,
-        username: player.isSelf ? player.username : data.username,
-        password: player.isSelf ? "" : data.password,
-        alias: aliasToUse,
-      };
+		if (player.isSelf && field === 'alias') {
+			setTempAlias(value);
+		} else {
+			setFormData((prev) => ({
+				...prev,
+				[role]: {
+				...(prev[role] || emptyPlayerForm()),
+				[field]: value,
+				},
+			}));
+		}
+	};
 
-      const res = await fetch(API_PROTOCOL.VERIFY_PLAYER.path, {
-        method: API_PROTOCOL.VERIFY_PLAYER.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "include",
-      });
+	const isFormComplete = (role: string, player: any): boolean => {
+		const data = formData[role];
 
-      if (!res.ok) {
-        console.error("Non-OK response:", res.status, await res.text());
-        throw new Error(`HTTP ${res.status}`);
-  }
+		if (player.isSelf) {
+			return ALIAS_REGEX.test(tempAlias);
+	
+		}
+		return (
+		USERNAME_REGEX.test(data?.username ?? "") &&
+		PASSWORD_REGEX.test(data?.password ?? "") &&
+		ALIAS_REGEX.test(data?.alias ?? "")
+		);
+	};
 
-      const response: VerifyPlayerResponse = await res.json();
+	// Handles adding and verifying a tournament player
 
-      if (response.status === "OK" && response.tournament) {
-        if (player.isSelf) {
-            // Exit editing mode for the logged in player on success
-            setIsEditingAlias(false);
-        }
+	const handleAddPlayer = async (role: string, player: TournamentPlayer) => {
+		const data = formData[role];  // takes existing form data for the role
+		
+		// Determines the alias to be used:
+		// -if the player is the logged-in user (isSelf), uses the temp alias from state
+		// -otherwise, uses the alias entered in the form or falls back to empty string
+		let aliasToUse = player.isSelf ? tempAlias : data?.alias || '';
 
-        setErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors[role];
-          return newErrors;
-        });
-        onTournamentUpdated(response.tournament);
-      } else {
-        setErrors(prev => ({
-          ...prev,
-          [role]: response.error || "Invalid credentials or alias."
-        }));
-      }
-    } catch (err) {
-      console.error("Error verifying player:", err);
-      setErrors(prev => ({
-        ...prev,
-        [role]: "Network error. Please try again."
-      }));
-    } finally {
-      setLoading(null);
-    }
-  };
+		// Frontend validation
+		
+		const localErrors: Record<string, string | undefined> = {};
 
-  const handleRemovePlayer = (role: string) => {
-      setFormData(prev => {
-        const newState = { ...prev };
-        newState[role] = { username: "", password: "", alias: "" }; 
-        return newState;
-      });
+		
+		// Validate alias
+		if (!ALIAS_REGEX.test(aliasToUse)) {
+			localErrors.alias = t("error.alias.format");
+		}
 
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[role];
-        return newErrors;
-      });
+		// Validate username + password for non-self players
+		if (!player.isSelf) {
+			if (!USERNAME_REGEX.test(data?.username ?? "")) {
+				localErrors.username = t("auth.error.usernameFormat");
+			}
 
-      void onRemovePlayer(role);
-  };
+			if (!PASSWORD_REGEX.test(data?.password ?? "")) {
+				localErrors.password = t("auth.error.passwordFormat");
+			}
+		}
 
-  return (
-    <div className="space-y-3">
-      {tournament.players.map((player) => {
-        const role = player.role;
-        const isVerified = player.isVerified;
-        const isCurrentlyLoading = loading === role;
-        const isSelfVerifiedButLocked = player.isSelf && isVerified && !isEditingAlias;
-        const isOtherPlayerLocked = !player.isSelf && isVerified;
-        const isAliasLocked = isOtherPlayerLocked || isSelfVerifiedButLocked; 
+		// Check alias uniqueness among verified players
+		const duplicate = tournament.players.some(
+			p =>
+				p.role !== role &&
+				p.isVerified &&
+				p.alias?.toLowerCase() === aliasToUse.toLowerCase()
+		);
 
-        const data = formData[role] || { username: "", password: "", alias: "" };
+		if (duplicate) {
+			localErrors.alias = t("error.alias.unique");
+		}
 
-        return (
-          <div
-            key={role}
-            className="flex flex-col gap-1">
-            < div className="flex items-center gap-2">
-              <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center">
-                {isVerified && (
-                  <span className="w-4 h-4 rounded-full bg-green-500 text-white text-[0.4rem] font-bold flex items-center justify-center">
-                    ✔
-                  </span>
-                )}
-            </span>
-            
-            <div className="flex flex-col sm:flex-row flex-wrap w-full gap-2 items-stretch sm:items-center">
-              {/* Username */}
-              <input
-                type="text"
-                placeholder="Username"
-                disabled={player.isSelf || isVerified}
-                value={player.isSelf || isVerified ? player.username : data.username}
-                onChange={(e) => updateField(role, "username", e.target.value)}
-                className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto ${
-                  player.isSelf || isVerified
-                    ? "bg-gray-900 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-900 text-white"
-                }`}
-              />
+		// If any frontend error exists -> stops
+		if (Object.keys(localErrors).length > 0) {
+			setErrors(prev => ({
+				...prev,
+				[role]: localErrors
+			}));
+			return;
+		}
 
-              {/* Password */}
-              <input
-                type="password"
-                placeholder="Password"
-                disabled={player.isSelf || isVerified}
-                value={player.isSelf || isVerified ? "********" : data.password}
-                onChange={(e) => updateField(role, "password", e.target.value)}
-                className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto ${
-                  player.isSelf || isVerified
-                    ? "bg-gray-900 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-900 text-white"
-                }`}
-              />
+		// Clears previous errors
+		setErrors(prev => {
+			const newErr = { ...prev };
+			delete newErr[role];
+			return newErr;
+		});
 
-              {/* Alias */}
-              <input
-                type="text"
-                placeholder="Alias"
-                disabled={isAliasLocked}
-                value={
-                  player.isSelf
-                    ? tempAlias
-                    : data.alias || player.alias || ""
-                }
-                onChange={(e) => updateField(role, "alias", e.target.value)}
-                className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto ${
-                  errors[role] ? "border-red-500" : "border-gray-300"
-                } ${
-                  isAliasLocked
-                    ? "bg-gray-900 text-white cursor-not-allowed"
-                    : "bg-gray-900 text-white"
-                }`}
-              />
+		// Backend communication
+		try {
+			setLoading(role);
 
-              {/* Action Buttons (Other players) */}
-              {!player.isSelf && !isVerified && (
-                <Button
-                  onClick={() => handleAddPlayer(role, player)}
-                  disabled={!isFormComplete(role, player) || isCurrentlyLoading}
-                  className="min-w-[6.3rem]"
-                >
-                  {isCurrentlyLoading ? "Adding..." : "Add Player"}
-                </Button>
-              )}
+			const payload: VerifyPlayerPayload = {
+				role,
+				username: player.isSelf ? player.username : data.username,	// use username entered in the form or logged-in player's username
+				password: player.isSelf ? "" : data.password,	// only sends password if player is not self
+				alias: aliasToUse,
+			};
 
-              {isVerified && !player.isSelf && (
-                <Button
-                  onClick={() => handleRemovePlayer(role)} disabled={isCurrentlyLoading}
-                  className="min-w-[6.3rem]">
-                  Remove
-                </Button>
-              )}
+			// API call to backend to verify entered player
+				const response: VerifyPlayerResponse = await apiFetch(API_PROTOCOL.VERIFY_PLAYER.path, {
+				method: API_PROTOCOL.VERIFY_PLAYER.method,
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+			});
 
-               {/* Action Buttons (Player1) */}
-              {player.isSelf && (
-                <div className="flex items-center gap-2">
+			if (response.status === "OK" && response.tournament) {
+				setTournament(response.tournament);
+				await refreshSession();
+			}
 
-                  {/* Set/Edit Alias button */}
-                  <Button
-                    onClick={() => {
-                     if (isVerified && !isEditingAlias) {
-                        setIsEditingAlias(true);
-                        setTempAlias(""); 
-                      } else {
-                        // Save Alias
-                        handleAddPlayer(role, player);
-                    }
-                  }}
-                    // Check completion against the dedicated logic now
-                    disabled={isCurrentlyLoading || (isEditingAlias && !isFormComplete(role, player))}
-                    className="min-w-[6.3rem]"
-                  >
-                    {isCurrentlyLoading
-                      ? "Saving..."
-                      : !isVerified
-                      ? "Set Alias"
-                      : isEditingAlias // If verified, check if editing
-                      ? "Save Alias" 
-                      : "Edit Alias"}
-                  </Button>
-                </div>
-              )}
-            </div>
-           </div>
-            {/* Error Message */}
-            {errors[role] && (
-              <span className="text-red-500 text-sm ml-7">
-                {errors[role]}
-              </span>
-            )}
+			if (response.status === "OK" && response.tournament) {
+			// Update the tournament in context
+				setTournament(response.tournament);
+				await refreshSession();
+		}
 
-          </div>
-        );
-      })}
-    </div>
-  )};  export default PlayerList;
+			// Clear errors for the role on success
+			setErrors((prev) => {
+				const next = { ...prev };
+				delete next[role];
+				return next;
+			});
+
+			if (player.isSelf) {
+				// Exit editing mode for the logged in player on success
+				setIsEditingAlias(false);
+				// ensures tempAlias matches saved backend alias
+				// but let's set it proactively if response contains the tournament player alias:
+				const updatedSelf = response?.tournament?.players?.find((p: TournamentPlayer) => p.isSelf);
+				if (updatedSelf?.alias) {
+					setTempAlias(updatedSelf.alias);
+				}
+			}
+			
+			} catch (err: any) {
+				if (err.sessionExpired) return; // let apiFetch handle redirect
+				console.error("Error verifying player:", err);
+				setErrors(prev => ({
+					...prev,
+					[role]: { alias: err.message || t("error.network") }
+				}));
+		} finally {
+			setLoading(null);
+		}
+	};
+	
+	const handleRemovePlayer = async (role: string) => {
+		setFormData((prev) => ({ ...prev, [role]: emptyPlayerForm() }));
+		setErrors((prev) => {
+		const next = { ...prev };
+		delete next[role];
+		return next;
+		});
+
+	onRemovePlayer(role);
+	await refreshSession();
+	};
+
+	useEffect(() => {
+		if (onAliasChanged) onAliasChanged(aliasChanged);
+	}, [aliasChanged, onAliasChanged]);
+	
+	// Helper to determine if a player's fields are locked in the UI
+	// Uses backend status === "ready" as the indicator that the backend considers the player ready
+	const renderPlayers = tournament.players.map((player) => {
+		const role = player.role;
+		const isCurrentlyLoading = loading === role;
+
+		// Use backend status === "ready" as the single source of truth for "ready"
+		const verifiedPlayer = tournament.players.find(p => p.role === role);
+		const isPlayerReady = verifiedPlayer?.status === "ready";
+
+		const isSelfReadyButLocked =
+		player.isSelf && isPlayerReady && !isEditingAlias && !!player.alias;
+
+		const isOtherPlayerLocked =
+		!player.isSelf && isPlayerReady;
+
+		const isAliasLocked = isOtherPlayerLocked || isSelfReadyButLocked;
+
+		const data = formData[role] || { username: "", password: "", alias: "" };
+		const fieldErrs = errors[role] || {};
+	
+	return (
+		<div
+			key={role}
+			className="flex flex-col gap-1">
+			< div className="flex items-start gap-2">
+			 {/* ✔ icon */}
+				<span className="w-5 h-5 flex-shrink-0 flex items-center justify-center mt-3">
+					{isPlayerReady && (
+						<span className="w-4 h-4 rounded-full bg-cyan-400 text-white text-[0.4rem] font-bold flex items-center justify-center">
+							✔
+						</span>
+					)}
+				</span>
+			
+				<div className="flex flex-col sm:flex-row flex-wrap w-full gap-2 items-stretch sm:items-center">
+					{/* Username */}
+					<input
+						type="text"
+						placeholder={t("auth.username")}
+						disabled={player.isSelf || isPlayerReady}
+						value={player.isSelf || isPlayerReady ? player.username : data.username}
+						onChange={(e) => updateField(role, "username", e.target.value)}
+						className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
+							${fieldErrs.username ? "border-red-500" : "border-gray-300"}
+							${player.isSelf || isPlayerReady
+							? `${isPlayerReady ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
+							: "bg-gray-900 text-white"
+						}`}
+					/>
+
+					{/* Password */}
+					<input
+						type="password"
+						placeholder={t("auth.password")}
+						disabled={player.isSelf || isPlayerReady}
+						value={player.isSelf || isPlayerReady ? "********" : data.password}
+						onChange={(e) => updateField(role, "password", e.target.value)}
+						className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto
+							${fieldErrs.password ? "border-red-500" : "border-gray-300"}
+							${player.isSelf || isPlayerReady
+							? `${isPlayerReady ? "text-indigo-400" : "text-gray-400"} bg-gray-900 cursor-not-allowed`
+							: "bg-gray-900 text-white"
+						}`}
+					/>
+
+					{/* Alias */}
+					<input
+						type="text"
+						placeholder={t("common.alias")}
+						disabled={isAliasLocked}
+						value={
+						player.isSelf
+							? tempAlias
+							: data.alias || player.alias || ""
+						}
+						onChange={(e) => updateField(role, "alias", e.target.value)}
+						className={`p-2 border border-gray-700 rounded flex-1 min-w-0 w-full sm:w-auto 
+							${fieldErrs.alias ? "border-red-500" : "border-gray-300"}
+							${isAliasLocked
+							? "bg-gray-900 cursor-not-allowed"
+							: "bg-gray-900"
+							}
+							${isPlayerReady ? "text-indigo-400" : "text-white"}
+						`}
+						/>
+
+					{/* Action Buttons (Other players) */}
+					{!player.isSelf && !isPlayerReady && (
+						<Button
+							onClick={() => handleAddPlayer(role, player)}
+							disabled={isCurrentlyLoading}
+							className="min-w-[6.3rem]"
+							>
+								{isCurrentlyLoading ? t("tournament.adding") : t("tournament.addPlayer")}
+						</Button>
+					)}
+
+					{!player.isSelf && isPlayerReady && (
+						<Button
+							onClick={() => handleRemovePlayer(role)}
+							disabled={isCurrentlyLoading}
+							className="min-w-[6.3rem]"
+							>
+								{t("common.remove")}
+						</Button>
+					)}
+
+					{/* Action Buttons (Player1) */}
+					{player.isSelf && (
+						<div className="flex items-center gap-2">
+							{/* Set/Edit Alias button */}
+							<Button
+								onClick={() => {
+									if (isPlayerReady && !isEditingAlias) {
+										setIsEditingAlias(true);
+										setTempAlias(player.alias || "");
+									} else {
+										// Save Alias
+										handleAddPlayer(role, player);
+									}
+								}}
+								// Check completion against the dedicated logic now
+								disabled={isCurrentlyLoading}
+								className="min-w-[6.3rem]"
+								>
+								{isCurrentlyLoading
+								? t("common.saving")
+								: !isPlayerReady
+									? t("tournament.setAlias")
+									: (isEditingAlias  || aliasChanged)
+										? t("tournament.saveAlias")
+										: t("tournament.editAlias")}
+							</Button>
+						</div>
+					)}
+				</div>
+				
+				{/* Inline field errors (shown only after clicking button) */}
+					<div className="mt-1">
+						{fieldErrs.username && (
+							<div className="text-red-500 text-sm">{fieldErrs.username}</div>
+						)}
+						{fieldErrs.password && (
+							<div className="text-red-500 text-sm">{fieldErrs.password}</div>
+						)}
+						{fieldErrs.alias && (
+							<div className="text-red-500 text-sm">{fieldErrs.alias}</div>
+						)}
+					</div>
+				</div>
+			</div>
+		);
+	});
+
+	return (
+		<div className="space-y-2">
+			{renderPlayers}
+		</div>
+	);
+};
+
+export default PlayerList;

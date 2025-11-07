@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import  { API_PROTOCOL } from "../../shared/api-protocols";
 import type { UserProfile } from "../../shared/payloads";
-import type { TournamentState } from "../types/tournament";
+import type { TournamentPlayer, TournamentState } from "../types/tournament";
 
 interface AuthContextType {
 	isLoggedIn: boolean;
@@ -40,6 +40,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 				const data: UserProfile = await res.json();
 				setUser(data);
 				setIsLoggedIn(true);
+
+				// isSelf and isVerified are coming as numbers from backend which caused a weird bug in playerList,
+				// so normalizing them into booleans here
+				 if (data.tournament && 
+					typeof data.tournament === 'object' && 
+					data.tournament.tournament_id) {
+					const normalizedTournament: TournamentState = {
+					...data.tournament,
+					players: data.tournament.players.map((p:TournamentPlayer) => ({
+						...p,
+						isSelf: !!p.isSelf,
+						isVerified: !!p.isVerified,
+					})),
+				};
+					setTournament(normalizedTournament);
+				} else {
+					setTournament(null);
+				}
 			} else {
 				setUser(null);
 				setIsLoggedIn(false);

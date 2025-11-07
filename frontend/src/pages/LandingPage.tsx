@@ -58,6 +58,30 @@ const LanguageToggle: React.FC<{ compact?: boolean }> = ({ compact = true }) => 
 	);
 };
 
+// Username: must start with letter, 6-12 chars, letters, numbers, underscore allowed
+const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]{5,11}$/;
+
+// Password: 8-16 chars, letters, numbers and allowed special chars
+const PASSWORD_REGEX = /^[a-zA-Z0-9!@#$%^&*()_\-+=.]{8,16}$/;
+
+function validateRegisterInput(username: string, password: string, t: (k:string)=>string) {
+	const errors: { username?: string; password?: string } = {};
+
+	if (!USERNAME_REGEX.test(username)) { errors.username = t("auth.error.usernameFormat"); }
+
+	if (!PASSWORD_REGEX.test(password)) { errors.password = t("auth.error.passwordFormat"); }
+	return errors;
+}
+
+function validateLoginInput(username: string, password: string, t: (k:string)=>string) {
+	const errors: { username?: string; password?: string } = {};
+
+	if (!USERNAME_REGEX.test(username) || !password) {
+		errors.username = t("auth.error.invalidCredentials");
+	}
+	return errors;
+}
+
 const HomePage: React.FC = () => {
 	const { t, lang, setLang } = useTranslation();
 	const [isModalOpen, setIsModalOpen] = useState(false); // Tracks if modal is open
@@ -82,8 +106,29 @@ const HomePage: React.FC = () => {
 	const [tempAuthToken, setTempAuthToken] = useState<string | null>(null);
 	const [otp, setOtp] = useState("");
 
+	// errors
+	const [inlineErrors, setInlineErrors] = useState<{ username?: string; password?: string }>({});
+	const [formError, setFormError] = useState<string | null>(null);
+
 	// Generic form submit handler for registration or login
 	const handleSubmit = async (data: RegisterUserPayload) => {
+		setFormError(null);
+		setInlineErrors({});
+
+		let errors;
+
+		if (modalMode === "register") {
+			errors = validateRegisterInput(data.username, data.password, t);
+	
+		} else {
+			errors = validateLoginInput(data.username, data.password, t);
+		}
+
+		if (Object.keys(errors).length > 0) {
+				setInlineErrors(errors);
+				return;
+		}
+
 		const endpoint =
 			modalMode === "register" ? API_PROTOCOL.REGISTER_USER : API_PROTOCOL.LOGIN_USER;
 		
@@ -102,17 +147,17 @@ const HomePage: React.FC = () => {
 		});
 
 		if (res.status === 202) {
-            // if 2FA is required we get 202
-            const responseData = await res.json();
-            setTempAuthToken(responseData.tempAuthToken);
-            setIsModalOpen(false); // close login modal
-            setIs2faStep(true);   // show 2FA modal
-            return;
-    	}
+			// if 2FA is required we get 202
+			const responseData = await res.json();
+			setTempAuthToken(responseData.tempAuthToken);
+			setIsModalOpen(false); // close login modal
+			setIs2faStep(true);   // show 2FA modal
+			return;
+		}
 
 		if (!res.ok) {
 			const error = await res.json();
-			throw new Error(error?.error || "Request failed");
+			throw new Error(error?.error || t("auth.error.requestFailed"));
 		}
 
 		if (modalMode === "register") {
@@ -129,76 +174,32 @@ const HomePage: React.FC = () => {
 
 		await refreshSession();
 
-		// //fetch user profile after successful login or registration - currently not working because backend does not return user data
-		//await new Promise((resolve) => setTimeout(resolve, 1000)); // short delay
-
-		// const profileRes = await fetch(API_PROTOCOL.GET_PROFILE.path, {
-		// 	method: API_PROTOCOL.GET_PROFILE.method,
-		// 	credentials: "include"
-		//  });
-
-	 	//console.log("Profile fetch response status:", profileRes.status);
-		//if (!profileRes.ok) throw new Error("Failed to fetch user profile");
-
-		// const userProfile = await profileRes.json();
-		// console.log("Fetched user profile:", userProfile);
-	
-		 // === Mock profile for development ===
-		//const userProfile: UserProfile = {
-		//user_id: "mock-1",
-		//username: data.username || "PlayerOne",
-		//avatarFile: "avatars/avatar1.png",
-		//twoFactor: false,
-		//rank: 5,
-		//score: 1200,
-		//victories: 15,
-		//losses: 7,
-		//totalMatches: 22,
-		//friends: [
-		//	{ id: "1", username: "Player2", avatar: "/avatars/avatar2.png" },
-		//	{ id: "2", username: "Player3", avatar: "/avatars/avatar3.png" },
-		//],
-		//matchHistory: [
-		//	{ id: "m1", opponent: "Player2", result: "win", score: 21, timestamp: "2025-08-25T12:00:00" },
-		//	{ id: "m2", opponent: "Player3", result: "loss", score: 18, timestamp: "2025-08-24T15:30:00" },
-		//],
-		//};
-
-		//loginUser(userProfile); // Update AuthContext with logged-in user. Removed as we are using refreshSession()	
-
-		//Success: notify user, close modal, and update login state
-
-		alert(
-			modalMode === "register" 
-			? t("home.alert.registerSuccess")
-			: t("home.alert.loginSuccess")
-		);
 		setIsModalOpen(false);
 
-		// Redirect to profile if login or registration was successful
-		// navigate("/profile");
-		} catch (err) {
-		alert(err);
+		} catch (err: any) {
+			const message =
+				err?.message || (typeof err === "string" ? err : t("home.error.generic"));
+			setFormError(message);
 		}
 	};
 
 	const handle2faVerifySubmit = async () => {
-        if (!tempAuthToken || otp.length !== 6) {
-            alert(t("home.2fa.codeInvalid"));
-            return;
-        }
+		if (!tempAuthToken || otp.length !== 6) {
+			alert(t("home.2fa.codeInvalid"));
+			return;
+		}
 
         try {
-            const res = await fetch('/api/2fa/login-verify', { // new endpoint for 2FA login
-                method: 'POST',
+            const res = await fetch(API_PROTOCOL.TFA_LOGIN_VERIFY.path, { // new endpoint for 2FA login
+                method: API_PROTOCOL.TFA_LOGIN_VERIFY.method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ otp, tempAuthToken }),
             });
 
-            if (!res.ok) {
-                const error = await res.json();
-                throw new Error(error?.error || "2FA verification failed.");
-            }
+			if (!res.ok) {
+				const error = await res.json();
+				throw new Error(error?.error || t("home.2fa.verifyFailed"));
+			}
 
 			//try {
 			//	await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
@@ -209,21 +210,21 @@ const HomePage: React.FC = () => {
 			//	});
 			//} catch (_) {}
 
-            await refreshSession();
-            alert(t("home.alert.loginSuccess"));
-            setIs2faStep(false); // hide 2FA modal
-            setOtp("");
-            setTempAuthToken(null);
+			await refreshSession();
+			alert(t("home.alert.loginSuccess"));
+			setIs2faStep(false); // hide 2FA modal
+			setOtp("");
+			setTempAuthToken(null);
 
-        } catch (err) {
-            alert(err);
-        }
-    };
+		} catch (err: any) {
+			setFormError(err?.message || t("home.error.generic"));
+		}
+	};
 
 	return (
 		<CenteredContainer> 
 		{/* Semi-transparent card wrapper for Home page content */}
-        <div className="w-full max-w-md bg-gray-900/90 rounded-xl p-8 text-white shadow-2xl flex flex-col items-center space-y-8">
+		<div className="w-full max-w-md bg-gray-900/90 rounded-xl p-8 text-white shadow-2xl flex flex-col items-center space-y-8">
 			{/* Language flags */}
 			{!isLoggedIn && (
 				<div className="w-full flex justify-end">
@@ -269,35 +270,42 @@ const HomePage: React.FC = () => {
 
 	<Modal
 		isOpen={isModalOpen}
-		onClose={() => setIsModalOpen(false)}
+		onClose={() => {
+			setIsModalOpen(false);
+			setFormError(null);
+			setInlineErrors({});
+		}}
 		onFormSubmit={handleSubmit}
 		mode={modalMode}
+		error={formError}
+		inlineErrors={inlineErrors}
 	/>
 	{is2faStep && (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-			<div className="bg-white p-6 rounded-lg shadow-xl text-black">
-				<h2 className="text-xl font-bold mb-4">Enter Verification Code</h2>
-				<p className="mb-4">Open your authenticator app and enter the 6-digit code.</p>
+		<div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+			<div className="w-full max-w-md bg-gray-900/90 border border-gray-700 rounded-xl p-6 text-white shadow-2xl">
+				<h2 className="text-2xl font-bold mb-2">{t("home.2fa.title")}</h2>
+				<p className="text-sm text-gray-300 mb-4">{t("home.2fa.instructions")}</p>
 				<input
 					type="text"
 					value={otp}
 					onChange={(e) => setOtp(e.target.value)}
-					className="w-full p-2 border rounded-md text-center text-2xl tracking-widest text-black"
-                    maxLength={6}
+					className="w-full p-3 border border-gray-700 bg-gray-900 rounded-md text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-600"
+					maxLength={6}
 					placeholder="123456"
 				/>
 				<button
 					onClick={handle2faVerifySubmit}
-					className="w-full mt-4 px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600 transition"
+					className="w-full mt-4 px-6 py-3 bg-green-600 text-white rounded hover:bg-green-700 transition"
+					
 				>
-					Verify
-                </button>
+					{t("home.2fa.verify")}
+				</button>
 				<button
 					onClick={() => setIs2faStep(false)}
-					className="w-full mt-2 px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition"
+					className="w-full mt-2 px-6 py-3 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
 				>
-                Cancel
-            </button>
+                	{t("common.cancel")}
+			</button>
 			</div>
 		</div>
 	)}

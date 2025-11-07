@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users
     password TEXT NOT NULL,
     avatar_file TEXT,
 	language TEXT NOT NULL DEFAULT 'en',
-    status TEXT NOT NULL DEFAULT 'offline',
+    status INTEGER NOT NULL DEFAULT 0,
     mfa_enabled INTEGER NOT NULL DEFAULT 0,
 	mfa_secret TEXT,
     rank INTEGER NOT NULL DEFAULT 0,
