@@ -29,7 +29,7 @@ async function addFriend(fastify, options) {
 					friendId: friendId,
 				})
 			} catch (err) {
-				reply.code(500).send({
+				reply.code(400).send({
 					status: "ERROR",
 					friend: username,
 					error: err,
@@ -60,7 +60,7 @@ async function removeFriend(fastify, options) {
 					status: "REMOVED"
 				})
 			} catch (err) {
-				reply.code(500).send({
+				reply.code(400).send({
 					status: "ERROR",
 					friend: username,
 					error: err,

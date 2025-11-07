@@ -61,7 +61,7 @@ fastify.setErrorHandler((error, request, reply) => {
             details: formatted.message
         });
     } else {
-        reply.code(500).send({ 
+        reply.code(400).send({ 
             error: 'SERVER_ERROR', 
             message: error.message 
         });

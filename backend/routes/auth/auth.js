@@ -20,24 +20,22 @@ defaults
  */
 async function registerUser(fastify, options) {
 	const {secure, DBinsert,} = options;
+	schema: signSchema, // moved this one line up, before post call
 	fastify.post(API_PROTOCOL.REGISTER_USER.path, {
-	schema: signSchema,
 	}, async (request, reply) => {
 		/** @type {RegisterUserPayload} */
 		const { username, password} = request.body;
 		const  score = 0;
 		const  status = 'online';
-//		flog.info( {function: 'registerUser'}, `see trace.log/server.log for body/verbose`);
-//		flog.trace({ function: 'registerUser', payload: request.body }, 'Incoming body');
 		try {
 			const result = await DBinsert.insertUser({ username, password, score, status });
 
 			const token = secure.generateToken(result, username);
 			secure.setAuthCookie(reply, token)
-			//saftey protocols here ? or centralize?
 			reply.code(200).send('ok');
 		} catch (err) {
-			reply.code(500).send(err);
+            // 409 is "Conflict". Schema will catch invalid text format, what's left is conflicting usernames
+			reply.code(409).send(err);
 			flog.error( {function: 'registerUser', error: err}, 'Error during user registration::', err);
 		}
 	});
@@ -89,8 +87,9 @@ async function logoutUser(fastify, options) {
 			secure.clearAuthCookie(reply);			
 			reply.code(200).send('ok');
 		} catch (err) {
-			console.log(('Error during login:', err));
-			reply.code(500).send(err);
+			console.log(('Error during logout:', err));
+            // This case is probably about token expired or something, 401 should be fine for it
+			reply.code(401).send(err);
 		}
 	});
 }
@@ -102,28 +101,23 @@ async function deleteUser(fastify, option) {
 		method: API_PROTOCOL.DELETE_PROFILE.method,
 		url: API_PROTOCOL.DELETE_PROFILE.path,
 		handler: async (request, reply) => {
-		console.log("DELETE USER ");
-		console.log('request.userId:', request.userId);
-		try	{
-			const userId = request.userId;
+            try	{
+                const userId = request.userId;
 
-//			flog.warn({fucntion: 'delteUser', testing: userId}, 'seeing if we get valid id ');			
-			const result = await DBdelete.deleteUserById(userId);
-			if (result === 1) {
-				reply.code(200).send("ok");//?
-			}
-			if (result === 0) {
-				reply.code(400).send("user not found");
-			}
-			console.log("result of delete user", result);
-		}
-		catch {
-			flog.error({fucntion: 'deletUser'}, 'ERROR deleting user ');
-			reply.code(500).send('error deleting user');
-		}
+                const result = await DBdelete.deleteUserById(userId);
+                if (result === 1) {
+                    reply.code(200).send("ok");
+                } else if (result === 0) {
+                    reply.code(400).send("user not found");
+                }
+            }
+            catch {
+                // User exists, token is ok, what can there be left?
+                flog.error({fucntion: 'deletUser'}, 'ERROR deleting user ');
+                reply.code(400).send('error deleting user');
+            }
 		}
 	});
-
 }
 /**
  * this nees refactoring so it uses all the api protocol calls 
@@ -150,7 +144,7 @@ async function setupTwoFactor(fastify, options) {
 
         } catch (err) {
             flog.error({ function: 'setupTwoFactor', error: { message: err.message, stack: err.stack } }, 'An error occurred during 2FA setup.'); // Improved error logging
-            reply.code(500).send({ error: 'An error occurred during 2FA setup.' });
+            reply.code(400).send({ error: 'An error occurred during 2FA setup.' });
         }
     });
 }
@@ -188,7 +182,7 @@ async function verifyTwoFactor(fastify, options) {
             }
         } catch (err) {
             flog.error({ function: 'verifyTwoFactor', error: { message: err.message, stack: err.stack } }, 'An error occurred during 2FA verification.');
-            reply.code(500).send({ error: 'An error occurred during 2FA verification.' });
+            reply.code(400).send({ error: 'An error occurred during 2FA verification.' });
         }
     });
 }
@@ -207,7 +201,7 @@ async function disableTwoFactor(fastify, options) {
             reply.code(200).send({ disabled: true });
         } catch (err) {
             flog.error({ function: 'disableTwoFactor', error: { message: err.message, stack: err.stack } }, 'An error occurred while disabling 2FA.');
-            reply.code(500).send({ error: 'An error occurred while disabling 2FA.' });
+            reply.code(400).send({ error: 'An error occurred while disabling 2FA.' });
         }
     });
 }
@@ -275,7 +269,7 @@ async function verifyLoginTwoFactor(fastify, options) {
         	errorStack: err.stack,
         	rawError: err
 			}, 'Error during 2FA login verification.');
-            reply.code(500).send({ error: 'An error occurred during 2FA login verification.' });
+            reply.code(400).send({ error: 'An error occurred during 2FA login verification.' });
         }
     });
 }

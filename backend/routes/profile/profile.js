@@ -48,11 +48,9 @@ const {
 			mockProfile.matchHistory = matchHistory || [];
 			console.log("show mock profile", mockProfile);
 
-			flog.warn({finalMockProfile: mockProfile}, "FULL OTHER USER PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
-			flog.error({fucntion: "get freind profile", err: err.stack}, "AAAAAAAAAAAAaaAAAA erro stack ");
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	});
 }
@@ -66,23 +64,6 @@ async function getUser(fastify, options) {
 		// just for testing check no fail after remove
 		userId = request.userId;
 		
-		//const token = request.cookies.auth_token;
-		//if (!token) {
-		// console.warn("Unauthorized access to /api/profile — no valid user ID");
-		// reply.code(401).send({ error: "Unauthorized" });
-		// return;
-		//}
-		//let userId;
-		//try {
-		//	userId = secure.getUserIdFromToken(token); // might throw if expired
-		//} catch (err) {
-		//	console.warn(`Unauthorized access to ${request.url} — ${err.name}`);
-		//	return reply.code(401).send({ error: err.name });
-		//}
-//
-		//if (!userId || !userId.id) {
-		//	return reply.code(401).send({ error: "Invalid token" });
-		//}
 		const mockProfile = {
 				username: "PlayerOne",
 				avatarFile: undefined,
@@ -109,16 +90,6 @@ async function getUser(fastify, options) {
 			flog.info({function: 'getUser', friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory(userId);
 			
-//			const brackets = await DBtour.getBrackets(profile.active_tournament_id);
-//			let fullBracket = []; 
-//			if (Array.isArray(brackets) && brackets.length >= 3) {
-//				fullBracket = [
-//					[brackets[0][0], brackets[1][0]], // extract game1 and game2
-//					[brackets[2][0]]                  // extract game3
-//				];
-//			}
-			//const tid = await DBget.getActiveTournamentId(userId);
-			//const { password, ...safeUser } = profile;
 			mockProfile.username = profile.username;
 			mockProfile.avatarFile = profile.avatar_file;
 			mockProfile.mfa_enabled = profile.mfa_enabled === 1; // convert to boolean
@@ -129,13 +100,10 @@ async function getUser(fastify, options) {
 			mockProfile.totalMatches = profile.total_games;
 			mockProfile.friends = friends || [];
 			mockProfile.matchHistory = matchHistory || [];
-			//mockP
-//			console.log("show mock profile", mockProfile);
 			mockProfile.tournament = profile.active_tournament_id === 0 ? null : await getTournamentState(profile.active_tournament_id);
-//			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	});
 }
@@ -180,7 +148,7 @@ async function updateUsername(fastify, options) {
 			});
 		} catch (err) {
 			console.log(('Error during login:', err));
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	}
 	});
@@ -217,7 +185,7 @@ async function updatePassword(fastify, options) {
 			});
 		} catch (err) {
 			console.log(('Error during login:', err));
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	}
 	});
@@ -268,7 +236,7 @@ async function uploadAvatarFileRoute(fastify, options) {
 					// Delete the newly uploaded file if DB update fails
 					await deleteOldAvatar(newAvatarUrl); 
 					
-					reply.code(500).send({ status: 'ERROR', error: 'Database update failed' });
+					reply.code(400).send({ status: 'ERROR', error: 'Database update failed' });
 					return;
 				}
 
@@ -288,7 +256,7 @@ async function uploadAvatarFileRoute(fastify, options) {
 					await deleteOldAvatar(newAvatarUrl); // Clean up temp file
 				}
 				flog.error({ err }, 'Error during avatar file upload (includes file system errors)');
-				reply.code(500).send({ status: 'ERROR', error: 'Server error during upload' });
+				reply.code(400).send({ status: 'ERROR', error: 'Server error during upload' });
 			}
 		},
 	});
@@ -322,7 +290,7 @@ async function updateAvatar(fastify, options) {
 			});
 		} catch (err) {
 			console.log(('Error during avatar change:', err));
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	}
 	});
@@ -354,7 +322,7 @@ async function updateLanguage(fastify, options) {
 			});
 		} catch (err) {
 			console.log(('Error during Language change:', err));
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	}
 	});
@@ -388,7 +356,7 @@ async function updateTwoFactor(fastify, options) {
 		}
 		catch (err) {
 			console.log(('Error during Two Factor change:', err));
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	}
 	});
