@@ -129,6 +129,13 @@
   "auth.password": "Lösenord",
   "auth.logIn": "Logga in",
   "auth.loggingIn": "Loggar in...",
+  "game.controls.title": "Kontroller",
+  "game.controls.leftLabel": "Vänster spelare / Spelare 1:",
+  "game.controls.rightLabel": "Höger spelare / Spelare 2:",
+  "game.controls.up": "upp",
+  "game.controls.down": "ned",
+  "game.controls.powerup.title": "Power-up:",
+  "game.controls.powerup.desc": "snabbar tillfälligt upp bollen.",
 
   "tournament.loading": "Laddar turneringsinformation...",
   "tournament.loginRequired": "Logga in för att visa turneringen.",
@@ -184,6 +191,7 @@
   "common.deleting": "Tar bort…",
   "common.twofa.enabled": "Tvåfaktorsautentisering har aktiverats.",
   "common.twofa.disabled": "Tvåfaktorsautentisering har inaktiverats.",
+  "common.gotIt": "Okej!",
 
   "error.username.length": "Användarnamnet måste vara 3–15 tecken.",
   "error.username.updateFailed": "Det gick inte att uppdatera användarnamnet.",

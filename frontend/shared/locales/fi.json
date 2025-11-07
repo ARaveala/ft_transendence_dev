@@ -127,6 +127,14 @@
   "auth.password": "Salasana",
   "auth.logIn": "Kirjaudu",
   "auth.loggingIn": "Kirjaudutaan...",
+  "game.controls.title": "Ohjaimet",
+  "game.controls.leftLabel": "Vasen pelaaja / Pelaaja 1:",
+  "game.controls.rightLabel": "Oikea pelaaja / Pelaaja 2:",
+  "game.controls.up": "ylös",
+  "game.controls.down": "alas",
+  "game.controls.powerup.title": "Tehoste:",
+  "game.controls.powerup.desc": "nopeuttaa palloa hetkellisesti.",
+
 
   "tournament.loading": "Ladataan turnaustietoja...",
   "tournament.loginRequired": "Kirjaudu sisään nähdäksesi turnauksen.",
@@ -182,6 +190,7 @@
   "common.deleting": "Poistetaan…",
   "common.twofa.enabled": "Kaksivaiheinen tunnistus otettu käyttöön.",
   "common.twofa.disabled": "Kaksivaiheinen tunnistus poistettu käytöstä.",
+  "common.gotIt": "Selvä!",
 
   "error.username.length": "Käyttäjänimen pituuden tulee olla 6-12 merkkiä.",
   "error.username.updateFailed": "Käyttäjänimen päivitys epäonnistui.",
