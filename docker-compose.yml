@@ -1,13 +1,5 @@
 
 services:
-  certgen:
-    container_name: certgen
-    image: alpine:3.22
-    command: >
-      sh -c 'apk add --no-cache openssl && mkdir -p /out &&
-             [ -f /out/fullchain.pem ] || openssl req -x509 -nodes -newkey rsa:2048 -keyout /out/privkey.pem -out /out/fullchain.pem -days 365 -subj "/CN=localhost"'
-    volumes:
-      - ./volumes/tls:/out
   waf:
     container_name: modsecurity
     build:
@@ -15,24 +7,28 @@ services:
       dockerfile: Dockerfile
     restart: always
     depends_on:
-      - backend
-      - frontend
-      - certgen
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
     volumes:
     - ./volumes/nginx_logs:/var/log/nginx
     - ./volumes/tls:/etc/ssl/local
     ports:
-    - "80:80"
-    - "443:443"
+    - "8080:80"
+    - "4004:443"
     networks:
       - app-net
     # Optional: mark proxy itself healthy (hits its own https listener)
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider --no-check-certificate https://localhost/ || exit 1"]
+      test: ["CMD-SHELL", "curl -fk https://localhost/health || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 5
       start_period: 10s
+
   vault:
     container_name: vault
     build:
@@ -44,6 +40,7 @@ services:
       VAULT_API_ADDR: http://127.0.0.1:8200
     volumes:
       - ./volumes/backend_secrets:/run/secrets
+      - ./volumes/tls:/out
     networks:
       - app-net
     healthcheck:
@@ -71,14 +68,13 @@ services:
     environment:
       VAULT_ADDR: http://vault:8200
       VAULT_API_ADDR: http://vault:8200
-
-    # healthcheck:
-    #   # bookworm-slim: install curl in the Dockerfile (see below)
-    #   test: ["CMD-SHELL", "curl -fsk http://localhost:3000/ >/dev/null || exit 1"]
-    #   interval: 10s
-    #   timeout: 3s
-    #   retries: 10
-    #   start_period: 20s
+    healthcheck:
+      # bookworm-slim: install curl in the Dockerfile (see below)
+      test: ["CMD-SHELL", "curl http://localhost:3000/status >/dev/null|| exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
 
   frontend:
     container_name: frontend
@@ -93,13 +89,13 @@ services:
       - "5173"
     networks:
       - app-net
-    # healthcheck:
-    #   # node:20-alpine has BusyBox wget
-    #   test: ["CMD-SHELL", "wget -q --spider http://localhost:5173/ || exit 1"]
-    #   interval: 10s
-    #   timeout: 3s
-    #   retries: 10
-    #   start_period: 20s
+    healthcheck:
+      # node:20-alpine has BusyBox wget
+      test: ["CMD-SHELL", "curl http://localhost:5173/status >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
 
 networks:
   app-net:
