@@ -126,7 +126,7 @@ async function createTournament(fastify, options){
  			}
  			catch (err){
  				flog.error({fucntion: 'createTournament'}, "error ::", err);
-				reply.code(500).send({status: 'ERROR', message: "error in create tournament"});
+				reply.code(418).send({status: 'ERROR', message: "error in create tournament"});
  			}
  		}
  	});
@@ -174,8 +174,8 @@ async function verifyPlayer(fastify, options){
  				reply.code(200).send({status: 'OK', tournament: tournamentState});
  			}
  			catch (err){
- 				flog.error({fucntion: 'verifyPlayer', error: err }, "error verifing player");
-				reply.code(400).send({ status: 'ERROR', error: 'Verification failed' });
+ 				flog.error({fucntion: 'createTournament'}, "error :: in verify player", err); //wrong
+				reply.code(418).send({ status: 'ERROR', error: 'Verification failed?' });
 			}
  		}
  	});
@@ -268,7 +268,7 @@ async function startTournament(fastify, options){
 				reply.code(200).send({status: 'OK', tournament: tournamentState});
 			} catch (err) {
 			//	flog.error({fucntion: 'startTournament', errStack: err.stack, errMessage: err.message}, "error :: in start tournament"); //wrong
-				reply.code(500).send({ status: 'ERROR', error: 'Start tournament failed?' });//wrong	
+				reply.code(418).send({ status: 'ERROR', error: 'Start tournament failed?' });//wrong	
 			}
 		}
 		
@@ -289,7 +289,7 @@ async function removeUserFromTournament(fastify, options) {
 				reply.code(200).send({status: 'OK', tournament: tournamentState});
 			}
 			catch (err) {
-				reply.code(500).send({status: 'ERROR', error: "error removing from tournamnet"});
+				reply.code(418).send({status: 'ERROR', error: "error removing from tournamnet"});
 			}
 		}
 	})
@@ -311,7 +311,7 @@ async function cancelTournament(fastify, options) {
 			}
 			catch(err) {
 				//flog.error({function: "cancelTournament", errmsg: err.message}, "errorerror")
-				reply.code(500).send({status: 'ERROR', error: "error canceling tournamnet"});
+				reply.code(418).send({status: 'ERROR', error: "error canceling tournamnet"});
 			}
 		}
 	})

@@ -65,6 +65,7 @@ const SettingsPage: React.FC = () => {
 	const [deleting, setDeleting] = useState(false);
 	const [deleted, setDeleted] = useState(false);
 	const [deleteError, setDeleteError] = useState<string | null>(null);
+	const [confirmDelete, setConfirmDelete] = useState(false);
 
 	// Use apiFetch hook
 	const apiFetch = useApiFetch();
@@ -400,10 +401,12 @@ const SettingsPage: React.FC = () => {
 			};
 			console.log("Frontend sending", currentPassword);
 			console.log("Frontend sending:", newPassword);
-			const { res, data } = await apiFetch(API_PROTOCOL.CHANGE_PASSWORD.path, {
+			const res = await apiFetch(API_PROTOCOL.CHANGE_PASSWORD.path, {
+			const data: ChangePasswordResponse = await apiFetch(
+			API_PROTOCOL.CHANGE_PASSWORD.path,
+			{
 				method: API_PROTOCOL.CHANGE_PASSWORD.method,
 				headers: { "Content-Type": "application/json" },
-				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 
@@ -441,13 +444,18 @@ const SettingsPage: React.FC = () => {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
 			const payload: UpdateProfilePayload = { avatar: selectedAvatar };
-			const res = await fetch(API_PROTOCOL.CHANGE_AVATAR.path, {
-				method: API_PROTOCOL.CHANGE_AVATAR.method,
-				headers: { "Content-Type": "application/json" },
-				credentials: "include",
-				body: JSON.stringify(payload),
-			});
-			if (!res.ok) throw new Error("Failed to update avatar.");
+			const data = await apiFetch(
+				API_PROTOCOL.CHANGE_AVATAR.path,
+				{
+					method: API_PROTOCOL.CHANGE_AVATAR.method,
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload),
+				}
+			);
+
+			if (data.status !== "UPDATED") {
+				throw new Error(data.error || "Failed to update avatar.");
+			}
 
 			setCurrentAvatar(selectedAvatar);
 			if (uploadPreview) {
@@ -460,6 +468,7 @@ const SettingsPage: React.FC = () => {
 			setOpenRow(null);
 			await refreshSession();
 		} catch (e: any) {
+			if (e.sessionExpired) return;
 			setErr(t("error.avatar.updateFailed"));
 		} finally {
 			setBusy(false);
@@ -927,29 +936,56 @@ const SettingsPage: React.FC = () => {
 			</section>
 
 			{/* Danger Zone */}
-			<section className="mt-6 border border-red-500/30 bg-red-900/10 rounded-lg p-4">
-				<h2 className="text-red-400 font-semibold mb-2">{t("settings.title.delete")}</h2>
-				<p className="text-sm text-red-200 mb-3">
-					{t("settings.delete.text")}
-				</p>
+		<section className="mt-6 border border-red-500/30 bg-red-900/10 rounded-lg p-4">
+		<h2 className="text-red-400 font-semibold mb-2">
+			{t("settings.title.delete")}
+		</h2>
 
-				{deleteError && <p className="text-red-300 text-sm mb-2">{deleteError}</p>}
-				{deleted && <p className="text-red-300 text-sm mb-2">{t("common.delete.success")}</p>}
+		{deleteError && <p className="text-red-300 text-sm mb-2">{deleteError}</p>}
+		{deleted && <p className="text-red-300 text-sm mb-2">{t("common.delete.success")}</p>}
+
+		{/* Delete confirmation logic */}
+		{confirmDelete ? (
+			<div className="border border-red-500/30 bg-red-900/10 rounded p-4 mt-3">
+			<p className="text-sm text-red-200 mb-3">
+				{t("settings.delete.text")}
+			</p>
+			<div className="flex gap-2">
 				<button
-					type="button"
-					onClick={handleDeleteProfile}
-					disabled={deleting || deleted}
-					className={`px-3 py-1.5 text-sm  rounded-md text-white ${
-						deleted
-							? "bg-red-600 cursor-not-allowed"
-							: deleting
-							 ? "bg-red-500 cursor-wait"
-							 : "bg-red-600 hover:bg-red-700"
-					}`}
+				type="button"
+				onClick={handleDeleteProfile}
+				disabled={deleting || deleted}
+				className="px-3 py-1.5 text-sm rounded-md text-white bg-red-600 hover:bg-red-700 disabled:cursor-not-allowed"
 				>
-					{deleted ? t("common.deleted") : deleting ? t("common.deleting") : t("settings.item.delete")}
+				{deleting ? t("common.deleting") : t("game.action.confirm")}
 				</button>
-			</section>
+				<button
+				type="button"
+				onClick={() => setConfirmDelete(false)}
+				disabled={deleting}
+				className="px-3 py-1.5 text-sm rounded-md text-white bg-gray-600 hover:bg-gray-700 disabled:cursor-not-allowed"
+				>
+				{t("common.cancel")}
+				</button>
+			</div>
+			</div>
+		) : (
+			<button
+			type="button"
+			onClick={() => setConfirmDelete(true)}
+			disabled={deleting || deleted}
+			className={`px-3 py-1.5 text-sm rounded-md text-white ${
+				deleted
+				? "bg-red-600 cursor-not-allowed"
+				: deleting
+				? "bg-red-500 cursor-wait"
+				: "bg-red-600 hover:bg-red-700"
+			}`}
+			>
+			{deleted ? t("common.deleted") : t("settings.item.delete")}
+			</button>
+		)}
+		</section>
 		</div>
 		  </div>
 	);
