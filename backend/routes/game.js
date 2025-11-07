@@ -253,7 +253,7 @@ async function startGame(fastify, options) {
 			//if (!reply.sent) {
 				flog.error({function: "startGame", errormsg: err.message, errorstack: err.stack}, "what error");
 				if (!reply.sent){
-					return reply.code(500).send({ error: 'Game initialization failed' });
+					return reply.code(418).send({ error: 'Game initialization failed' });
 				}
 			//return reply.code(400).send({ error: 'Game initialization failed' });
 		}

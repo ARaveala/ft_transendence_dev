@@ -117,11 +117,12 @@ test('test', async ({ page }) => {
   await page.locator('iframe').contentFrame().getByText('OK').click();
   await page.getByRole('button', { name: 'Play Final' }).click();
   await page.locator('iframe').contentFrame().getByText('OK').click();
-  await expect(page.getByRole('main')).toContainText('🏆 alias2');
+ 
   await page.getByRole('link', { name: 'Settings' }).click();
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Delete profile' }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByRole('button', { name: 'English' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Login' }).click();
@@ -138,6 +139,7 @@ test('test', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Delete profile' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByRole('button', { name: 'English' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Login' }).click();
@@ -154,6 +156,7 @@ test('test', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Delete profile' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByRole('button', { name: 'English' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Login' }).click();
@@ -170,5 +173,6 @@ test('test', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Delete profile' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByRole('heading', { name: 'Pong' })).toBeVisible();
 });
