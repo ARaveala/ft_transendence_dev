@@ -62,7 +62,7 @@ export const API_PROTOCOL = {
   },
 
   CREATE_GAME: {
-    path:'/api/game/local',
+    path:'/api/create-game',
     method: 'POST',
   },
 
@@ -70,6 +70,11 @@ export const API_PROTOCOL = {
 		path: '/api/start-game',
 		method: 'POST',
 	},
+
+  JOIN_GAME: {
+    path: '/api/join-game',
+    method: 'POST',
+  },
 
   CREATE_TOURNAMENT: {
     path:'/api/tournaments',
