@@ -16,5 +16,6 @@ test('test', async ({ page }) => {
   await expect(page.getByText('Welcome, ' + username + '! 🏓')).toBeVisible();
   await page.getByRole('link', { name: 'Settings' }).click();
   await page.getByRole('button', { name: 'Delete profile' }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByRole('heading', { name: 'Pong' })).toBeVisible();
 });
