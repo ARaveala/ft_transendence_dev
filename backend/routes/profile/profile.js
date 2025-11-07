@@ -8,7 +8,10 @@ const {
 	getTournamentState,
 } = require('@Rtour/tournament.js');
 
- async function getFriendProfile(fastify, options) {
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
+async function getFriendProfile(fastify, options) {
 	const { DBget } = options;
 	fastify.get(API_PROTOCOL.GET_OTHER_PLAYER_PROFILE.path,{ //get friend profile
 	}, async (request, reply) => {
@@ -64,6 +67,7 @@ async function getUser(fastify, options) {
 		// just for testing check no fail after remove
 		userId = request.userId;
 		
+
 		const mockProfile = {
 				username: "PlayerOne",
 				avatarFile: undefined,
@@ -87,7 +91,7 @@ async function getUser(fastify, options) {
 
 			//flog.warn({function: "getProfile", totalGames: profile.total_games}, "can we see total matches updated and recived==============================");
 			const friends = await DBget.getFriendsForPlayer(userId);
-			flog.info({function: 'getUser', friends}, 'checking friend object');
+			flog.info({function: 'getUser', friends: friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory(userId);
 			
 			mockProfile.username = profile.username;
@@ -100,6 +104,8 @@ async function getUser(fastify, options) {
 			mockProfile.totalMatches = profile.total_games;
 			mockProfile.friends = friends || [];
 			mockProfile.matchHistory = matchHistory || [];
+
+//			console.log("show mock profile", mockProfile);
 			mockProfile.tournament = profile.active_tournament_id === 0 ? null : await getTournamentState(profile.active_tournament_id);
 			reply.send(mockProfile);
 		} catch (err) {
@@ -166,19 +172,19 @@ async function updatePassword(fastify, options) {
 
 			const userId = request.userId;
 			if (userId){
-				const check = await DBget.checkPasswordMatch(current_password);
+				const check = await DBget.checkPasswordMatch(userId, current_password);
 				console.log('checking check', check)
 				//might need more in depth error handling
 				if (check.error) {
-					//update the username
 					reply.code(400).send({
 						status: 'ERROR',
 						error: 'current password does not match'
 					})
 				}
 				//update password after checks valid
-				const res = await DBupdate.updatePassword(new_password, userId);
-				console.log('checking res', res);
+				const hashedPassword = await bcrypt.hash(new_password, saltRounds);
+				const res = await DBupdate.updatePassword(hashedPassword, userId);
+//				console.log('checking res', res);
 			}
 			reply.code(200).send({
 				status: 'UPDATED',

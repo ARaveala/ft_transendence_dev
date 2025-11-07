@@ -6,6 +6,9 @@ const signSchema = require('@schemas/signSchema.js');
 const speakeasy = require('speakeasy'); // for creating 2FA secrets
 const qrcode = require('qrcode');      // creating qrcodes
 const tempSetupSecrets = new Map();
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 
 /**
  * @type {import('../../shared/payloads').RegisterUserPayload}
@@ -28,10 +31,20 @@ async function registerUser(fastify, options) {
 		const  score = 0;
 		const  status = 'online';
 		try {
-			const result = await DBinsert.insertUser({ username, password, score, status });
+			const hashedPassword = await bcrypt.hash(password, saltRounds);
+			flog.info( {function: 'registerUser', hash: hashedPassword}, `tracking hash`);
+
+			const result = await DBinsert.insertUser({ username, hashedPassword, score, status });
+			flog.info( {function: 'registerUser'}, `insertion completed`);
 
 			const token = secure.generateToken(result, username);
 			secure.setAuthCookie(reply, token)
+			//saftey protocols here ? or centralize?
+			flog.warn({function: "register user", id: result});
+			const err = DBupdate.updateOnlineStatus(result.id, true);
+			if (err.error){
+				reply.code(err.code).send( {message: err.error});
+			}
 			reply.code(200).send('ok');
 		} catch (err) {
             // 409 is "Conflict". Schema will catch invalid text format, what's left is conflicting usernames
@@ -42,7 +55,7 @@ async function registerUser(fastify, options) {
 }
 
 async function loginUser(fastify, options) {
-    const { DBget, secure } = options;
+    const { DBget, secure, DBupdate } = options;
     fastify.route({
         method: API_PROTOCOL.LOGIN_USER.method,
         url: API_PROTOCOL.LOGIN_USER.path,
@@ -51,7 +64,9 @@ async function loginUser(fastify, options) {
             const { username, password } = request.body;
 //            flog.info({ function: 'loginUser' }, `Incoming login attempt for user: ${username}`);
             try {
-                const result = await DBget.miniLogin(username, password);
+				//const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+				const result = await DBget.miniLogin(username, password);
                 if (!result) {
                     return reply.code(401).send({ error: "Invalid username or password." });
                 }
@@ -61,7 +76,7 @@ async function loginUser(fastify, options) {
                 if (isTwoFactorEnabled) {
 //                    flog.info({ function: 'loginUser' }, `2FA required for user: ${result.id}`);
                     const tempToken = secure.generateTemporaryToken({ id: result.id, username: username, type: '2fa_pending' });
-					reply.code(202).send({
+					return reply.code(202).send({
                         message: '2FA required',
                         tempAuthToken: tempToken
                     });
@@ -69,22 +84,36 @@ async function loginUser(fastify, options) {
                     const token = secure.generateToken(result, username);
 //                    flog.info({ function: 'loginUser' }, `2FA not enabled. Issuing standard token for user: ${result.id}`);
                     secure.setAuthCookie(reply, token);
-                    reply.code(200).send('ok');
+					const temp = secure.getUserIdFromToken(token);
+					flog.warn({function: "login user", id: temp.id});
+
+					const err = await DBupdate.updateOnlineStatus(temp.id, true);
+					if (err.error){
+						return reply.code(err.code).send( {message: err.error});
+					}
+
+					reply.code(200).send('ok');
                 }
             } catch (err) {
                 flog.error({ function: 'loginUser', error: err }, 'Error during login:', err);
-				reply.code(err.code).send(err);
+				return reply.code(err.code).send(err);
             }
         }
     });
 }
 
 async function logoutUser(fastify, options) {
-	const { secure } = options;
+	const { secure, DBupdate } = options;
 	fastify.post(API_PROTOCOL.LOGOUT_USER.path, {
 	}, async (request, reply) => {
+		const userId = request.userId; 
 		try {
-			secure.clearAuthCookie(reply);			
+			secure.clearAuthCookie(reply);
+			const err = await DBupdate.updateOnlineStatus(userId, false);
+			if (err.error){
+				reply.code(err.code).send( {message: err.error});
+			}
+			
 			reply.code(200).send('ok');
 		} catch (err) {
 			console.log(('Error during logout:', err));
