@@ -150,8 +150,14 @@ const HomePage: React.FC = () => {
 			const resData = await res.json();
 			console.log("Backend error:", resData);
 
+			if (res.status === 202) {
+				setTempAuthToken(resData.tempAuthToken);
+				setIsModalOpen(false);
+				setIs2faStep(true);
+				return;
+			}
 
-			if (!res.ok) {
+			if (!res.ok ) {
 				const backendError = resData?.error;
 				switch (backendError) {
 					case "Database error":
@@ -169,15 +175,6 @@ const HomePage: React.FC = () => {
 					default:
 						throw new Error(t("Could not log in, please try again later."));
 				}
-			}
-
-			if (res.status === 202) {
-				// if 2FA is required we get 202
-				const responseData = await res.json();
-				setTempAuthToken(responseData.tempAuthToken);
-				setIsModalOpen(false); // close login modal
-				setIs2faStep(true);   // show 2FA modal
-				return;
 			}
 
 			if (modalMode === "register") {
