@@ -96,8 +96,12 @@ async function getFriendsForPlayer( userId ) {
 					console.error('DB error fetching friends:', err);
 					reject({ error: 'DB error fetching friends' });
 				} else {
+					const formattedRows = rows.map(row => ({
+						...row, // keep all original fields
+						status: Boolean(row.status) // convert just this one
+					}));
 					console.log(`Found ${rows.length} friends for user ID ${userId}`);
-					resolve(rows);
+					resolve(formattedRows);
 				}
 			}
 		);

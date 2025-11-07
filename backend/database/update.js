@@ -4,9 +4,28 @@ const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'DB/update.js' }); // scoped logger
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
-//function updateOnlineStatus(userId) {
-//	flog.info({function: "updateOnlineStatus"})
-//}
+
+function updateOnlineStatus(userId, status) {
+	flog.info({function: "updateOnlineStatus"})
+	return new Promise((resolve, reject) => {
+		db.run ('UPDATE users SET status = ? WHERE id = ?',
+			[status, userId],
+			function (err) {
+				if (err) {
+					return reject ({ error: 'failed to update status', code: 500 });
+				}
+				else if (this.changes === 0) {
+					return reject({error: 'no changes made', code: 401});
+				}
+				else {
+					return resolve (this.changes);
+				}
+			}
+
+		)
+	}
+)
+}
 
 function updateUserScore({userId, score}) {
 	console.log('updating score for user:', { userId, score });
@@ -278,5 +297,6 @@ module.exports = { updateUserScore,
 	update2fa,
 	updatePlayerGameStats,
 	applyTournamentId,
-	updateMatchHistory
+	updateMatchHistory,
+	updateOnlineStatus
 };

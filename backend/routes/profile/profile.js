@@ -92,7 +92,7 @@ async function getUser(fastify, options) {
 
 			//flog.warn({function: "getProfile", totalGames: profile.total_games}, "can we see total matches updated and recived==============================");
 			const friends = await DBget.getFriendsForPlayer(userId);
-//			flog.info({function: 'getUser', friends}, 'checking friend object');
+			flog.info({function: 'getUser', friends: friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory(userId);
 			
 			mockProfile.username = profile.username;
