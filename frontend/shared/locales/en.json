@@ -25,6 +25,8 @@
   "profile.history.time": "Time",
   "profile.result.win": "Win",
   "profile.result.loss": "Loss",
+  "profile.match.histor.empty": "No match history available.",
+  "profile.error.loading": "Unable to load profile.",
 
   "settings.title": "Settings",
   "settings.loginRequired": "Please log in to view settings.",
