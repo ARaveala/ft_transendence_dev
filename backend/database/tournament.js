@@ -66,7 +66,7 @@ function getActiveTournamentStatus(tId) {
 
 
 
-function createTournamentPlayer(tournamentId, playerId, alias, seed, role, verified, isOwner) {
+function createTournamentPlayer(tournamentId, playerId, alias, role, verified, isOwner) {
 	flog.debug({ function: 'createTournamentPlayer', playerid: playerId }, 'Adding player to tournament');
 		return new Promise((resolve, reject) => {
 			// db.get('SELECT id FROM tournaments WHERE id = ?', [tournamentId], (err, tournamentRow) => {
@@ -85,25 +85,113 @@ function createTournamentPlayer(tournamentId, playerId, alias, seed, role, verif
 			//        }
 			// });
 			//})			
-			db.run('INSERT INTO tournament_players (tournament_id, user_id, alias, seed, player_role, verified, is_owner) VALUES (?, ?, ?, ?, ?, ?, ?)', 
-				[tournamentId, playerId, alias, seed, role, verified, isOwner], function onDone(err) {
+			db.run('INSERT INTO tournament_players (tournament_id, user_id, alias, player_role, verified, is_owner) VALUES (?, ?, ?, ?, ?, ?)', 
+				[tournamentId, playerId, alias, role, verified, isOwner], function onDone(err) {
 				if (err) {
 					flog.error({ function: 'createTournamentPlayer', err}, 'DB error adding player to tournament:');
 					return reject(err);
 				}
-				flog.info({ function: 'createTournamentPlayer', tournamentId, playerId, alias, seed, role,verified }, 'Player added to tournament');
+				flog.info({ function: 'createTournamentPlayer', tournamentId, playerId, alias, role,verified }, 'Player added to tournament');
 				resolve(this.changes);
 				}
 			);
 		});
 }
 
-function seedPlayers(tournamnetId) {
-	return new Promise ((resolve, reject) => {
-		db.run('UPDATE FROM tournamen_players seed')
-		//seed based on rank		
-	})
+function seedPlayers(tournamentId) {
+	flog.info({fucntion: 'seedPlayers', tid: tournamentId}, "tid ")
+  return new Promise((resolve, reject) => {
+    db.serialize(() => {
+      // Step 1: Join users to tournament_players to get rank
+      db.all(
+        `SELECT tp.user_id, u.rank
+         FROM tournament_players tp
+         JOIN users u ON tp.user_id = u.id
+         WHERE tp.tournament_id = ?
+         ORDER BY u.rank DESC`,
+        [tournamentId],
+        (err, rows) => {
+          if (err) {
+            flog.error({fucntion: 'seedPlayers'}, 'Error fetching players:', err);
+            return reject({ error: 'Failed to fetch players', details: err });
+          }
+
+          if (!rows || rows.length === 0) {
+            flog.warn({fucntion: 'seedPlayers'}, 'No players found for tournament:');
+            return resolve({ message: 'No players to seed' });
+          }
+
+          // Step 2: Assign seeds based on rank order
+          const updates = rows.map((player, index) => {
+            return new Promise((res, rej) => {
+              db.run(
+                'UPDATE tournament_players SET seed = ? WHERE tournament_id = ? AND user_id = ?',
+                [index + 1, tournamentId, player.user_id],
+                (err) => {
+                  if (err) {
+                    flog.error({fucntion: 'seedPlayers', err: err.message}, 'Error updating seed for user:');
+                    return rej({ error: 'Failed to update seed', userId: player.user_id, details: err });
+                  }
+                  res();
+                }
+              );
+            });
+          });
+
+          // Step 3: Wait for all updates to complete
+          Promise.all(updates)
+            .then(() => {
+              console.info('Seeding complete for tournament:', tournamentId);
+              resolve({ message: 'Seeding complete', totalSeeded: updates.length });
+            })
+            .catch((err) => {
+              console.error('Seeding failed:', err);
+              reject(err);
+            });
+        }
+      );
+    });
+  });
 }
+
+//function seedPlayers(tournamentId) {
+//  return new Promise((resolve, reject) => {
+//    db.serialize(() => {
+//      db.all('SELECT user_id, rank FROM tournament_players WHERE tournament_id = ? ORDER BY rank DESC',
+//		[tournamentId], (err, rows) => {
+//        if (err){
+//			flog.error({fucntion: 'seed players', err: err.message}, 'fffffffffffffff');
+//			 return reject(err);
+//		}
+//		flog.warn({function: 'seed players'}, 'aaaaaaaaaaaaaaaaaaaaa');
+//        const updates = rows.map((player, index) => {
+//        return new Promise((res, rej) => {
+//          db.run(
+//            'UPDATE tournament_players SET seed = ? WHERE tournament_id = ? AND user_id = ?',
+//            [index + 1, tournamentId, player.user_id],
+//            (err) => {
+//              if (err) return rej(err);
+//              res();
+//            }
+//          );
+//        });
+//          });
+//
+//          Promise.all(updates)
+//            .then(() => resolve({ message: 'Seeding complete', totalSeeded: updates.length }))
+//            .catch(reject);
+//        }
+//      );
+//    });
+//  });
+//}
+
+//function seedPlayers(tournamnetId) {
+//	return new Promise ((resolve, reject) => {
+//		db.run('UPDATE FROM tournamen_players seed')
+//		//seed based on rank		
+//	})
+//}
 //function getTournamentPlayersByTournamentId(tournamentId) {
 //	flog.debug({ function: 'getTournamentPlayers' }, 'Fetching tournament players');
 //		return new Promise((resolve, reject) => {
@@ -182,7 +270,7 @@ function getTournamentPlayerById(userId) {
 function getTournamentPlayers(tid) {
 	//flog.debug({ function: 'fffffffffffffffffffffgetTournamentPlayersALL', tournamnetId: tid }, 'Fetching tournament players');
 		return new Promise((resolve, reject) => {
-			db.all('SELECT * FROM tournament_players WHERE tournament_id = ?',[tid], (err, rows) =>{
+			db.all('SELECT * FROM tournament_players WHERE tournament_id = ? ORDER BY seed ASC',[tid], (err, rows) =>{
 				if (err) {
 					flog.error({ function: 'getTournamentPlayersALL', err}, 'DB error fetching tournament players:');
 					return reject({ error: 'DB error fetch' });
@@ -652,4 +740,5 @@ module.exports = {
 	updateTournamentStats,
 	 updateBracket,
 	 getBrackets,
+	 seedPlayers
 };
