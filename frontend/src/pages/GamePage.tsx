@@ -60,7 +60,7 @@ const Game: React.FC = () => {
 
 	useEffect(() => {
 		function handleMessage(event: MessageEvent) {
-			if (event.origin !== "http://localhost:3000") return;
+			//if (event.origin !== "http://localhost:3000") return;
 
 			if (event.data?.type === "GAME RESULT") {
 			console.log(t("game.status.receivedResult"), event.data.payload);
