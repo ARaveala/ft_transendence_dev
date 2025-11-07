@@ -129,6 +129,13 @@
   "auth.password": "Password",
   "auth.logIn": "Log in",
   "auth.loggingIn": "Logging in...",
+  "game.controls.title": "Controls",
+  "game.controls.leftLabel": "Left Player / Player 1:",
+  "game.controls.rightLabel": "Right Player / Player 2:",
+  "game.controls.up": "up",
+  "game.controls.down": "down",
+  "game.controls.powerup.title": "Power-Up:",
+  "game.controls.powerup.desc": "temporarily speeds up the ball.",
 
   "tournament.loading": "Loading tournament info...",
   "tournament.loginRequired": "Please log in to view tournament.",
@@ -184,6 +191,7 @@
   "common.deleting": "Deleting...",
   "common.twofa.enabled": "Two-factor authentication enabled.",
   "common.twofa.disabled": "Two-factor authentication disabled.",
+  "common.gotIt": "Got it!",
 
   "error.username.length": "Username must be between 3-15 characters.",
   "error.username.updateFailed": "Could not update username.",
