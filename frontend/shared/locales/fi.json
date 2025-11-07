@@ -25,6 +25,8 @@
   "profile.history.time": "Aika",
   "profile.result.win": "Voitto",
   "profile.result.loss": "Häviö",
+  "profile.match.histor.empty": "Ei otteluhistoriaa.",
+  "profile.error.loading": "Profiilia ei voitu ladata.",
 
   "settings.title": "Asetukset",
   "settings.loginRequired": "Kirjaudu sisään nähdäksesi asetukset.",

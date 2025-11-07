@@ -123,9 +123,7 @@ const Profile: React.FC = () => {
 														{m.opponent}
 													</button>
 													</Td>
-												<Td className={resultClass}>
-													{result ? result.charAt(0).toUpperCase() + result.slice(1) : "-"}
-												</Td>
+												<Td className={resultClass}>{resultLabel}</Td>
 												<Td>{m.score}</Td>
 												<Td>{fmt(m.timestamp)}</Td>
 											</tr>
