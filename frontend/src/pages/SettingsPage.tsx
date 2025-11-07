@@ -298,7 +298,8 @@ const SettingsPage: React.FC = () => {
 
 		try {
 			const payload: ChangeLanguagePayload = { language };
-			const data: ChangeLanguageResponse = await apiFetch(
+			
+			const {res, data } = await apiFetch(
 				API_PROTOCOL.CHANGE_LANGUAGE.path,
 				{
 					method: API_PROTOCOL.CHANGE_LANGUAGE.method,
@@ -307,13 +308,13 @@ const SettingsPage: React.FC = () => {
 				}
 			);
 
-			if (data.status !== "UPDATED") {
-				throw new Error(data.error || "Failed to update language.");
+			if (!res.ok || data.status !== "UPDATED") {
+				console.error("language update error:", data.error);
+				setErr(t("error.language.updateFailed"));
+				return;
 			}
-
-			setLang(language);
+			setLang(language);	
 			localStorage.setItem("serverLang", language);
-			setMsg(t("common.language.updated"));
 			setOpenRow(null);
 			await refreshSession();
 
@@ -337,27 +338,21 @@ const SettingsPage: React.FC = () => {
 			setInlineErrors({});
 
 			const payload: ChangeUsernamePayload = { username: value };
-			const res = await apiFetch(API_PROTOCOL.CHANGE_USERNAME.path, {
+			const { res, data } = await apiFetch(API_PROTOCOL.CHANGE_USERNAME.path, {
 					method: API_PROTOCOL.CHANGE_USERNAME.method,
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(payload),
 			});
-		
-
-			const data = (await res.json());
-			console.log("error from json", data);
 
 			if (!res.ok || data.status !== "UPDATED") {
 				const errMsg = data?.error || "unknown";
-				console.log("error from json", errMsg);
-				if (errMsg === "username not available") {
+				if (errMsg === "Username not available" || errMsg === "username not available") {
 					
 					// Inline error shown under username field
 					setInlineErrors({ username: t("error.username.taken") });
 					return;
 				}
 				if (errMsg === "no such user") {
-					// Show top-level red message
 					setErr(t("error.user.notFound"));
 					return;
 				}
@@ -374,6 +369,7 @@ const SettingsPage: React.FC = () => {
 			setUsername(value);
 
 		} catch (e: any) {
+			console.error("Caught error in saveUsername:", e);
 			if (e.sessionExpired) return; 
 			setErr(t("error.username.updateFailed"));
 		} finally {
@@ -384,6 +380,14 @@ const SettingsPage: React.FC = () => {
 	async function savePassword() {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
+			if (!PASSWORD_REGEX.test(currentPassword))
+			{
+				setInlineErrors({
+					password: t("error.password.invalidFormat"),
+				});
+			return;
+			}
+
 			const validation = validatePasswordInputs(
 				currentPassword,
 				newPassword,
@@ -396,24 +400,29 @@ const SettingsPage: React.FC = () => {
 			}
 			setInlineErrors({});
 
-			//if (newPassword.length < 8) throw new Error(t("error.password.length"));
-			//if (newPassword !== confirmNewPassword) throw new Error(t("error.password.match"));
-			//if (!currentPassword) throw new Error (t("error.password.required"));
 			const payload: ChangePasswordPayload = {
 				current_password: currentPassword,
 				new_password: newPassword,
 			};
-			const res = await fetch(API_PROTOCOL.CHANGE_PASSWORD.path, {
+			const { res, data } = await apiFetch(API_PROTOCOL.CHANGE_PASSWORD.path, {
 				method: API_PROTOCOL.CHANGE_PASSWORD.method,
 				headers: { "Content-Type": "application/json" },
 				credentials: "include",
 				body: JSON.stringify(payload),
 			});
-			//if (!res.ok) throw new Error("Failed to update password.");
 
-			const data = (await res.json()) as ChangePasswordResponse;
 			if (!res.ok || data.status !== "UPDATED") {
-				throw new Error(t("error.password.currentIncorrect"));
+				const errMsg = data?.error || "unknown";
+				console.log('Backend error', errMsg)
+
+				if (errMsg === "password does not match") {
+					setInlineErrors({
+						password: t("error.password.currentIncorrect"),
+					});
+					return;
+				}
+				setErr(t("error.password.updateFailed"));
+				return;
 			}
 
 			setMsg(t("common.password.updated"));
@@ -421,6 +430,7 @@ const SettingsPage: React.FC = () => {
 			setOpenRow(null);
 			setCurrentPassword(""); setNewPassword(""); setConfirmNewPassword("");
 		} catch (e: any) {
+			if (e.sessionExpired) return;
 			setErr(t("error.password.updateFailed"));
 		} finally {
 			setBusy(false);
