@@ -318,7 +318,7 @@ return (
 			ref={iframeRef}
 			// Attach the focus handler to the iframe's onLoad event
 			onLoad={handleIframeLoad}
-			src={`http://localhost/pong_game/index.html?gameId=${gameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}`}
+			src={`https://localhost/pong_game/index.html?gameId=${gameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}`}
 			// The iframe is absolutely positioned to fill the responsive container
 			className="absolute inset-0 w-full h-full border-none rounded-lg"
 			scrolling="no"
