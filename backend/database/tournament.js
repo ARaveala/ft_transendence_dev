@@ -15,18 +15,25 @@ this is how u access bracket info for given tournament
  * @returns tournamentId of newly created tournament utalizing db to create unique id
  */
 function createTournament() {
-	flog.debug({ function: 'DBcreateTournament' }, 'Creating tournament');
+	flog.debug({ function: 'DBcreateTournament1' }, 'Creating tournament');
 		return new Promise((resolve, reject) => {
+			try{
 			db.run('INSERT INTO tournaments DEFAULT VALUES', function onDone(err) {
 				if (err) {
-					flog.error({ function: 'DBcreateTournament', err}, 'DB error creating tournament:');
-					return reject(err);
+			        const normalizedError = err instanceof Error ? err : new Error(JSON.stringify(err));
+			        flog.error({ function: 'DBcreateTournament', errmsg: normalizedError.message }, 'DB error creating tournament');
+			        return reject(normalizedError);
 				}
-				flog.info({ function: 'DBcreateTournament', tournamentId: this.lastID }, 'Tournament created with ID');
+				flog.info({ function: 'DBcreateTournament3', tournamentId: this.lastID }, 'Tournament created with ID');
 				resolve(this.lastID);
 				//const tournamentId = this.lastID
 				  // Use tournamentId to insert players and games
 				});
+			}
+			catch {
+				flog.error({ function: 'DBcreateTournament4', err}, 'DB error creating tournament:');
+				return reject(err);
+			}
 		});
 }
 /**
@@ -37,20 +44,28 @@ function createTournament() {
 function getActiveTournamentStatus(tId) {
 	flog.debug({ function: 'getActiveTournamentStatus' }, 'Fetching active tournament status');
 		return new Promise((resolve, reject) => {
-			db.get('SELECT status FROM tournaments WHERE id = ?',[tId], (err, row) =>{
-				if (err) {
-					console.error('DB error:', err);
-					reject({ error: 'DB error fetch' });
-				} else if (!row) {
-					console.warn('No active tournament found');
-					reject({ error: 'No active tournament' });
-				} else {
-					flog.info({ function: 'getActiveTournamentStatus', tournament: row }, 'Active tournament found');
-					resolve(row);
-				}
+			try {
+				db.get('SELECT status FROM tournaments WHERE id = ?',[tId], (err, row) =>{
+					if (err) {
+						console.error('DB error:', err);
+						reject({ error: 'DB error fetch' });
+					} else if (!row) {
+						console.warn('No active tournament found');
+						reject({ error: 'No active tournament' });
+					} else {
+						flog.info({ function: 'getActiveTournamentStatus', tournament: row }, 'Active tournament found');
+						resolve(row);
+					}
+				})
+			}
+			catch {
+				flog.info({ function: 'getActiveTournamentStatus' }, 'wtftwtftwt');
+			}
+
+				
 			});
-		});
-}
+	//	});
+	}
 
 /**
  * 

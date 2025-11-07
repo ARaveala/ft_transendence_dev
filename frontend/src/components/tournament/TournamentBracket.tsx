@@ -40,6 +40,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 	*/
 	const isMatchPlayable = (match: Match, round: number, idx: number): boolean => {
 		if (match.status === "finished") {
+			console.log("this action has now happened, game is finsihed u see");
 			return false;
 		}
 		if (!tournament?.bracket)
@@ -59,6 +60,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 				const allPrevFinished = firstRound.every(m => m.status === "finished");
 				return allPrevFinished && (match.status === "pending" || match.status === "ongoing");
 		}
+		
 		return false;
 	};
 
@@ -121,6 +123,7 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 						: !isMatchPlayable(finalMatch, 2, 0)
 						? "border-indigo-500 bg-black text-gray-400 cursor-not-allowed"
 						: "border-indigo-500 bg-black text-white hover:bg-indigo-700"
+
 					}
 				`}
 				> 

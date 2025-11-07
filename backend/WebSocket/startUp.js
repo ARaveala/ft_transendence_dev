@@ -82,7 +82,7 @@ function setUpWebSockets(server) {
 					
 					player.disconnectedAt = Date.now();
 					//flog.debug({ function: 'setupwebsockets', player: player , playerDisconnect: player.disconnectedAt}, 'player disconnected at time');
-					console.log("Player disconnected:", player);
+					//console.log("Player disconnected:", player);
 					player.ws = null;
 					handleMessage(undefined, { type: "pause", playerId: ws.playerId, gameId: ws.gameId });
 					

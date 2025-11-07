@@ -94,10 +94,19 @@ async function getUser(fastify, options) {
 			const friends = await DBget.getFriendsForPlayer(userId);
 			flog.info({function: 'getUser', friends: friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory(userId);
-			
+			//const tournamentState = profile.active_tournament_id === 0 ? [] : await getTournamentState(profile.active_tournament_id);
+			//console.log("show me the satet now ", tournamentState);
+			//if (profile.active_tournament_id > 0){
+			//	flog.warn({fucntion: "profile", tourenamnetStatus: mockProfile.tournament.status}, "---------------FULL PROFILE SENT TO FRONTEND");
+			//}
+			//if (tournamentState && tournamentState.status === 'finished'){
+			//	console.log('THE GAME IS FUCKING DONE STOP MESSING WITH ME NOWPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP');
+			//	//mockProfile.tournament = [];
+			//}
+
+
 			mockProfile.username = profile.username;
 			mockProfile.avatarFile = profile.avatar_file;
-			mockProfile.mfa_enabled = profile.mfa_enabled === 1; // convert to boolean
 			mockProfile.rank = profile.rank;
 			mockProfile.score = profile.score;
 			mockProfile.victories = profile.wins;
@@ -105,15 +114,11 @@ async function getUser(fastify, options) {
 			mockProfile.totalMatches = profile.total_games;
 			mockProfile.friends = friends || [];
 			mockProfile.matchHistory = matchHistory || [];
+			//mockProfile.tournament = tournamentState;// && tournamentState.status === 'finished' ? [] : tournamentState;
 
 			mockProfile.tournament = profile.active_tournament_id === 0 ? [] : await getTournamentState(profile.active_tournament_id);
-			if (profile.active_tournament_id > 0){
-				flog.warn({fucntion: "profile", tourenamnetStatus: mockProfile.tournament.status}, "---------------FULL PROFILE SENT TO FRONTEND");
-			}
-			if (mockProfile.tournament.status === 'finished'){
-				console.log('THE GAME IS FUCKING DONE STOP MESSING WITH ME NOWPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP');
-				mockProfile.tournament = [];
-			}
+			console.log("Final tournament state sent to frontend:", mockProfile.tournament);
+
 			reply.send(mockProfile);
 		} catch (err) {
 			reply.code(418).send(err);

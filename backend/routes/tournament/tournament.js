@@ -60,7 +60,9 @@ function buildTournamentPlayerList(players) {
 	}
 	return fullPlayerList;
 }
-
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 /**
  * This fucntion takes from database relevent details required for front end and restructures
  * the data for front end.
@@ -86,12 +88,16 @@ async function getTournamentState(tournamentId) {
 		}
 	}
 	flog.warn({function: "gettorunamnet state", state: tournamentStatus}, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+	 // console.log("Start");
+	 // await sleep(2000); // sleep for 2 seconds
+	 // console.log("End");
+
 	//if (tournamentStatus === 'finished'){
 	//	tournamentStatus = [];
 	//}
 	const tournamentState = {
 		tournament_id: tournamentId,
-		status: tournamentStatus,
+		status: tournamentStatus,//.status
 		players: full_list,
 		currentMatch: undefined, //not in use?
 		bracket: fullBracket,
@@ -117,7 +123,7 @@ async function createTournament(fastify, options){
  		url: API_PROTOCOL.CREATE_TOURNAMENT.path,
  		handler: async (request, reply) => {
  			flog.debug({ function: 'createTournament', body: request.body }, 'request body:');
-			//if ( await DBtour.getActiveTournamentStatus(currentTournamentId)){
+			//if ( await DBtour.getActiveTournamentStatus(currentTournamentId).status === 'finished'){
 			//	console.log("ggggaaaammmee over no more of this shite ");
 			//	return;
 			//}
@@ -132,8 +138,9 @@ async function createTournament(fastify, options){
  				reply.code(200).send({status: 'OK', tournament: tournamentState});
  			}
  			catch (err){
- 				flog.error({fucntion: 'createTournament'}, "error ::", err);
-				reply.code(418).send({status: 'ERROR', message: "error in create tournament"});
+				const errorMessage = err instanceof Error ? err.message : JSON.stringify(err);
+				  flog.error({ function: 'createTournament', error: errorMessage }, 'Error creating tournament');
+				  reply.code(418).send({ status: 'ERROR', message: errorMessage });
  			}
  		}
  	});
