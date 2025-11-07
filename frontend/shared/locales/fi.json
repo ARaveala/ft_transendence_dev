@@ -35,7 +35,7 @@
   "settings.item.language": "Valitse uusi kieli",
   "settings.title.username": "Vaihda käyttäjänimi",
   "settings.item.newUsername": "Syötä uusi käyttäjänimi",
-  "settings.username.notice": "3-15 merkkiä",
+  "settings.username.notice": " 6-12 merkkiä",
   "settings.title.password": "Vaihda salasana",
   "settings.item.passwordCurrent": "Nykyinen salasana",
   "settings.item.passwordNew": "Uusi salasana",
@@ -194,8 +194,9 @@
   "common.twofa.disabled": "Kaksivaiheinen tunnistus poistettu käytöstä.",
   "common.gotIt": "Selvä!",
 
-  "error.username.length": "Käyttäjänimen pituuden tulee olla 3-15 merkkiä.",
+  "error.username.length": "Käyttäjänimen pituuden tulee olla 6-12 merkkiä.",
   "error.username.updateFailed": "Käyttäjänimen päivitys epäonnistui.",
+  "error.username.taken": "Käyttäjänimi on jo käytössä.",
   "error.password.length": "Uuden salasanan tulee olla vähintään 8 merkkiä.",
   "error.password.match": "Salasanat eivät täsmää.",
   "error.password.required": "Nykyinen salasana on pakollinen.",
@@ -223,7 +224,7 @@
   "error.game.start": "Pelin käynnistys epäonnistui. Varmista, että olet kirjautunut sisään.",
   "error.auth.miniLoginFailed": "Mini-kirjautuminen epäonnistui. Tarkista tunnukset ja yritä uudelleen.",
   "error.network": "Verkkovirhe. Yritä uudelleen.",
-  "error.alias.format": "Alias tulee olla 5–10 merkkiä (kirjaimet, numerot, alaviiva).",
+  "error.alias.format": "Aliaksen tulee olla 5–10 merkkiä (kirjaimet, numerot, alaviiva sallittu).",
   "error.alias.unique": "Alias ei saa olla jo käytössä."
 
 }

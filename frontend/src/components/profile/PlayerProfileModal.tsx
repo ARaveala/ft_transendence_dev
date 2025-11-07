@@ -33,6 +33,27 @@ const handleFetchOtherUser = async (userId: string) => {
 	}
 };
 
+const fmt = (ts: string) => {
+		if (!ts) return "-";
+		const dateUtc = new Date(ts.replace(" ", "T") + "Z");
+
+		if (isNaN(dateUtc.getTime())) return ts;
+
+		// Convert to Helsinki time
+		const helsinki = new Date(
+			dateUtc.toLocaleString("en-US", { timeZone: "Europe/Helsinki" })
+		);
+
+		// Format manually as D-M-YYYY HH:MM:SS
+		const day = helsinki.getDate();
+		const month = helsinki.getMonth() + 1;
+		const year = helsinki.getFullYear();
+		const hours = helsinki.getHours().toString().padStart(2, "0");
+		const minutes = helsinki.getMinutes().toString().padStart(2, "0");
+		const seconds = helsinki.getSeconds().toString().padStart(2, "0");
+
+		return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+};
 
 export default function PlayerProfileModal({ userId, onClose }: PlayerProfileModalProps) {
 	const { t } = useTranslation();
@@ -75,6 +96,14 @@ export default function PlayerProfileModal({ userId, onClose }: PlayerProfileMod
 				{error || t("profile.error.loading")}
 			</div>
 		);
+
+	const matches = Array.isArray(profile.matchHistory) ? [...profile.matchHistory] : [];
+	
+	matches.sort((a: any, b: any) => {
+	const ta = new Date(a.timestamp.replace(" ", "T") + "Z").getTime();
+	const tb = new Date(b.timestamp.replace(" ", "T") + "Z").getTime();
+	return tb - ta;
+});
 
 	return (
 		<div
@@ -147,7 +176,7 @@ export default function PlayerProfileModal({ userId, onClose }: PlayerProfileMod
 									</tr>
 								</thead>
 								<tbody className="divide-y divide-gray-700">
-									{profile.matchHistory.slice(0, 10).map((m, idx) => {
+									{matches.slice(0, 10).map((m, idx) => {
 										const result = (m.result || "").toLowerCase();
 										const resultClass =
 											result === "win" ? "text-emerald-400" :
@@ -166,7 +195,7 @@ export default function PlayerProfileModal({ userId, onClose }: PlayerProfileMod
 											<td className="px-3 py-2 text-sm">{m.opponent}</td>
 											<td className={`px-3 py-2 text-sm ${resultClass}`}>{translatedResult}</td>
 											<td className="px-3 py-2 text-sm">{m.score}</td>
-											<td className="px-3 py-2 text-sm">{new Date(m.timestamp).toLocaleString()}</td>
+											<td className="px-3 py-2 text-sm">{fmt(m.timestamp)}</td>
 										</tr>
 									);
 								})}
