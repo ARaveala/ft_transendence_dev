@@ -121,10 +121,14 @@ const TournamentSetup: React.FC<TournamentSetupProps> = ({ onCancel, onTournamen
 		tournament.status?.status === "waiting" || 
 		(tournament.status?.status === "ongoing" && 
 			(!tournament.bracket || tournament.bracket.length === 0)));
+	
+		const allPlayersReady =
+			tournament?.players?.every((player) => player.status === "ready") ?? false;
 
-	const tournamentCanStart =  tournament && (
-		(tournament.status?.status === "ongoing" &&
-			(!tournament.bracket || tournament.bracket.length === 0)));
+	const tournamentCanStart =
+		tournament &&
+			tournament.status?.status === "ongoing" &&
+			allPlayersReady;
 
 	return (
 			<div className="mt-3 space-y-6">
