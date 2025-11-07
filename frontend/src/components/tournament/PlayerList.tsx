@@ -396,10 +396,11 @@ const PlayerList: React.FC<PlayerListProps> = ({
 							</Button>
 						</div>
 					)}
+					</div>
 				</div>
 				
 				{/* Inline field errors (shown only after clicking button) */}
-					<div className="mt-1">
+					<div className="text-red-500 text-sm mt-1 ml-[1.8rem] flex flex-col gap-0.5">
 						{fieldErrs.username && (
 							<div className="text-red-500 text-sm">{fieldErrs.username}</div>
 						)}
@@ -410,7 +411,6 @@ const PlayerList: React.FC<PlayerListProps> = ({
 							<div className="text-red-500 text-sm">{fieldErrs.alias}</div>
 						)}
 					</div>
-				</div>
 			</div>
 		);
 	});
