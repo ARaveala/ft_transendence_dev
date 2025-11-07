@@ -171,7 +171,7 @@ async function verifyPlayer(fastify, options){
 						}
 					}
 				}
- 				reply.code(200).send({status: 'OK', tournament: tournamentState}); //wrong
+ 				reply.code(200).send({status: 'OK', tournament: tournamentState});
  			}
  			catch (err){
  				flog.error({fucntion: 'createTournament'}, "error :: in verify player", err); //wrong

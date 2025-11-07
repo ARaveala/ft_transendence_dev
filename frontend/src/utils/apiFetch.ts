@@ -4,14 +4,15 @@ export function useApiFetch() {
 const { logoutUser } = useAuth();
 
 // low-level fetch with automatic session expiration handling
-async function apiFetch<T = any>(url: string, options: RequestInit = {}): Promise<T> {
+async function apiFetch<T = any>(url: string, options: RequestInit = {}): Promise<T>
+	{
 	const res = await fetch(url, {
-	...options,
-	credentials: "include",
-	headers: {
-		"Content-Type": "application/json",
-		...(options.headers || {}),
-	},
+		...options,
+		credentials: "include",
+		headers: {
+			"Content-Type": "application/json",
+			...(options.headers || {}),
+		},
 	});
 
 	if (res.status === 401) {
@@ -21,7 +22,7 @@ async function apiFetch<T = any>(url: string, options: RequestInit = {}): Promis
 		window.location.href = "/exit?reason=sessionExpired";
 		const sessionError = new Error("Session expired");
 		(sessionError as any).sessionExpired = true;
-		return Promise.reject(sessionError);
+		throw sessionError;
 	}
 
 	if (!res.ok) {

@@ -139,42 +139,61 @@ const HomePage: React.FC = () => {
 				: data;
 
 		try {
-		const res = await fetch(endpoint.path, {
-			method: endpoint.method,
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(payload),
-			credentials: "include", // include cookies in request
-		});
+			const res = await fetch(endpoint.path, {
+				method: endpoint.method,
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+				credentials: "include", // include cookies in request
+			});
+			console.log("res", res);
 
-		if (res.status === 202) {
-			// if 2FA is required we get 202
-			const responseData = await res.json();
-			setTempAuthToken(responseData.tempAuthToken);
-			setIsModalOpen(false); // close login modal
-			setIs2faStep(true);   // show 2FA modal
-			return;
-		}
+			const resData = await res.json();
+			console.log("Backend error:", resData);
 
-		if (!res.ok) {
-			const error = await res.json();
-			throw new Error(error?.error || t("auth.error.requestFailed"));
-		}
 
-		if (modalMode === "register") {
-			try {
-				await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
-					method: API_PROTOCOL.CHANGE_LANGUAGE.method,
-					headers: { "Content-Type": "application/json" },
-					credentials: "include",
-					body: JSON.stringify({ language: lang }),
-				});
-				localStorage.setItem("serverLang", lang);
-			} catch (_ ){}
-		}
+			if (!res.ok) {
+				const backendError = resData?.error;
+				switch (backendError) {
+					case "Database error":
+						throw new Error("Could not log in.");
+					case "Hash comparison failed":
+						throw new Error("Server error, please try again later.");
+					case "User not found":
+						throw new Error(t("auth.error.invalidCredentials"));
+					case "Invalid password":
+						throw new Error(t("auth.error.invalidCredentials"));
+					case "Failed to add user":
+						throw new Error(t("error.username.taken"));
+					case "VALIDATION_FAILED":
+						throw new Error(t("auth.error.invalidCredentials"));
+					default:
+						throw new Error(t("Could not log in, please try again later."));
+				}
+			}
 
-		await refreshSession();
+			if (res.status === 202) {
+				// if 2FA is required we get 202
+				const responseData = await res.json();
+				setTempAuthToken(responseData.tempAuthToken);
+				setIsModalOpen(false); // close login modal
+				setIs2faStep(true);   // show 2FA modal
+				return;
+			}
 
-		setIsModalOpen(false);
+			if (modalMode === "register") {
+				try {
+					await fetch(API_PROTOCOL.CHANGE_LANGUAGE.path, {
+						method: API_PROTOCOL.CHANGE_LANGUAGE.method,
+						headers: { "Content-Type": "application/json" },
+						credentials: "include",
+						body: JSON.stringify({ language: lang }),
+					});
+					localStorage.setItem("serverLang", lang);
+				} catch (_ ){}
+			}
+
+			await refreshSession();
+			setIsModalOpen(false);
 
 		} catch (err: any) {
 			const message =

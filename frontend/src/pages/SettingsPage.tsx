@@ -6,14 +6,9 @@ import { useApiFetch } from "../utils/apiFetch";
 
 import type {
 	ChangeLanguagePayload,
-	ChangeLanguageResponse,
 	ChangeUsernamePayload,
-	ChangeUsernameResponse,
 	ChangePasswordPayload,
-	ChangePasswordResponse,
 	UpdateProfilePayload,
-	//ChangeTwoFactorPayload,
-	//ChangeTwoFactorResponse,
 	UploadAvatarResponse,
 } from "../../shared/payloads";
 import avatar1 from "../assets/avatars/avatar1.png";
@@ -21,6 +16,9 @@ import avatar2 from "../assets/avatars/avatar2.png";
 import avatar3 from "../assets/avatars/avatar3.png";
 import avatar4 from "../assets/avatars/avatar4.png";
 import defaultAvatar from "../assets/avatars/default-avatar.png";
+
+const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]{5,11}$/;
+const PASSWORD_REGEX = /^[a-zA-Z0-9!@#$%^&*()_\-+=.]{8,16}$/;
 
 const availableAvatars = [defaultAvatar, avatar1, avatar2, avatar3, avatar4];
 
@@ -72,20 +70,48 @@ const SettingsPage: React.FC = () => {
 	// Use apiFetch hook
 	const apiFetch = useApiFetch();
 
+	// Inline error state
+	const [inlineErrors, setInlineErrors] = useState<{ username?: string; password?: string }>({});
+
+	function validateUsernameInput(input: string) {
+		const errors: { username?: string } = {};
+
+		if (!USERNAME_REGEX.test(input)) {
+			errors.username = t("auth.error.usernameFormat");
+		}
+		return errors;
+	}
+
+	function validatePasswordInputs(current: string, next: string, confirm: string) {
+		const errors: { password?: string } = {};
+
+		if (!PASSWORD_REGEX.test(next)) {
+			errors.password = t("auth.error.passwordFormat");
+			return errors;
+		}
+
+		if (next !== confirm) {
+			errors.password = t("error.password.match");
+		}
+		if (!current) {
+			errors.password = t("error.password.required");
+		}
+		return errors;
+	}
 
 	useEffect(() => {
 
 	const fetch2faStatus = async () => {
 		try {
-        const res = await fetch(API_PROTOCOL.TFA_STATUS.path, {
+		const res = await fetch(API_PROTOCOL.TFA_STATUS.path, {
 			method: API_PROTOCOL.TFA_STATUS.method,
 			credentials: "include"
 		});
-        const data = await res.json();
-        setTwoFactor(data.isEnabled);
+		const data = await res.json();
+		setTwoFactor(data.isEnabled);
 		} catch (err) {
-        console.error("Failed to fetch 2FA status", err);
-        setTwoFactor(false);
+		console.error("Failed to fetch 2FA status", err);
+		setTwoFactor(false);
 		}
 	};
 
@@ -144,6 +170,7 @@ const SettingsPage: React.FC = () => {
 		if (row === "avatar") resetAvatarForm();
 		if (row === "twofa") reset2faForm();
 		setOpenRow(null);
+		setInlineErrors({});
 	}
 
 	function onCancelAvatar() {
@@ -157,6 +184,7 @@ const SettingsPage: React.FC = () => {
 	function toggle(row: Exclude<Row, null>) {
 		setMsg(null);
 		setErr(null);
+		setInlineErrors({});
 
 		if (openRow === "avatar" && row !== "avatar") {
 			if (avatarDirty) resetAvatarForm();
@@ -266,7 +294,8 @@ const SettingsPage: React.FC = () => {
 
 		try {
 			const payload: ChangeLanguagePayload = { language };
-			const data: ChangeLanguageResponse = await apiFetch(
+			
+			const data  = await apiFetch(
 				API_PROTOCOL.CHANGE_LANGUAGE.path,
 				{
 					method: API_PROTOCOL.CHANGE_LANGUAGE.method,
@@ -276,12 +305,12 @@ const SettingsPage: React.FC = () => {
 			);
 
 			if (data.status !== "UPDATED") {
-				throw new Error(data.error || "Failed to update language.");
+				console.error("language update error:", data.error);
+				setErr(t("error.language.updateFailed"));
+				return;
 			}
-
-			setLang(language);
+			setLang(language);	
 			localStorage.setItem("serverLang", language);
-			setMsg(t("common.language.updated"));
 			setOpenRow(null);
 			await refreshSession();
 
@@ -297,64 +326,111 @@ const SettingsPage: React.FC = () => {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
 			const value = usernameInput.trim();
-			if (value.length < 3 || value.length > 15) throw new Error(t("error.username.length"));
+			const validation = validateUsernameInput(value);
+			if (validation.username) {
+				setInlineErrors(validation);
+				return;
+			}
+			setInlineErrors({});
+
 			const payload: ChangeUsernamePayload = { username: value };
-			const data: ChangeUsernameResponse = await apiFetch(
-				API_PROTOCOL.CHANGE_USERNAME.path,
-				{
+			const data = await apiFetch(API_PROTOCOL.CHANGE_USERNAME.path, {
 					method: API_PROTOCOL.CHANGE_USERNAME.method,
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(payload),
-				}
-			);
-
-			if (data.status !== "UPDATED") {
-				throw new Error(data.error || "Failed to update username.");
-			}
+			});
+			console.log("Backend response for saveUsername:", data);
 
 			setMsg(t("common.username.updated"));
 			resetUsernameForm();
 			setUsernameInput("");
 			setOpenRow(null);
+
 			await refreshSession();
 			setUsername(value);
+
 		} catch (e: any) {
-			if (e.sessionExpired) return; 
-			setErr(t("error.username.updateFailed"));
+			console.error("Caught error in saveUsername:", e);
+			let backendError;
+			try {
+				backendError = JSON.parse(e.message);
+			} catch (_) {
+				backendError = { error: e.message };
+			}
+
+			if (backendError.error === "Username not available" || backendError.error === "username not available") {
+				// Inline error under input
+				setInlineErrors({ username: t("error.username.taken") });
+			} else if (backendError.error === "no such user") {
+				setErr(t("error.user.notFound"));
+			} else if (e.sessionExpired) {
+				return; // let apiFetch handle session expiration
+			} else {
+				setErr(t("error.username.updateFailed"));
+			}
 		} finally {
 			setBusy(false);
-		}
+	}
 	}
 
 	async function savePassword() {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
-			if (newPassword.length < 8) throw new Error(t("error.password.length"));
-			if (newPassword !== confirmNewPassword) throw new Error(t("error.password.match"));
-			if (!currentPassword) throw new Error (t("error.password.required"));
+			
+			if (!PASSWORD_REGEX.test(currentPassword))
+			{
+				setInlineErrors({ password: t("auth.error.passwordFormat")});
+				return;
+			}
+
+			const validation = validatePasswordInputs(
+				currentPassword,
+				newPassword,
+				confirmNewPassword
+			);
+			
+			if (validation.password) {
+				setInlineErrors(validation);
+				return;
+			}
+			setInlineErrors({});
+
 			const payload: ChangePasswordPayload = {
 				current_password: currentPassword,
 				new_password: newPassword,
 			};
-			const data: ChangePasswordResponse = await apiFetch(
-			API_PROTOCOL.CHANGE_PASSWORD.path,
-			{
+		
+			const data = await apiFetch(API_PROTOCOL.CHANGE_PASSWORD.path, {
 				method: API_PROTOCOL.CHANGE_PASSWORD.method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
-			}
-		);
+			});
 
-		if (data.status !== "UPDATED") {
-			throw new Error(data.error || t("error.password.currentIncorrect"));
-		}
 			setMsg(t("common.password.updated"));
 			resetPasswordForm();
 			setOpenRow(null);
-			setCurrentPassword(""); setNewPassword(""); setConfirmNewPassword("");
+			setCurrentPassword("");
+			setNewPassword("");
+			setConfirmNewPassword("");
+
 		} catch (e: any) {
-		if (e.sessionExpired) return;
-		setErr(t("error.password.updateFailed"));
+			console.error("Caught error in savePassword:", e);
+
+			let backendError;
+			try {
+				backendError = JSON.parse(e.message);
+			} catch (_) {
+				backendError = { error: e.message };
+			}
+
+			if (backendError.error === "Invalid password") {
+				setInlineErrors({ password: t("error.password.currentIncorrect") });
+			} else if (e.sessionExpired) {
+				// Let apiFetch handle redirect
+				return;
+			} else {
+				setErr(t("error.password.updateFailed"));
+			}
 		} finally {
 			setBusy(false);
 		}
@@ -597,8 +673,8 @@ const SettingsPage: React.FC = () => {
 				
 	return (
   <div className="flex justify-center px-6 py-6">
-    {/* Semi-transparent card for content */}
-    <div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
+	{/* Semi-transparent card for content */}
+	<div className="w-full max-w-4xl bg-gray-900/90 rounded-lg p-6 text-white">
 			<h1 className="text-3xl font-bold mb-4">{t("settings.title")}</h1>
 
 			{/* Inline status */}
@@ -648,6 +724,11 @@ const SettingsPage: React.FC = () => {
 							placeholder={t("settings.username.notice")}
 							autoComplete="off"
 						/>
+						{/* Inline error shown under the input */}
+						{inlineErrors.username && (
+							<p className="text-red-400 text-xs mt-1">{inlineErrors.username}</p>
+						)}
+
 						<div className="mt-3 flex gap-2">
 							<PrimaryTiny onClick={saveUsername} disabled={busy}>{t("common.save")}</PrimaryTiny>
 							<SecondaryTiny onClick={() => closeAndReset("username")} disabled={busy}>{t("common.cancel")}</SecondaryTiny>
@@ -688,6 +769,10 @@ const SettingsPage: React.FC = () => {
 							onChange={(e) => setConfirmNewPassword(e.target.value)}
 							className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm"
 						/>
+						{/* Inline error shown under the input */}
+						{inlineErrors.password && (
+							<p className="text-red-400 text-xs mt-1">{inlineErrors.password}</p>
+						)}
 						<div className="mt-3 flex gap-2">
 							<PrimaryTiny onClick={savePassword} disabled={busy}>{t("common.save")}</PrimaryTiny>
 							<SecondaryTiny onClick={() => closeAndReset("password")} disabled={busy}>{t("common.cancel")}</SecondaryTiny>
@@ -836,12 +921,12 @@ const SettingsPage: React.FC = () => {
 							</div>
 						)}
 						{!qrCode && !showDisableConfirm && (
-                        	<div className="mt-3 flex gap-2">
-							    <SecondaryTiny onClick={() => closeAndReset("twofa")} disabled={busy}>
-								    {t("common.cancel")}
-							    </SecondaryTiny>
-                            </div>
-                        )}
+							<div className="mt-3 flex gap-2">
+								<SecondaryTiny onClick={() => closeAndReset("twofa")} disabled={busy}>
+									{t("common.cancel")}
+								</SecondaryTiny>
+							</div>
+						)}
 					</div>
 				)}
 			</section>
