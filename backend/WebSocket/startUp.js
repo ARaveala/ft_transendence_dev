@@ -4,6 +4,10 @@ const handleMessage = require('./messageHandlers.js').handleMessage;
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'websockets/startUp.js' }); // scoped logger
 
+
+//if (req.url === '/ws' || req.url === '/wss') {
+
+
 // naming can be changed 
 //const handlers = require('./handlers.js');
 let reconnect = false;
@@ -18,7 +22,7 @@ function setUpWebSockets(server) {
 			console.log('🔗 Upgrade request received');
 			console.log('🧾 Request URL:', req.url);
 			console.log('📬 Headers:', req.headers);
-			if (req.url === '/ws') {
+			if (req.url === '/ws' || req.url === '/wss') {
 				console.log('Upgrade request received at /ws');
 				wss.handleUpgrade(req, socket, head, (ws) => {
 				wss.emit('connection', ws, req);

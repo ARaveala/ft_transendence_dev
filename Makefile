@@ -43,7 +43,7 @@ restart:
 
 # View logs of the running services in real time
 logs:
-	docker-compose -f $(DOCKER_COMPOSE_FILE) logs -f
+	docker-compose -f $(DOCKER_COMPOSE_FILE) logs -f 
 
 # Clean dangling images and unused volumes
 clean:

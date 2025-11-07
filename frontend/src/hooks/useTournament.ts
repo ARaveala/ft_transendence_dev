@@ -10,7 +10,7 @@ export function useTournament(tournamentId: string) {
 
   // WebSocket for real-time updates
   const { sendMessage, lastMessage } = useWebSocket(
-    `ws://localhost/ws/tournament/${tournamentId}`
+    `wss://localhost/ws/tournament/${tournamentId}`
   );
 
   useEffect(() => {

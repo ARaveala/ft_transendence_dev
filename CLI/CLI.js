@@ -83,7 +83,7 @@ async function startGameCLI() {
 
         // Step 5: create WebSocket	
         const player1Token = startData.playerTokens.player1;
-        const ws = new WebSocket("ws://localhost:3000/ws");
+        const ws = new WebSocket("wss://localhost:3000/ws");
         ws.onopen = (event) => {
             console.log("WebSocket connections opened.");
             console.log("Sending init message gameId:", gameId);
