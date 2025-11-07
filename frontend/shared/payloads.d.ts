@@ -63,6 +63,22 @@ export interface UserProfile {
   //online_status: boolean;
 }
 
+export interface OtherUserProfilePayload {
+  user_id: string;
+}
+
+export interface OtherUserProfileResponse {
+    username: string;
+    avatarFile?: string;
+    rank: number;
+    score: number;
+    victories: number;
+    losses: number;
+    totalMatches: number;
+    tournamentWins?: number;
+    matchHistory: Match[];
+}
+  
 // is user enables/disables 2FA or changes avatar image on profile page, USERNAME CHANGE???
 
 export interface UpdateProfilePayload {

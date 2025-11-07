@@ -98,6 +98,12 @@ function createTournamentPlayer(tournamentId, playerId, alias, seed, role, verif
 		});
 }
 
+function seedPlayers(tournamnetId) {
+	return new Promise ((resolve, reject) => {
+		db.run('UPDATE FROM tournamen_players seed')
+		//seed based on rank		
+	})
+}
 //function getTournamentPlayersByTournamentId(tournamentId) {
 //	flog.debug({ function: 'getTournamentPlayers' }, 'Fetching tournament players');
 //		return new Promise((resolve, reject) => {

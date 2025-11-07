@@ -2,12 +2,14 @@ import defaultAvatar from "../assets/avatars/default-avatar.png";
 import React from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "../shared/Translation";
+import PlayerProfileModal from "../components/profile/PlayerProfileModal";
 
 const Profile: React.FC = () => {
 	const { t } = useTranslation();
-  const { user, isLoggedIn, refreshSession } = useAuth();
+	const { user, isLoggedIn, refreshSession } = useAuth();
+	const [selectedPlayer, setSelectedPlayer] = React.useState(null);
 
-  if (!isLoggedIn) return <div>{t("profile.loginRequired")}</div>;
+	if (!isLoggedIn) return <div>{t("profile.loginRequired")}</div>;
 	if (!user) return <div>{t("profile.loading")}</div>;
 
 	const avatarSrc = user.avatarFile || defaultAvatar;
@@ -66,11 +68,11 @@ const Profile: React.FC = () => {
 			</section>
 
 			{/* Stats */}
-			<section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+			<section className="grid grid-cols-2 sm:grid-cols-3 gap-3">
 				<StatCard label={`${t("profile.stats.victories")} 🏅`} value={user.victories ?? 0} />
 				<StatCard label={`${t("profile.stats.losses")} 💣`} value={user.losses ?? 0} />
-				<StatCard label={`${t("profile.stats.matches")} 🕹️`} value={(user.totalMatches ?? matches.length) ?? 0} />
-				<StatCard label={`${t("profile.stats.tournamentWins")} 🏆`} value={user.tournamentWins ?? user.tournament_wins ?? 0} />
+				<StatCard label={`${t("profile.stats.matches")} 🏓`} value={(user.totalMatches ?? matches.length) ?? 0} />
+				{/* <StatCard label={`${t("profile.stats.tournamentWins")} 🏆`} value={user.tournamentWins ?? user.tournament_wins ?? 0} /> */}
 			</section>
 
 			{/* Match History */}
@@ -102,6 +104,9 @@ const Profile: React.FC = () => {
 											? "text-rose-400"
 											: "text-gray-300";
 
+										const opponentId = m.opid;
+									//	console.log("Opponent ID: ", m.opid);
+
 										const resultLabel =
 											result === "win"
 											? t("profile.result.win")
@@ -110,7 +115,14 @@ const Profile: React.FC = () => {
 											: "-";
 										return (
 											<tr key={`${m.opponent}-${m.timestamp}-${idx}`} className="border-t border-gray-700">
-												<Td>{m.opponent}</Td>
+												<Td>
+													<button
+														className="text-indigo-400 hover:text-indigo-300 underline"
+														onClick={() => setSelectedPlayer(opponentId)}
+													>
+														{m.opponent}
+													</button>
+													</Td>
 												<Td className={resultClass}>
 													{result ? result.charAt(0).toUpperCase() + result.slice(1) : "-"}
 												</Td>
@@ -126,8 +138,14 @@ const Profile: React.FC = () => {
 				</div>
 			</section>
 		</div>
+			{selectedPlayer && (
+				<PlayerProfileModal
+				userId={selectedPlayer}
+				onClose={() => setSelectedPlayer(null)}
+				/>
+			)}
 		</div>
-		);
+	);
 };
 
 function StatCard({ 

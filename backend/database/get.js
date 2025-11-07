@@ -1,7 +1,7 @@
 const db = require('./initDB.js');
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'get.js' }); // scoped logger
-
+const bcrypt = require('bcrypt');
 // naming can be changed 
 // get each element from database , such as score, name , status
 // userId is passed as ({object}) not (value) to allow adjustmenst such as do not show password
@@ -30,11 +30,11 @@ this could be managed by routes calling 3 fucntions     const player = await db.
     const matchHistory = await db.getMatchHistory(playerId);
  */
 
-async function fetchUser({ userId }) {
-	console.log('Finside db::fetching user with ID:', userId);
-	const test = userId.id;
+async function fetchUser(userId ) {
+	//console.log('Finside db::fetching user with ID:', userId);
+	//const test = userId.id;
 		return new Promise((resolve, reject) => {
-			db.get('SELECT * FROM users WHERE id = ?', [test], (err, row) =>{
+			db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) =>{
 				if (err) {
 					console.error('DB error:', err);
 					reject({ error: 'DB error fecth' });
@@ -81,7 +81,7 @@ async function getFriendsForPlayer( userId ) {
 			`SELECT users.id AS user_id,
 				users.username AS username,
 				users.avatar_file AS avatar,
-				users.status AS status,
+				users.status AS online_status,
 				friends.status AS friendshipstatus
 			FROM friends
 			JOIN users ON friends.friend_id = users.id
@@ -96,8 +96,12 @@ async function getFriendsForPlayer( userId ) {
 					console.error('DB error fetching friends:', err);
 					reject({ error: 'DB error fetching friends' });
 				} else {
+					const formattedRows = rows.map(row => ({
+						...row, // keep all original fields
+						status: Boolean(row.status) // convert just this one
+					}));
 					console.log(`Found ${rows.length} friends for user ID ${userId}`);
-					resolve(rows);
+					resolve(formattedRows);
 				}
 			}
 		);
@@ -161,16 +165,28 @@ async function checkUsernameAvailable( username ) {
 		});
 }
 
-async function checkPasswordMatch( password ) {
+async function checkPasswordMatch( userId, password ) {
 	console.log('Fetching user with password:', );
 		return new Promise((resolve, reject) => {
-			db.get('SELECT * FROM users WHERE password = ?', [password], (err, row) =>{
-				if (err || !row) {
-					reject({ error: 'password does not match' });
-				} else {
-					resolve({ok: 'password match'});
-				}
-			});
+			db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) =>{
+			    if (err) {
+        			return reject({ error: 'Database error', code: 500 });
+      			}
+    			if (!row) {
+        			return reject({ error: 'User not found', code: 404 });
+      			}
+		    	bcrypt.compare(password, row.password, (err, isMatch) => {
+        			if (err) {
+        				return reject({ error: 'Hash comparison failed', code: 500 });
+        			}
+        			if (!isMatch) {
+          				return reject({ error: 'Invalid password', code: 401 });
+        			}
+				});
+        		resolve({ ok: 'Password match', userId: row.id });
+			}
+		)
+			
 		});
 }
 // mini example of checking player exists and password matches . 
@@ -180,17 +196,24 @@ async function miniLogin(username, password) {
 
   return new Promise((resolve, reject) => {
     db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
-      if (err) {
-        return reject({ error: 'Database error' });
-      }
-      if (!row) {
-        return reject({ error: 'User not found' });
-      }
-
-      // TEMP: plain text password check for testing only
-      if (row.password !== password) {
-        return reject({ error: 'Invalid password' });
-      }
+		if (err) {
+		  return reject({ error: 'Database error', code: 401 });
+		}
+		if (!row) {
+		  return reject({ error: 'User not found', code: 401 });
+		}
+		  // Compare hashed password
+		bcrypt.compare(password, row.password, (err, isMatch) => {
+			if (err) {
+			  return reject({ error: 'Hash comparison failed', code: 500 });
+			}
+			if (!isMatch) {
+			  return reject({ error: 'Invalid password', code: 401 });
+			}
+	//      // TEMP: plain text password check for testing only
+//      if (row.password !== password) {
+//        return reject({ error: 'Invalid password', code: 401 });
+      })
       // Return minimal info — no profile data
 	  flog.info({ function: 'miniLogin', userId: row.id}, 'mini login success ');
       resolve({ id: row.id});

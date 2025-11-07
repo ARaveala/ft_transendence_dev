@@ -30,6 +30,12 @@ const Modal: React.FC<ModalProps> = ({
 	const [username, setUsername] = useState("");            // Username input
 	const [password, setPassword] = useState("");            // Password input
 
+	React.useEffect(() => {
+		if (!isOpen) {
+			setUsername("");
+			setPassword("");
+		}
+	}, [isOpen]);
 	// If modal is not open, don't render anything
 	if (!isOpen) return null;
 

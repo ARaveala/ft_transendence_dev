@@ -12,10 +12,12 @@ import ChooseGameMode from "../components/game/ChooseGameMode";
 import GameSettings from "../components/game/GameSettings";
 import CenteredContainer from "../components/layout/CenteredContainer";
 import MiniLogin from "../components/game/MiniLogin";
+import { useTranslation } from "../shared/Translation";
 
 type GameMode = "guest" | "login" | "ai";
 //	const { isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
 const Game: React.FC = () => {
+	const { t } = useTranslation();
 	const { isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
 	const [gameStarted, setGameStarted] = useState(false);
 	const [player1Token, setPlayer1Token] = useState<string | null>(null);
@@ -31,9 +33,15 @@ const Game: React.FC = () => {
 		maxScore: number;
 	} | null>(null);
 
+	const [showInGameHelp, setShowInGameHelp] = useState(false);
+
 	//  Initialize useRef for the iframe
 	const iframeRef = useRef<HTMLIFrameElement>(null);
 
+	const refocusIframe = () => {
+		try { iframeRef.current?.contentWindow?.focus(); } catch {}
+		iframeRef.current?.focus();
+	};
 	// Function to safely focus the iframe after it loads
 	const handleIframeLoad = () => {
 		if (iframeRef.current) {
@@ -51,7 +59,7 @@ const Game: React.FC = () => {
 			if (event.origin !== "http://localhost:3000") return;
 
 			if (event.data?.type === "GAME RESULT") {
-			console.log("Received game end from iframe:", event.data.payload);
+			console.log(t("game.status.receivedResult"), event.data.payload);
 			handleGameEnd();
 			}
 
@@ -63,7 +71,7 @@ const Game: React.FC = () => {
 		}, []);
 
 	const handleGameEnd = () => {
-		console.log("Game ended!");
+		console.log(t("game.status.ended"));
 		setPlayer1Token(null);
 		setPlayer2Token(null);
 		setGameId(null);
@@ -107,7 +115,7 @@ const Game: React.FC = () => {
 			}
 		} catch (err) {
 			console.error(err);
-			alert("Failed to create game. Make sure you are logged in.");
+			alert(t("error.game.create"));
 			setSelectedMode(null);
 			setGameId(null);
 		}
@@ -157,12 +165,38 @@ const Game: React.FC = () => {
 	
 			} catch (err) {
 				console.error(err);
-				alert("Failed to start game. Make sure you are logged in.");
+				alert(t("error.game.start"));
 			}
 		};
 
-if (loading) return <div>Checking login status...</div>;
-if (!isLoggedIn) return <div>Please log in to access the game.</div>;
+if (loading) return <div>{t("game.checkingLogin")}</div>;
+if (!isLoggedIn) return <div>{t("game.loginRequired")}</div>;
+
+const Key = ({ children }: { children: React.ReactNode }) => (
+	<kbd className="inline-block px-1.5 py-0.5 rounded border border-gray-600 bg-gray-900 font-mono text-xs">
+		{children}
+	</kbd>
+);
+
+const ControlsBox = () => (
+	<div className="text-sm text-gray-200 text-center">
+		<h3 className="font-semibold mb-2">{t("game.controls.title")}</h3>
+		<ul className="space-y-1 list-none p-0">
+			<li>
+				<span className="font-medium">{t("game.controls.leftLabel")}</span>{" "}
+				<Key>W</Key> ({t("game.controls.up")}) / <Key>S</Key> ({t("game.controls.down")})
+			</li>
+			<li>
+				<span className="font-medium">{t("game.controls.rightLabel")}</span>{" "}
+				<Key>⬆️</Key> ({t("game.controls.up")}) / <Key>⬇️</Key> ({t("game.controls.down")})
+			</li>
+			<li className="mt-2">
+				<span className="font-medium">{t("game.controls.powerup.title")}</span>{" "}
+				<Key>🟣</Key> {t("game.controls.powerup.desc")}
+			</li>
+		</ul>
+	</div>
+);
 
 return (
 	<CenteredContainer>
@@ -209,39 +243,87 @@ return (
 		{/* Start Game button */}
 		{selectedMode && gameId && gameSettings && !gameStarted && (
 		<div className="w-full max-w-lg bg-gray-900/90 rounded-xl p-8 text-white shadow-2xl flex flex-col items-center space-y-4">
+			<div className="bg-gray-800/60 border border-gray-700 rounded-lg p-4 text-center">
+				<ControlsBox />
+			</div>
+
+			<div className="flex flex-col items-center space-y-3">
 			<button
 				onClick={() => handleStartGame(gameSettings)} // pass settings to startGame
 				className="px-10 py-4 text-xl font-bold text-white bg-indigo-600 rounded-lg shadow-lg hover:bg-indigo-700 transition-colors"
 				>
-				Start Game
+				{t("game.action.start")}
 			</button>
 			<button
 				onClick={() => { setGameSettings(null)}}
 				className="px-6 py-2 text-sm font-medium text-gray-800 bg-gray-300 rounded-lg hover:bg-gray-400 transition-colors"
 				>
-				Back
+				{t("game.action.back")}
 			</button>
+			</div>
 		</div>
 		)}
 		{/* Game iframe */}
 		{gameStarted && player1Token && player2Token && gameId && (
-			// Switching to responsive, aspect-ratio scaling to eliminate scrollbars and fit the viewport.
-			// max-w-5xl ensures it doesn't get too wide on giant screens.
-			<div className="w-full max-w-5xl bg-gray-900 p-4 rounded-xl shadow-2xl shadow-gray-700/80"> 
-				{/* Responsive container with 16:9 aspect ratio */}
-				<div className="relative w-full overflow-hidden" style={{ paddingTop: '56.25%' }}> 
-					<iframe
-						ref={iframeRef}
-						// Attach the focus handler to the iframe's onLoad event
-						onLoad={handleIframeLoad} 
-						src={`http://localhost:3000/pong_game/index.html?gameId=${gameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}`}
-						// The iframe is absolutely positioned to fill the responsive container
-						className="absolute inset-0 w-full h-full border-none rounded-lg"
-						scrolling="no"
-					/>
+	<div
+		className="
+		relative
+		bg-gray-900 p-4 rounded-xl shadow-2xl shadow-gray-700/80
+		mx-auto flex justify-center items-center
+		min-w-[900px] min-h-[600px]
+		"
+	>
+		<button
+			type="button"
+			tabIndex={-1}
+			onMouseDown={(e) => e.preventDefault()}
+			onClick={() => setShowInGameHelp(true)}
+			className="absolute right-3 top-3 z-20 px-2.5 py-1.5 rounded-md bg-gray-800/70 border border-gray-600 text-white text-sm hover:bg-gray-700"
+			aria-label="Game help"
+		>
+			?
+		</button>
+
+		<div
+		className="relative overflow-hidden"
+		style={{
+			width: "100%",
+			maxWidth: "1280px",   // lock playable area max width
+			aspectRatio: "16 / 9", // maintain aspect ratio
+		}}
+		>
+
+		{showInGameHelp && (
+			<div className="absolute inset-0 z-20 bg-black/70 flex items-center justify-center p-6">
+				<div className="w-full max-w-md bg-gray-900/95 border border-gray-700 rounded-xl p-5 text-white shadow-xl">
+					<ControlsBox />
+					<div className="mt-4 flex justify-center">
+						<button
+							type="button"
+							onClick={() => {
+								setShowInGameHelp(false);
+								refocusIframe();
+							}}
+								className="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700"
+							>
+								{t("common.gotIt")}
+						</button>
+					</div>
 				</div>
 			</div>
 		)}
+		<iframe
+			ref={iframeRef}
+			// Attach the focus handler to the iframe's onLoad event
+			onLoad={handleIframeLoad}
+			src={`http://localhost:3000/pong_game/index.html?gameId=${gameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}`}
+			// The iframe is absolutely positioned to fill the responsive container
+			className="absolute inset-0 w-full h-full border-none rounded-lg"
+			scrolling="no"
+		/>
+		</div>
+	</div>
+	)}
 	</CenteredContainer>
 );
 };

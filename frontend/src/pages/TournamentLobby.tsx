@@ -13,8 +13,10 @@ import { CreateTournamentPayload,
 		CreateTournamentResponse,
 		TournamentResetPayload,
 		} from "../../shared/payloads";
+import { useTranslation } from "../shared/Translation";
 
 const TournamentLobby: React.FC = () => {
+	const { t, lang } = useTranslation();
 	const { isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
 	const [showSetup, setShowSetup] = useState(false);                               // Indicates whether we are in tournament setup mode (adding players etc.)
 	const [player1Token, setPlayer1Token] = useState<string | null>(null);
@@ -106,9 +108,11 @@ const TournamentLobby: React.FC = () => {
 			//await refreshSession();     // Refresh session to update tournament state
 		} else {
 			console.error("Error creating tournament:", data.error);
+			alert(t("tournament.error.create"));
 		}
 		} catch (err) {
 			console.error("Network error creating tournament:", err);
+			alert(t("tournament.error.network"));
 		}
 	};
 
@@ -200,6 +204,9 @@ const TournamentLobby: React.FC = () => {
 				console.error("Failed to start tournament game:", data.error || res.statusText);
 				return;
 			}
+			//console.log("show me p1 id ", data.playerTokens.player1);
+			//console.log("show me p2 id ", data.playerTokens.player2);
+
 			setPlayer1Token(data.playerTokens.player1);
 			setPlayer2Token(data.playerTokens.player2);
 			setGameStarted(true);
@@ -208,6 +215,7 @@ const TournamentLobby: React.FC = () => {
 
 		} catch (err) {
 			console.error("Error starting tournament match:", err);
+			alert(t("tournament.error.network"));
 		}
 	};
 
@@ -245,6 +253,7 @@ const TournamentLobby: React.FC = () => {
 			
 		} catch (err) {
 			console.error("Error resetting tournament:", err);
+			alert(t("tournament.error.network"));
 		}
 	};
 
@@ -252,7 +261,7 @@ const TournamentLobby: React.FC = () => {
 	if (loading) {
 		return (
 		<div className="p-6 text-center text-gray-300">
-			Loading tournament info...
+			{t("tournament.loading")}
 		</div>
 		);
 	}
@@ -260,7 +269,7 @@ const TournamentLobby: React.FC = () => {
 	if (!isLoggedIn) {
 		return (
 		<div className="p-6 text-center text-gray-300">
-			Please log in to view tournaments.
+			{t("tournament.loginRequired")}
 		</div>
 		);
 	}
@@ -284,7 +293,7 @@ const TournamentLobby: React.FC = () => {
 				{!tournament && (
 					<div className="flex flex-col items-center mt-8">
 						<Button  onClick={handleCreateTournament}>
-							Start a new tournament
+							{t("tournament.startNew")}
 						</Button>
 					</div>
 				)}
@@ -328,7 +337,7 @@ const TournamentLobby: React.FC = () => {
 							onClick={() => startTournamentGame(currentGame!)}
 							className="px-10 py-4 text-xl font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
 						>
-							Start Game
+							{t("game.action.start")}
 						</button>
 						<button
 							onClick={() => { setGameSettings(null);
@@ -336,7 +345,7 @@ const TournamentLobby: React.FC = () => {
 							}}
 								className="px-6 py-2 text-sm font-medium text-gray-800 bg-gray-300 rounded-lg hover:bg-gray-400 transition-colors"
 						>
-							Back
+							{t("game.action.back")}
 						</button>
 					</div>
 				)}
@@ -351,7 +360,7 @@ const TournamentLobby: React.FC = () => {
 						ref={iframeRef}
 						// Attach the focus handler to the iframe's onLoad event
 						onLoad={handleIframeLoad} 
-						src={`http://localhost:3000/pong_game/index.html?gameId=${activeGameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}`}
+						src={`http://localhost:3000/pong_game/index.html?gameId=${activeGameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}&lang=${encodeURIComponent(lang)}`}
 						// The iframe is absolutely positioned to fill the responsive container
 						className="absolute inset-0 w-full h-full border-none rounded-lg"
 						scrolling="no"
