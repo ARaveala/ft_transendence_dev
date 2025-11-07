@@ -8,11 +8,13 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { API_PROTOCOL } from "../../shared/api-protocols";
 import ChooseGameMode from "../components/game/ChooseGameMode";
 import GameSettings from "../components/game/GameSettings";
 import CenteredContainer from "../components/layout/CenteredContainer";
 import MiniLogin from "../components/game/MiniLogin";
 import { useTranslation } from "../shared/Translation";
+import { useApiFetch } from "../utils/apiFetch"
 
 type GameMode = "guest" | "login" | "ai";
 //	const { isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
@@ -32,6 +34,8 @@ const Game: React.FC = () => {
 		paddleSpeed: number;
 		maxScore: number;
 	} | null>(null);
+	// Use apiFetch hook
+	const apiFetch = useApiFetch();
 
 	const [showInGameHelp, setShowInGameHelp] = useState(false);
 
@@ -88,18 +92,16 @@ const Game: React.FC = () => {
 
 		try {
 		// 1. Create game
-			const createRes = await fetch("/api/create-game", {
-				method: "POST",
+					const data = await apiFetch(API_PROTOCOL.CREATE_GAME.path, {
+				method: API_PROTOCOL.CREATE_GAME.method,
 				headers: { "Content-Type": "application/json" },
-				credentials: "include",
 				body: JSON.stringify({
 					type: "local",
 					mode: "vs",
-					settings: null}),
-				});
-			
-			if (!createRes.ok) throw new Error("Failed to create game.");
-			const { gameId: newGameId } = await createRes.json();
+					settings: null,
+				}),
+			});
+			const { gameId: newGameId } = data;
 			setGameId(newGameId);
 
 			// 2. Show minilogin only if login mode is selected
@@ -113,33 +115,38 @@ const Game: React.FC = () => {
 				await joinGuestOrAi(newGameId, mode);
 				// Flow continues to GameSettings because showMiniLogin is false
 			}
-		} catch (err) {
-			console.error(err);
+		} catch (e: any) {
+			console.error(e);
+			if (e.sessionExpired) return; // handled inside apiFetch (redirect)
 			alert(t("error.game.create"));
-			setSelectedMode(null);
+			setSelectedMode(null);	
 			setGameId(null);
 		}
 	};
 
 	const joinGuestOrAi = async (gameId: string, mode: "guest" | "ai") => {
-			const joinGuestOrAiRes = await fetch("/api/join-game", {
-				method: "POST",
+		try {
+			const data = await apiFetch(API_PROTOCOL.JOIN_GAME.path, {
+				method: API_PROTOCOL.JOIN_GAME.method,
 				headers: { "Content-Type": "application/json" },
-				credentials: "include",
 				body: JSON.stringify({
 					gameId,
 					type: mode,
 					mode: "local",
-					player_count: 2,}),
-				});
-				const data = await joinGuestOrAiRes.json();
-				console.log(joinGuestOrAiRes);
+					player_count: 2,
+				}),
+			});
 
-			if (!joinGuestOrAiRes.ok) {
-				throw new Error("Failed to join guest/ai opponent.");
-			}
-		};
-		
+			console.log("Joined game successfully:", data);
+			return data; // in case caller needs the response
+
+		} catch (e: any) {
+			console.error("Failed to join guest/AI opponent:", e);
+			if (e.sessionExpired) return; // handled by apiFetch (redirect)
+			throw new Error("Failed to join guest/AI opponent.");
+		}
+	};
+			
 
 	// Launch game 
 
@@ -147,27 +154,22 @@ const Game: React.FC = () => {
 		if (!gameId) return;
 
 		try {
-			const startRes = await fetch("/api/start-game", {
-				method: "POST",
+			const startData = await apiFetch(API_PROTOCOL.START_GAME.path, {
+				method: API_PROTOCOL.START_GAME.method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ gameId }),
-				credentials: "include",
 			});
 
-			if (!startRes.ok) {
-				throw new Error("Failed to start game.");
-			}
+			setPlayer1Token(startData.playerTokens.player1);
+			setPlayer2Token(startData.playerTokens.player2);
+			setGameStarted(true);
 
-			const startData = await startRes.json();
-				setPlayer1Token(startData.playerTokens.player1);
-				setPlayer2Token(startData.playerTokens.player2);
-				setGameStarted(true);
-	
-			} catch (err) {
-				console.error(err);
-				alert(t("error.game.start"));
-			}
-		};
+		} catch (e: any) {
+			console.error("Failed to start game:", e);
+			if (e.sessionExpired) return; 
+			alert(t("error.game.start"));
+		}
+	};
 
 if (loading) return <div>{t("game.checkingLogin")}</div>;
 if (!isLoggedIn) return <div>{t("game.loginRequired")}</div>;

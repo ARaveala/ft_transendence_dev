@@ -172,14 +172,14 @@ async function checkPasswordMatch( userId, password ) {
 		return new Promise((resolve, reject) => {
 			db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) =>{
 			    if (err) {
-        			return reject({ error: 'Database error', code: 500 });
+        			return reject({ error: 'Database error', code: 418 });
       			}
     			if (!row) {
         			return reject({ error: 'User not found', code: 404 });
       			}
 		    	bcrypt.compare(password, row.password, (err, isMatch) => {
         			if (err) {
-        				return reject({ error: 'Hash comparison failed', code: 500 });
+        				return reject({ error: 'Hash comparison failed', code: 418 });
         			}
         			if (!isMatch) {
           				return reject({ error: 'Invalid password', code: 400 });
@@ -209,7 +209,7 @@ async function miniLogin(username, password) {
 		  // Compare hashed password
 		bcrypt.compare(password, row.password, (err, isMatch) => {
 			if (err) {
-			  return reject({ error: 'Hash comparison failed', code: 500 });
+			  return reject({ error: 'Hash comparison failed', code: 418 });
 			}
 			if (!isMatch) {
 			  return reject({ error: 'invalid password ', code: 400});

@@ -50,7 +50,7 @@ async function registerUser(fastify, options) {
 			}
 			reply.code(200).send('ok');
 		} catch (err) {
-			reply.code(500).send(err);
+			reply.code(418).send(err);
 			flog.error( {function: 'registerUser', error: err}, 'Error during user registration::', err);
 		}
 	});
@@ -119,7 +119,7 @@ async function logoutUser(fastify, options) {
 			reply.code(200).send('ok');
 		} catch (err) {
 			console.log(('Error during login:', err));
-			reply.code(500).send(err);
+			reply.code(418).send(err);
 		}
 	});
 }
@@ -148,7 +148,7 @@ async function deleteUser(fastify, option) {
 		}
 		catch {
 			flog.error({fucntion: 'deletUser'}, 'ERROR deleting user ');
-			reply.code(500).send('error deleting user');
+			reply.code(418).send('error deleting user');
 		}
 		}
 	});
@@ -190,7 +190,7 @@ async function setupTwoFactor(fastify, options) {
 
         } catch (err) {
             flog.error({ function: 'setupTwoFactor', error: { message: err.message, stack: err.stack } }, 'An error occurred during 2FA setup.'); // Improved error logging
-            reply.code(500).send({ error: 'An error occurred during 2FA setup.' });
+            reply.code(418).send({ error: 'An error occurred during 2FA setup.' });
         }
     });
 }
@@ -237,7 +237,7 @@ async function verifyTwoFactor(fastify, options) {
             }
         } catch (err) {
             flog.error({ function: 'verifyTwoFactor', error: { message: err.message, stack: err.stack } }, 'An error occurred during 2FA verification.');
-            reply.code(500).send({ error: 'An error occurred during 2FA verification.' });
+            reply.code(418).send({ error: 'An error occurred during 2FA verification.' });
         }
     });
 }
@@ -258,7 +258,7 @@ async function disableTwoFactor(fastify, options) {
             reply.code(200).send({ disabled: true });
         } catch (err) {
             flog.error({ function: 'disableTwoFactor', error: { message: err.message, stack: err.stack } }, 'An error occurred while disabling 2FA.');
-            reply.code(500).send({ error: 'An error occurred while disabling 2FA.' });
+            reply.code(418).send({ error: 'An error occurred while disabling 2FA.' });
         }
     });
 }
@@ -327,7 +327,7 @@ async function verifyLoginTwoFactor(fastify, options) {
         	errorStack: err.stack,
         	rawError: err
 			}, 'Error during 2FA login verification.');
-            reply.code(500).send({ error: 'An error occurred during 2FA login verification.' });
+            reply.code(418).send({ error: 'An error occurred during 2FA login verification.' });
         }
     });
 }
