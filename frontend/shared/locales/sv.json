@@ -25,6 +25,8 @@
   "profile.history.time": "Tid",
   "profile.result.win": "Vinst",
   "profile.result.loss": "Förlust",
+  "profile.match.histor.empty": "Ingen matchhistorik tillgänglig.",
+  "profile.error.loading": "Det gick inte att ladda profilen.",
 
   "settings.title": "Inställningar",
   "settings.loginRequired": "Logga in för att visa inställningarna.",
