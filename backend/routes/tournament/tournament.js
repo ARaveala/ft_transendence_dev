@@ -255,9 +255,9 @@ async function startTournament(fastify, options){
  		handler: async (request, reply) => {
 			try {
 				flog.warn({fucntion: 'start torunamnet'}, "checking if we see this before seeding");
-				//if ( await DBtour.getActiveTournamentStatus(currentTournamentId)){
-				//	console.log("ggggaaaammmee over no more of this shite ");
-				//}
+//				if ( await DBtour.getActiveTournamentStatus(currentTournamentId)){
+//					console.log("ggggaaaammmee over no more of this shite ");
+//				}
 				await DBtour.seedPlayers(currentTournamentId);
 				const players = await DBtour.getTournamentPlayers(currentTournamentId);
 			
