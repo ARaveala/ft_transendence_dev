@@ -149,11 +149,11 @@ const PlayerList: React.FC<PlayerListProps> = ({
 		// Validate username + password for non-self players
 		if (!player.isSelf) {
 			if (!USERNAME_REGEX.test(data?.username ?? "")) {
-				localErrors.username = t("auth.error.usernameFormat");
+				localErrors.username = t("auth.error.invalidCredentials");
 			}
 
 			if (!PASSWORD_REGEX.test(data?.password ?? "")) {
-				localErrors.password = t("auth.error.passwordFormat");
+				localErrors.password = t("auth.error.invalidCredentials");
 			}
 		}
 
