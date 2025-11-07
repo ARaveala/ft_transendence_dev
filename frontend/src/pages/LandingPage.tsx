@@ -233,7 +233,7 @@ const HomePage: React.FC = () => {
 			setTempAuthToken(null);
 
 		} catch (err: any) {
-			setFormError(err?.message || t("home.error.generic"));
+			alert(err?.message || t("home.error.generic"));
 		}
 	};
 
