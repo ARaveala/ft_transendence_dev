@@ -30,6 +30,11 @@ const AUTH_ERROR_MSG = {
 	USER_NOT_VERIFIED: 'User account is not verified',
 }
 
+const VALIDATION_ERR = {
+	PASSWORD: 'invalid password',
+	DEFAULT: 'invalid input'
+}
+
 const ERROR_MESSAGES = {
 	INVALID_USERNAME: 'Username does not exist',
 	INVALID_PASSWORD: 'Incorrect password',
@@ -39,10 +44,10 @@ const ERROR_MESSAGES = {
 };
 
 const ERROR_CODES = {
-  VALIDATION_FAILED: {
+  VALIDATION_FAILED: (msgKey = 'DEFAULT_AUTH') =>({
     code: 400,
-    message: 'Invalid input'
-  },
+	message: AUTH_ERROR_MSG[msgKey] || AUTH_ERROR_MSG.DEFAULT_AUTH
+  }),
   
   UNAUTHORIZED: (msgKey = 'DEFAULT_AUTH') =>({
     code: 401,
