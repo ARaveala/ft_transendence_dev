@@ -51,6 +51,7 @@ function verifyToken(token) {
 function getUserIdFromToken(token) {
 	log('GET USER ID FROM TOKEN', 'taking id from token');
 	try {
+		flog.warn({fucntion: 'get user id from token', secret: getJwtSecret()}, 'NOTICE--------ME-----sENPAI')
 		const decoded = jwt.verify(token, getJwtSecret());
 		if (decoded === undefined) {
 			flog.warn( {function: 'getUserIdFromToken'}, 'Token verification returned undefined');
@@ -72,7 +73,7 @@ function getUserIdFromTokenH(token) {
 		return {error: 'MISSING_TOKEN'};
 	}
 	try {
-		const decoded = jwt.verify(token, JWT_SECRET);
+		const decoded = jwt.verify(token, getJwtSecret());
 		if (decoded === undefined) {
 			flog.warn( {function: 'getUserIdFromToken'}, 'Token verification returned undefined');
 			//return undefined;
