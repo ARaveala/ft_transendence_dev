@@ -392,29 +392,29 @@ function updateTournamentStats(gameId, p1Score, p2Score, status, winnerId) {
               );
 
               // Finalize tournament if this is the final round
-              if (round === 3 && winnerId) {
-                db.run(
-                  'UPDATE tournaments SET status = ?, winner_id = ? WHERE id = ?',
-                  ['finished', winnerId, tournament_id],
-                  (err) => {
-                    if (err) {
-                      flog.error({
-                        function: "updateTournamentStats",
-                        errmsg: "Failed to finalize tournament: " + err.message
-                      });
-                      return reject(err);
-                    }
-                    flog.info({
-                      function: "updateTournamentStats",
-                      tournament_id,
-                      winnerId
-                    }, 'Tournament marked as finished');
-                    return resolve(this.changes);
-                  }
-                );
-              } else {
-                return resolve(this.changes);
-              }
+              //if (round === 3 && winnerId) {
+              //  db.run(
+              //    'UPDATE tournaments SET status = ?, winner_id = ? WHERE id = ?',
+              //    ['finished', winnerId, tournament_id],
+              //    (err) => {
+              //      if (err) {
+              //        flog.error({
+              //          function: "updateTournamentStats",
+              //          errmsg: "Failed to finalize tournament: " + err.message
+              //        });
+              //        return reject(err);
+              //      }
+              //      flog.info({
+              //        function: "updateTournamentStats",
+              //        tournament_id,
+              //        winnerId
+              //      }, 'Tournament marked as finished');
+              //      return resolve(this.changes);
+              //    }
+              //  );
+              //} else {
+              //  return resolve(this.changes);
+              //}
             }
           );
         });
