@@ -75,13 +75,13 @@ function setUpWebSockets(server) {
 				console.log("Client disconnected");
 				// some kind of pause logic here 
 				const player = ws.player;//players.get(playerId);
-				flog.info({ function: 'setupwebsockets', playerId: ws.playerId, gameId: ws.gameId }, 'player details in trace');
-				flog.debug({ function: 'setupwebsockets', playerId: player });
-				console.log('checking if player exists on disconnect', player, 'is there a game id', ws.gameId, 'access anything', ws.player.ready);
+				//flog.info({ function: 'setupwebsockets', playerId: ws.playerId, gameId: ws.gameId }, 'player details in trace');
+				//flog.debug({ function: 'setupwebsockets', playerId: player });
+				//console.log('checking if player exists on disconnect', player, 'is there a game id', ws.gameId, 'access anything', ws.player.ready);
 				if (player) {
 					
 					player.disconnectedAt = Date.now();
-					flog.debug({ function: 'setupwebsockets', player: player , playerDisconnect: player.disconnectedAt}, 'player disconnected at time');
+					//flog.debug({ function: 'setupwebsockets', player: player , playerDisconnect: player.disconnectedAt}, 'player disconnected at time');
 					console.log("Player disconnected:", player);
 					player.ws = null;
 					handleMessage(undefined, { type: "pause", playerId: ws.playerId, gameId: ws.gameId });

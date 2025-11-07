@@ -85,7 +85,10 @@ async function getTournamentState(tournamentId) {
 			];
 		}
 	}
-
+	flog.warn({function: "gettorunamnet state", state: tournamentStatus}, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+	//if (tournamentStatus === 'finished'){
+	//	tournamentStatus = [];
+	//}
 	const tournamentState = {
 		tournament_id: tournamentId,
 		status: tournamentStatus,
@@ -114,7 +117,11 @@ async function createTournament(fastify, options){
  		url: API_PROTOCOL.CREATE_TOURNAMENT.path,
  		handler: async (request, reply) => {
  			flog.debug({ function: 'createTournament', body: request.body }, 'request body:');
- 			try{
+			//if ( await DBtour.getActiveTournamentStatus(currentTournamentId)){
+			//	console.log("ggggaaaammmee over no more of this shite ");
+			//	return;
+			//}
+			try{
 				const userId = request.userId;
 				const tournamentId = await DBtour.createTournament();
 				flog.warn({function: "create tournamnet", tidbeforeset: tournamentId});

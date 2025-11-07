@@ -344,37 +344,140 @@ function updatePlayerReadyStatus(tournamentId, playerId, newStatus) {
 		});
 }
 
-function updateTournamentStats(gameId, p1Score, p2Score, status, winnerId){
-	flog.debug({function: "updateTournamentStats", gameid: gameId, p1Score: p1Score, p2Score: p2Score, winnerId: winnerId});
-		return new Promise((resolve, reject) => {
-    		db.get('SELECT tournament_id, p1_id, p2_id FROM game WHERE game_uid = ?', [gameId], (err, row) => {
-    			if (err || !row) {
-    				flog.error({ function: "updateTournamentStats", errmsg: err?.message || 'Game not found' });
-    				return reject(err || new Error('Game not found'));
-    			}
-			const { tournament_id, p1_id, p2_id } = row;
+function updateTournamentStats(gameId, p1Score, p2Score, status, winnerId) {
+  flog.debug({
+    function: "updateTournamentStats",
+    gameid: gameId,
+    p1Score,
+    p2Score,
+    winnerId
+  });
 
+  return new Promise((resolve, reject) => {
+    db.get(
+      'SELECT tournament_id, p1_id, p2_id, round FROM game WHERE game_uid = ?',
+      [gameId],
+      (err, row) => {
+        if (err || !row) {
+          flog.error({
+            function: "updateTournamentStats",
+            errmsg: err?.message || 'Game not found'
+          });
+          return reject(err || new Error('Game not found'));
+        }
 
-		db.serialize(() => { 
-			db.run(
-				'UPDATE game SET p1_score = ?, p2_score = ?, winner_id = ?, status = ? WHERE tournament_id = ? AND game_uid = ?',
-			[p1Score, p2Score, winnerId, status, tournament_id, gameId], function onDone(err){
-				if (err) {
-					flog.error({fucntion: "updateTournamentStats", errmsg: err.message});
-					return reject(err);
-				}
-				// if no changes check?
-				return resolve(this.changes);
-			})
-			db.run('UPDATE tournament_players SET player_score = ? WHERE  tournament_id = ? AND user_id = ? ',
-				[p1Score, tournament_id, p1_id])
-			db.run('UPDATE tournament_players SET player_score = ? WHERE  tournament_id = ? AND user_id = ? ',
-				[p2Score, tournament_id, p2_id])
-		
-		}
-		)}
-)}
-)}
+        const { tournament_id, p1_id, p2_id, round } = row;
+
+        db.serialize(() => {
+          db.run(
+            'UPDATE game SET p1_score = ?, p2_score = ?, winner_id = ?, status = ? WHERE tournament_id = ? AND game_uid = ?',
+            [p1Score, p2Score, winnerId, status, tournament_id, gameId],
+            function (err) {
+              if (err) {
+                flog.error({
+                  function: "updateTournamentStats",
+                  errmsg: err.message
+                });
+                return reject(err);
+              }
+
+              // Update player scores
+              db.run(
+                'UPDATE tournament_players SET player_score = ? WHERE tournament_id = ? AND user_id = ?',
+                [p1Score, tournament_id, p1_id]
+              );
+              db.run(
+                'UPDATE tournament_players SET player_score = ? WHERE tournament_id = ? AND user_id = ?',
+                [p2Score, tournament_id, p2_id]
+              );
+
+              // Finalize tournament if needed
+              if (round === 3 && winnerId) {
+                db.run(
+                  'UPDATE tournaments SET status = ?, winner_id = ? WHERE id = ?',
+                  ['finished', winnerId, tournament_id],
+                  (err) => {
+                    if (err) {
+                      flog.error({
+                        function: "updateTournamentStats",
+                        errmsg: "Failed to finalize tournament: " + err.message
+                      });
+                      return reject(err);
+                    }
+                    flog.info({
+                      function: "updateTournamentStats",
+                      tournament_id,
+                      winnerId
+                    }, 'Tournament marked as finished');
+                    return resolve(this.changes);
+                  }
+                );
+              } else {
+                return resolve(this.changes);
+              }
+            }
+          );
+        });
+      }
+    );
+  });
+}
+
+//function updateTournamentStats(gameId, p1Score, p2Score, status, winnerId){
+//	flog.debug({function: "updateTournamentStats", gameid: gameId, p1Score: p1Score, p2Score: p2Score, winnerId: winnerId});
+//		return new Promise((resolve, reject) => {
+//    		db.get('SELECT tournament_id, p1_id, p2_id FROM game WHERE game_uid = ?', [gameId], (err, row) => {
+//    			if (err || !row) {
+//    				flog.error({ function: "updateTournamentStats", errmsg: err?.message || 'Game not found' });
+//    				return reject(err || new Error('Game not found'));
+//    			}
+//			const { tournament_id, p1_id, p2_id, round } = row;
+//
+//
+//		db.serialize(() => { 
+//			db.run(
+//				'UPDATE game SET p1_score = ?, p2_score = ?, winner_id = ?, status = ? WHERE tournament_id = ? AND game_uid = ?',
+//			[p1Score, p2Score, winnerId, status, tournament_id, gameId], function onDone(err){
+//				if (err) {
+//					flog.error({fucntion: "updateTournamentStats", errmsg: err.message});
+//					return reject(err);
+//				}
+//				// if no changes check?
+//				return resolve(this.changes);
+//			})
+//			db.run('UPDATE tournament_players SET player_score = ? WHERE  tournament_id = ? AND user_id = ? ',
+//				[p1Score, tournament_id, p1_id])
+//			db.run('UPDATE tournament_players SET player_score = ? WHERE  tournament_id = ? AND user_id = ? ',
+//				[p2Score, tournament_id, p2_id])
+//		 if (round === 3 && winnerId) {
+//                db.run(
+//                  'UPDATE tournaments SET status = ?, winner_id = ? WHERE id = ?',
+//                  ['finished', winnerId, tournament_id],
+//                  (err) => {
+//                    if (err) {
+//                      flog.error({
+//                        function: "updateTournamentStats",
+//                        errmsg: "Failed to finalize tournament: " + err.message
+//                      });
+//                      return reject(err);
+//                    }
+//                    flog.info({
+//                      function: "updateTournamentStats",
+//                      tournament_id,
+//                      winnerId
+//                    }, 'Tournament marked as finished');
+//                    return resolve(this.changes);
+//                  }
+//                );
+//              } else {
+//                return resolve(this.changes);
+//              }
+//            }
+//          );
+//		}
+//		)}
+//)}
+//)}
 function cancelTournament(tournamentId) {
 	flog.debug({ function: 'DBcancelTournament' , tid: tournamentId}, 'Cancelling tournament with id of');
 		return new Promise((resolve, reject) => {

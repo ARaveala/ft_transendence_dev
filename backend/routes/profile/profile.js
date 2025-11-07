@@ -106,9 +106,14 @@ async function getUser(fastify, options) {
 			mockProfile.friends = friends || [];
 			mockProfile.matchHistory = matchHistory || [];
 
-//			console.log("show mock profile", mockProfile);
-			mockProfile.tournament = profile.active_tournament_id === 0 ? null : await getTournamentState(profile.active_tournament_id);
-//			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
+			mockProfile.tournament = profile.active_tournament_id === 0 ? [] : await getTournamentState(profile.active_tournament_id);
+			if (profile.active_tournament_id > 0){
+				flog.warn({fucntion: "profile", tourenamnetStatus: mockProfile.tournament.status}, "---------------FULL PROFILE SENT TO FRONTEND");
+			}
+			if (mockProfile.tournament.status === 'finished'){
+				console.log('THE GAME IS FUCKING DONE STOP MESSING WITH ME NOWPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP');
+				mockProfile.tournament = [];
+			}
 			reply.send(mockProfile);
 		} catch (err) {
 			reply.code(418).send(err);
