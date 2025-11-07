@@ -147,6 +147,7 @@ async function verifyPlayer(fastify, options){
  			flog.debug({ function: 'verifyPlayer', body: request.body }, 'request body:');
  			const {role, username, password, alias} = request.body;
 			try {
+//				if (await DB.getActiveTournamentStatus(currentTournamentId) === 'finnished'){flog.warn("TOURNAMNET HAS FINNISHED WE DONT GET HERE ANYMORE");return;}
 				const userId = request.userId;				
 				let tournamentState = undefined;
 				if (role === 'player1'){
@@ -255,6 +256,7 @@ async function startTournament(fastify, options){
  		handler: async (request, reply) => {
 			try {
 				//flog.warn({fucntion: 'start torunamnet'}, "checking if we see this before seeding");
+//				if (await DB.getActiveTournamentStatus(currentTournamentId) === 'finnished'){flog.warn("TOURNAMNET HAS FINNISHED WE DONT GET HERE ANYMORE");return;}
 				
 				await DBtour.seedPlayers(currentTournamentId);
 				const players = await DBtour.getTournamentPlayers(currentTournamentId);
@@ -286,7 +288,10 @@ async function removeUserFromTournament(fastify, options) {
 		url: API_PROTOCOL.REMOVE_PLAYER_FROM_TOURNAMENT.path,
  		handler: async (request, reply) => {
 			//flog.debug({function: "removeUserFRomTournamnet", body:request.body}, "looking at incoming body")
+
 			const {tournament_id, role} = request.body;
+//			if (await DB.getActiveTournamentStatus(currentTournamentId) === 'finnished'){flog.warn("TOURNAMNET HAS FINNISHED WE DONT GET HERE ANYMORE");return;}
+
 			try {
 				await DBtour.removePlayer(tournament_id, role);
 				const tournamentState = await getTournamentState(tournament_id);
