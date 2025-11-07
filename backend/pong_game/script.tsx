@@ -164,6 +164,7 @@ webSocket.onmessage = (event) => {
                     const text = (winner == 1 ? "🔵" : "🔴") + " 🏆";
                     endPromptText.textContent = text;
                     endPromptText.classList.add("text-" + (winner == 1 ? "blue" : "red") + "-500");
+                    
                     endPrompt.classList.remove("hidden");
                     webSocket.send(JSON.stringify({ type: "gameOver", gameId: gameId }));			
                 }
