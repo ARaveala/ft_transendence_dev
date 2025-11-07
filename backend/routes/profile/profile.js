@@ -55,7 +55,7 @@ async function getFriendProfile(fastify, options) {
 			reply.send(mockProfile);
 		} catch (err) {
 			flog.error({fucntion: "get freind profile", err: err.stack}, "AAAAAAAAAAAAaaAAAA erro stack ");
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	});
 }
@@ -111,7 +111,7 @@ async function getUser(fastify, options) {
 //			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	});
 }
@@ -156,7 +156,7 @@ async function updateUsername(fastify, options) {
 			});
 		} catch (err) {
 			console.log(('Error during login:', err));
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	}
 	});
@@ -193,7 +193,7 @@ async function updatePassword(fastify, options) {
 			});
 		} catch (err) {
 			console.log(('Error during login:', err));
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	}
 	});
@@ -244,7 +244,7 @@ async function uploadAvatarFileRoute(fastify, options) {
 					// Delete the newly uploaded file if DB update fails
 					await deleteOldAvatar(newAvatarUrl); 
 					
-					reply.code(500).send({ status: 'ERROR', error: 'Database update failed' });
+					reply.code(400).send({ status: 'ERROR', error: 'Database update failed' });
 					return;
 				}
 
@@ -264,7 +264,7 @@ async function uploadAvatarFileRoute(fastify, options) {
 					await deleteOldAvatar(newAvatarUrl); // Clean up temp file
 				}
 				flog.error({ err }, 'Error during avatar file upload (includes file system errors)');
-				reply.code(500).send({ status: 'ERROR', error: 'Server error during upload' });
+				reply.code(400).send({ status: 'ERROR', error: 'Server error during upload' });
 			}
 		},
 	});
@@ -298,7 +298,7 @@ async function updateAvatar(fastify, options) {
 			});
 		} catch (err) {
 			console.log(('Error during avatar change:', err));
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	}
 	});
@@ -330,7 +330,7 @@ async function updateLanguage(fastify, options) {
 			});
 		} catch (err) {
 			console.log(('Error during Language change:', err));
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	}
 	});
@@ -364,7 +364,7 @@ async function updateTwoFactor(fastify, options) {
 		}
 		catch (err) {
 			console.log(('Error during Two Factor change:', err));
-			reply.code(500).send(err);
+			reply.code(400).send(err);
 		}
 	}
 	});

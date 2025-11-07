@@ -76,7 +76,7 @@ async function authHook(fastify, options) {
 			}
 		} catch (err) {
 			flog.error({function: "authHook", errMsg: err.stack},'unknown error');
-			reply.code(500).send({error: 'unknown error from authHook'});
+			reply.code(400).send({error: 'unknown error from authHook'});
 		}
 		});
 }
