@@ -222,7 +222,7 @@
   "error.game.create": "Failed to create game. Make sure you are logged in.",
   "error.game.start": "Failed to start game. Make sure you are logged in.",
   "error.auth.miniLoginFailed": "Mini login failed. Check your credentials and try again.",
-   "error.network": "Network error. Please try again.",
+  "error.network": "Network error. Please try again.",
   "error.alias.format": "Alias must be 5–10 characters (letters, numbers, underscores).",
   "error.alias.unique": "Alias must be unique."
 }

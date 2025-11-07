@@ -6,14 +6,9 @@ import { useApiFetch } from "../utils/apiFetch";
 
 import type {
 	ChangeLanguagePayload,
-	ChangeLanguageResponse,
 	ChangeUsernamePayload,
-	ChangeUsernameResponse,
 	ChangePasswordPayload,
-	ChangePasswordResponse,
 	UpdateProfilePayload,
-	//ChangeTwoFactorPayload,
-	//ChangeTwoFactorResponse,
 	UploadAvatarResponse,
 } from "../../shared/payloads";
 import avatar1 from "../assets/avatars/avatar1.png";
@@ -299,7 +294,7 @@ const SettingsPage: React.FC = () => {
 		try {
 			const payload: ChangeLanguagePayload = { language };
 			
-			const {res, data } = await apiFetch(
+			const data  = await apiFetch(
 				API_PROTOCOL.CHANGE_LANGUAGE.path,
 				{
 					method: API_PROTOCOL.CHANGE_LANGUAGE.method,
@@ -308,7 +303,7 @@ const SettingsPage: React.FC = () => {
 				}
 			);
 
-			if (!res.ok || data.status !== "UPDATED") {
+			if (data.status !== "UPDATED") {
 				console.error("language update error:", data.error);
 				setErr(t("error.language.updateFailed"));
 				return;
@@ -338,27 +333,12 @@ const SettingsPage: React.FC = () => {
 			setInlineErrors({});
 
 			const payload: ChangeUsernamePayload = { username: value };
-			const { res, data } = await apiFetch(API_PROTOCOL.CHANGE_USERNAME.path, {
+			const data = await apiFetch(API_PROTOCOL.CHANGE_USERNAME.path, {
 					method: API_PROTOCOL.CHANGE_USERNAME.method,
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(payload),
 			});
-
-			if (!res.ok || data.status !== "UPDATED") {
-				const errMsg = data?.error || "unknown";
-				if (errMsg === "Username not available" || errMsg === "username not available") {
-					
-					// Inline error shown under username field
-					setInlineErrors({ username: t("error.username.taken") });
-					return;
-				}
-				if (errMsg === "no such user") {
-					setErr(t("error.user.notFound"));
-					return;
-				}
-				setErr(t("error.username.updateFailed"));
-				return;
-			}
+			console.log("Backend response for saveUsername:", data);
 
 			setMsg(t("common.username.updated"));
 			resetUsernameForm();
@@ -370,22 +350,36 @@ const SettingsPage: React.FC = () => {
 
 		} catch (e: any) {
 			console.error("Caught error in saveUsername:", e);
-			if (e.sessionExpired) return; 
-			setErr(t("error.username.updateFailed"));
+			let backendError;
+			try {
+				backendError = JSON.parse(e.message);
+			} catch (_) {
+				backendError = { error: e.message };
+			}
+
+			if (backendError.error === "Username not available" || backendError.error === "username not available") {
+				// Inline error under input
+				setInlineErrors({ username: t("error.username.taken") });
+			} else if (backendError.error === "no such user") {
+				setErr(t("error.user.notFound"));
+			} else if (e.sessionExpired) {
+				return; // let apiFetch handle session expiration
+			} else {
+				setErr(t("error.username.updateFailed"));
+			}
 		} finally {
 			setBusy(false);
-		}
+	}
 	}
 
 	async function savePassword() {
 		setBusy(true); setMsg(null); setErr(null);
 		try {
+			
 			if (!PASSWORD_REGEX.test(currentPassword))
 			{
-				setInlineErrors({
-					password: t("error.password.invalidFormat"),
-				});
-			return;
+				setInlineErrors({ password: t("auth.error.passwordFormat")});
+				return;
 			}
 
 			const validation = validatePasswordInputs(
@@ -404,6 +398,8 @@ const SettingsPage: React.FC = () => {
 				current_password: currentPassword,
 				new_password: newPassword,
 			};
+			console.log("Frontend sending", currentPassword);
+			console.log("Frontend sending:", newPassword);
 			const { res, data } = await apiFetch(API_PROTOCOL.CHANGE_PASSWORD.path, {
 				method: API_PROTOCOL.CHANGE_PASSWORD.method,
 				headers: { "Content-Type": "application/json" },
@@ -411,27 +407,31 @@ const SettingsPage: React.FC = () => {
 				body: JSON.stringify(payload),
 			});
 
-			if (!res.ok || data.status !== "UPDATED") {
-				const errMsg = data?.error || "unknown";
-				console.log('Backend error', errMsg)
-
-				if (errMsg === "password does not match") {
-					setInlineErrors({
-						password: t("error.password.currentIncorrect"),
-					});
-					return;
-				}
-				setErr(t("error.password.updateFailed"));
-				return;
-			}
-
 			setMsg(t("common.password.updated"));
 			resetPasswordForm();
 			setOpenRow(null);
-			setCurrentPassword(""); setNewPassword(""); setConfirmNewPassword("");
+			setCurrentPassword("");
+			setNewPassword("");
+			setConfirmNewPassword("");
+
 		} catch (e: any) {
-			if (e.sessionExpired) return;
-			setErr(t("error.password.updateFailed"));
+			console.error("Caught error in savePassword:", e);
+
+			let backendError;
+			try {
+				backendError = JSON.parse(e.message);
+			} catch (_) {
+				backendError = { error: e.message };
+			}
+
+			if (backendError.error === "Invalid password") {
+				setInlineErrors({ password: t("error.password.currentIncorrect") });
+			} else if (e.sessionExpired) {
+				// Let apiFetch handle redirect
+				return;
+			} else {
+				setErr(t("error.password.updateFailed"));
+			}
 		} finally {
 			setBusy(false);
 		}
@@ -721,7 +721,7 @@ const SettingsPage: React.FC = () => {
 						/>
 						{/* Inline error shown under the input */}
 						{inlineErrors.username && (
-							<p className="text-red-400 text-sm mt-1">{inlineErrors.username}</p>
+							<p className="text-red-400 text-xs mt-1">{inlineErrors.username}</p>
 						)}
 
 						<div className="mt-3 flex gap-2">
@@ -766,7 +766,7 @@ const SettingsPage: React.FC = () => {
 						/>
 						{/* Inline error shown under the input */}
 						{inlineErrors.password && (
-							<p className="text-red-400 text-sm mt-1">{inlineErrors.password}</p>
+							<p className="text-red-400 text-xs mt-1">{inlineErrors.password}</p>
 						)}
 						<div className="mt-3 flex gap-2">
 							<PrimaryTiny onClick={savePassword} disabled={busy}>{t("common.save")}</PrimaryTiny>

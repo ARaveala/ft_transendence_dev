@@ -4,7 +4,7 @@ export function useApiFetch() {
 const { logoutUser } = useAuth();
 
 // low-level fetch with automatic session expiration handling
-async function apiFetch<T = any>(url: string, options: RequestInit = {}): Promise<{res: Response; data: T}>
+async function apiFetch<T = any>(url: string, options: RequestInit = {}): Promise<T>
 	{
 	const res = await fetch(url, {
 		...options,
@@ -25,15 +25,14 @@ async function apiFetch<T = any>(url: string, options: RequestInit = {}): Promis
 		throw sessionError;
 	}
 
-	let data: T;
-		try {
-			data = await res.clone().json();
-		} catch {
-			data = {} as T;
-		}
-
-		return { res, data };
+	if (!res.ok) {
+		const errText = await res.text();
+		throw new Error(errText || `HTTP error ${res.status}`);
 	}
+
+	// only parse JSON if response is OK
+	return res.json() as Promise<T>;
+}
 
 return apiFetch;
 }

@@ -171,11 +171,11 @@ async function verifyPlayer(fastify, options){
 						}
 					}
 				}
- 				reply.code(200).send({status: 'OK', tournament: tournamentState}); //wrong
+ 				reply.code(200).send({status: 'OK', tournament: tournamentState});
  			}
  			catch (err){
- 				flog.error({fucntion: 'createTournament'}, "error :: in verify player", err); //wrong
-				reply.code(500).send({ status: 'ERROR', error: 'Verification failed?' });
+ 				flog.error({fucntion: 'verifyPlayer', error: err }, "error verifing player");
+				reply.code(400).send({ status: 'ERROR', error: 'Verification failed' });
 			}
  		}
  	});

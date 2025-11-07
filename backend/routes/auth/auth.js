@@ -47,7 +47,7 @@ async function registerUser(fastify, options) {
 			if (err.error){
 				reply.code(err.code).send( {message: err.error});
 			}
-			reply.code(200).send('ok');
+			reply.code(200).send({ status: "REGISTERED" });
 		} catch (err) {
 			reply.code(500).send(err);
 			flog.error( {function: 'registerUser', error: err}, 'Error during user registration::', err);
@@ -68,7 +68,7 @@ async function loginUser(fastify, options) {
 				//const hashedPassword = await bcrypt.hash(password, saltRounds);
 
 				const result = await DBget.miniLogin(username, password);
-                if (!result) {
+                if (result.error) {
                     return reply.code(401).send({ error: "Invalid username or password." });
                 }
 
@@ -93,7 +93,7 @@ async function loginUser(fastify, options) {
 						return reply.code(err.code).send( {message: err.error});
 					}
 
-					reply.code(200).send('ok');
+					reply.code(200).send({ status: "LOGGED_IN" });
                 }
             } catch (err) {
                 flog.error({ function: 'loginUser', error: err }, 'Error during login:', err);

@@ -233,12 +233,26 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			}
 			
 			} catch (err: any) {
-				if (err.sessionExpired) return; // let apiFetch handle redirect
-				console.error("Error verifying player:", err);
+				if (err.sessionExpired) return;
+
+				let message = t("error.network"); // default fallback
+				
+				try {
+					const parsed = JSON.parse(err.message);
+					if (parsed.error === "Verification failed") {
+						 message = t("auth.error.invalidCredentials"); // your custom message
+					} else if (parsed.error) {
+						message = parsed.error; // use backend error otherwise
+					}
+				} catch (_) {
+					// keep fallback
+				}
+
 				setErrors(prev => ({
 					...prev,
-					[role]: { alias: err.message || t("error.network") }
-				}));
+					[role]: { alias: message }
+			}));
+
 		} finally {
 			setLoading(null);
 		}
