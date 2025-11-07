@@ -33,16 +33,7 @@ async function authHook(fastify, options) {
 			return;
 		}
 		const path = request.routeOptions?.url || request.raw.url;
-
-		//		const path = request.routerPath;
-	//	flog.debug({ function: "authHook", path, match: excludedPaths.includes(path) }, "Exclusion check");
-
-//const path = request.routerPath;
 		const method = request.method;
-		// for tester maybe only
-	//	flog.warn({fucntion : 'authHook', method: method}, "lets see if we catch the head method");
-		//if (request.method === 'HEAD') return;
-
 		const isExcluded = excludedPaths.some(route =>
 		  route.path === path && route.method === method
 		);
@@ -52,23 +43,13 @@ async function authHook(fastify, options) {
 			return;
 		}
 
-
-	//	if (excludedPaths.includes(request.routerPath)) {
-	//		flog.debug({ function: "authHook", routerPath: request.routerPath, routeUrl: request.routeOptions?.url }, "Checking path exclusion for this path");
-    //		return; // Skip auth for these routes
-	//	}
-
 		const token = request.cookies?.auth_token;
-	//	flog.debug({function: "authHook", token: token},'cookie requested');
 		try {
 			const result = secure.getUserIdFromTokenH(token);
 			flog.debug({function: "authHook", result: result},'id decoded');
 			if (result?.id) {
 				
 				request.userId = result.id.id;
-	//			flog.debug({ function: "authHook", userId: request.userId }, 'userId set in hook');
-
-//				flog.debug({fucntion: "authHook", sending: result.id}, "ARE WE STEPPING INTO ATTATCHING THE ID ");
 			} else if (result.error) {
 				flog.error({function: "authHook", errMsg: result.error},'error from getuserIdFromToken');
 				const errorResponse = ERROR_CODES.UNAUTHORIZED(result.error);
@@ -80,9 +61,6 @@ async function authHook(fastify, options) {
 		}
 		});
 }
-
-// culd apply a different hook here for refresh using above also 
-
 
 module.exports = fp(authHook);
 //fastify.get('/api/profile', async (request, reply) => {

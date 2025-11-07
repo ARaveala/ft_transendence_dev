@@ -390,11 +390,35 @@ function cancelTournament(tournamentId) {
         		}
 				flog.info({ function: 'DBcancelTournament'}, 'tournamnet canceled');
 				resolve(this.changes);
-				//const tournamentId = this.lastID
-				  // Use tournamentId to insert players and games
-				});
-		});
+              // Finalize tournament if this is the final round
+              if (round === 3 && winnerId) {
+                db.run(
+                  'UPDATE tournaments SET status = ?, winner_id = ? WHERE id = ?',
+                  ['finished', winnerId, tournament_id],
+                  (err) => {
+                    if (err) {
+                      flog.error({
+                        function: "updateTournamentStats",
+                        errmsg: "Failed to finalize tournament: " + err.message
+                      });
+                      return reject(err);
+                    }
+                    flog.info({
+                      function: "updateTournamentStats",
+                      tournament_id,
+                      winnerId
+                    }, 'Tournament marked as finished');
+                    return resolve(this.changes);
+                  }
+                );
+              } else {
+                return resolve(this.changes);
+              }
+            }
+          );
+        });
 }
+
 
 function getUserByRole(tournamentId, role) {
 	flog.debug({ function: 'getUserByRole' , tid: tournamentId, role: role});
