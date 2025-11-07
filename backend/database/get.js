@@ -81,7 +81,7 @@ async function getFriendsForPlayer( userId ) {
 			`SELECT users.id AS user_id,
 				users.username AS username,
 				users.avatar_file AS avatar,
-				users.status AS status,
+				users.status AS online_status,
 				friends.status AS friendshipstatus
 			FROM friends
 			JOIN users ON friends.friend_id = users.id
