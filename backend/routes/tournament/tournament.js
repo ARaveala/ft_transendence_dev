@@ -254,10 +254,13 @@ async function startTournament(fastify, options){
 		url: API_PROTOCOL.START_TOURNAMENT.path,
  		handler: async (request, reply) => {
 			try {
-				flog.warn({fucntion: 'start torunamnet'}, "checking if we see this before seeding");
+				//flog.warn({fucntion: 'start torunamnet'}, "checking if we see this before seeding");
+				
 				await DBtour.seedPlayers(currentTournamentId);
 				const players = await DBtour.getTournamentPlayers(currentTournamentId);
-			
+				if (players.length != 4){
+					return;
+				}
 				const match1 = await createMatchWithBracket(DBtour, game, currentTournamentId, players[0], players[3], 1);
 				const match2 = await createMatchWithBracket(DBtour, game, currentTournamentId, players[1], players[2], 2);
 				const match3 = await createMatchWithBracket(DBtour, game, currentTournamentId, null, null, 3);		
