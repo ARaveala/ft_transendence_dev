@@ -350,20 +350,31 @@ const TournamentLobby: React.FC = () => {
 					</div>
 				)}
 
-	
-			{/* Pong Game Iframe  -- this needs to be fixed*/}
+				
+			{/* Pong Game Iframe*/}
 			{currentGame && activeGameId && player1Token && gameSettings &&(
-				<div className="w-full max-w-5xl bg-gray-900 p-4 rounded-xl shadow-2xl shadow-gray-700/80"> 
-				{/* Responsive container with 16:9 aspect ratio */}
-				<div className="relative w-full overflow-hidden" style={{ paddingTop: '56.25%' }}> 
+			<div
+				className="
+					relative
+					bg-gray-900 p-4 rounded-xl shadow-2xl shadow-gray-700/80
+					mx-auto flex justify-center items-center
+					min-w-[900px] min-h-[600px]
+				"
+				>
+				<div
+					className="relative overflow-hidden"
+					style={{
+					width: "100%",
+					maxWidth: "1280px",
+					aspectRatio: "16 / 9",
+					}}
+				>
 					<iframe
-						ref={iframeRef}
-						// Attach the focus handler to the iframe's onLoad event
-						onLoad={handleIframeLoad} 
-						src={`http://localhost:3000/pong_game/index.html?gameId=${activeGameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}&lang=${encodeURIComponent(lang)}`}
-						// The iframe is absolutely positioned to fill the responsive container
-						className="absolute inset-0 w-full h-full border-none rounded-lg"
-						scrolling="no"
+					ref={iframeRef}
+					onLoad={handleIframeLoad}
+					src={`http://localhost:3000/pong_game/index.html?gameId=${activeGameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}&lang=${encodeURIComponent(lang)}`}
+					className="absolute inset-0 w-full h-full border-none rounded-lg"
+					scrolling="no"
 					/>
 				</div>
 			</div>
