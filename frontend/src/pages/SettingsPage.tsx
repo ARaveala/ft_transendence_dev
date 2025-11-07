@@ -399,12 +399,8 @@ const SettingsPage: React.FC = () => {
 				current_password: currentPassword,
 				new_password: newPassword,
 			};
-			console.log("Frontend sending", currentPassword);
-			console.log("Frontend sending:", newPassword);
-			const res = await apiFetch(API_PROTOCOL.CHANGE_PASSWORD.path, {
-			const data: ChangePasswordResponse = await apiFetch(
-			API_PROTOCOL.CHANGE_PASSWORD.path,
-			{
+		
+			const data = await apiFetch(API_PROTOCOL.CHANGE_PASSWORD.path, {
 				method: API_PROTOCOL.CHANGE_PASSWORD.method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
