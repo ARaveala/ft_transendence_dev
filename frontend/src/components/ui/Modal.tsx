@@ -93,7 +93,7 @@ const Modal: React.FC<ModalProps> = ({
 						required
 					/>
 					{inlineErrors.password && (
-						<p className="text-sm text-red-400 mt-1">
+						<p className="text-xs text-red-400 mt-1">
 							{inlineErrors.password}
 						</p>
 					)}

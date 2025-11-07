@@ -126,7 +126,7 @@ async function createTournament(fastify, options){
  			}
  			catch (err){
  				flog.error({fucntion: 'createTournament'}, "error ::", err);
-				reply.code(500).send({status: 'ERROR', message: "error in create tournament"});
+				reply.code(418).send({status: 'ERROR', message: "error in create tournament"});
  			}
  		}
  	});
@@ -171,11 +171,11 @@ async function verifyPlayer(fastify, options){
 						}
 					}
 				}
- 				reply.code(200).send({status: 'OK', tournament: tournamentState}); //wrong
+ 				reply.code(200).send({status: 'OK', tournament: tournamentState});
  			}
  			catch (err){
  				flog.error({fucntion: 'createTournament'}, "error :: in verify player", err); //wrong
-				reply.code(500).send({ status: 'ERROR', error: 'Verification failed?' });
+				reply.code(418).send({ status: 'ERROR', error: 'Verification failed?' });
 			}
  		}
  	});
@@ -260,7 +260,9 @@ async function startTournament(fastify, options){
 //				}
 				await DBtour.seedPlayers(currentTournamentId);
 				const players = await DBtour.getTournamentPlayers(currentTournamentId);
-			
+				if (players.length != 4){
+					return;
+				}
 				const match1 = await createMatchWithBracket(DBtour, game, currentTournamentId, players[0], players[3], 1);
 				const match2 = await createMatchWithBracket(DBtour, game, currentTournamentId, players[1], players[2], 2);
 				const match3 = await createMatchWithBracket(DBtour, game, currentTournamentId, null, null, 3);		
@@ -272,7 +274,7 @@ async function startTournament(fastify, options){
 				reply.code(200).send({status: 'OK', tournament: tournamentState});
 			} catch (err) {
 			//	flog.error({fucntion: 'startTournament', errStack: err.stack, errMessage: err.message}, "error :: in start tournament"); //wrong
-				reply.code(500).send({ status: 'ERROR', error: 'Start tournament failed?' });//wrong	
+				reply.code(418).send({ status: 'ERROR', error: 'Start tournament failed?' });//wrong	
 			}
 		}
 		
@@ -293,7 +295,7 @@ async function removeUserFromTournament(fastify, options) {
 				reply.code(200).send({status: 'OK', tournament: tournamentState});
 			}
 			catch (err) {
-				reply.code(500).send({status: 'ERROR', error: "error removing from tournamnet"});
+				reply.code(418).send({status: 'ERROR', error: "error removing from tournamnet"});
 			}
 		}
 	})
@@ -315,7 +317,7 @@ async function cancelTournament(fastify, options) {
 			}
 			catch(err) {
 				//flog.error({function: "cancelTournament", errmsg: err.message}, "errorerror")
-				reply.code(500).send({status: 'ERROR', error: "error canceling tournamnet"});
+				reply.code(418).send({status: 'ERROR', error: "error canceling tournamnet"});
 			}
 		}
 	})

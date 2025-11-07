@@ -12,7 +12,7 @@ function updateOnlineStatus(userId, status) {
 			[status, userId],
 			function (err) {
 				if (err) {
-					return reject ({ error: 'failed to update status', code: 500 });
+					return reject ({ error: 'failed to update status', code: 418 });
 				}
 				else if (this.changes === 0) {
 					return reject({error: 'no changes made', code: 401});

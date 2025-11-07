@@ -22,9 +22,26 @@ const Profile: React.FC = () => {
 	});
 
 	const fmt = (ts: string) => {
-		const d = new Date(ts);
-		return isNaN(d.getTime()) ? ts : d.toLocaleString();
-	};
+		if (!ts) return "-";
+		const dateUtc = new Date(ts.replace(" ", "T") + "Z");
+
+		if (isNaN(dateUtc.getTime())) return ts;
+
+		// Convert to Helsinki time
+		const helsinki = new Date(
+			dateUtc.toLocaleString("en-US", { timeZone: "Europe/Helsinki" })
+		);
+
+		// Format manually as D-M-YYYY HH:MM:SS
+		const day = helsinki.getDate();
+		const month = helsinki.getMonth() + 1;
+		const year = helsinki.getFullYear();
+		const hours = helsinki.getHours().toString().padStart(2, "0");
+		const minutes = helsinki.getMinutes().toString().padStart(2, "0");
+		const seconds = helsinki.getSeconds().toString().padStart(2, "0");
+
+		return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+		};
 
 	return (
     	  <div className="flex justify-center px-6 py-6">
@@ -105,7 +122,6 @@ const Profile: React.FC = () => {
 											: "text-gray-300";
 
 										const opponentId = m.opid;
-									//	console.log("Opponent ID: ", m.opid);
 
 										const resultLabel =
 											result === "win"
@@ -123,9 +139,7 @@ const Profile: React.FC = () => {
 														{m.opponent}
 													</button>
 													</Td>
-												<Td className={resultClass}>
-													{result ? result.charAt(0).toUpperCase() + result.slice(1) : "-"}
-												</Td>
+												<Td className={resultClass}>{resultLabel}</Td>
 												<Td>{m.score}</Td>
 												<Td>{fmt(m.timestamp)}</Td>
 											</tr>

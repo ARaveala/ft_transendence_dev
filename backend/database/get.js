@@ -172,14 +172,14 @@ async function checkPasswordMatch( userId, password ) {
 		return new Promise((resolve, reject) => {
 			db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) =>{
 			    if (err) {
-        			return reject({ error: 'Database error', code: 500 });
+        			return reject({ error: 'Database error', code: 418 });
       			}
     			if (!row) {
         			return reject({ error: 'User not found', code: 404 });
       			}
 		    	bcrypt.compare(password, row.password, (err, isMatch) => {
         			if (err) {
-        				return reject({ error: 'Hash comparison failed', code: 500 });
+        				return reject({ error: 'Hash comparison failed', code: 418 });
         			}
         			if (!isMatch) {
           				return reject({ error: 'Invalid password', code: 400 });
@@ -209,22 +209,19 @@ async function miniLogin(username, password) {
 		  // Compare hashed password
 		bcrypt.compare(password, row.password, (err, isMatch) => {
 			if (err) {
-			  return reject({ error: 'Hash comparison failed', code: 500 });
+			  return reject({ error: 'Hash comparison failed', code: 418 });
 			}
 			if (!isMatch) {
-			  return reject({ error: 'invalid password ', code: 400});
+			  return reject({ error: 'Invalid password', code: 400 });
 			}
-			if (isMatch){
-				flog.info({ function: 'miniLogin', userId: row.id}, 'mini login success ');		
-				return resolve({ id: row.id});
+			if (isMatch) {
+				flog.info({ function: 'miniLogin', userId: row.id}, 'mini login success ');
+				resolve({ id: row.id});
 			}
-	//      // TEMP: plain text password check for testing only
+//      // TEMP: plain text password check for testing only
 //      if (row.password !== password) {
 //        return reject({ error: 'Invalid password', code: 401 });
       })
-      // Return minimal info — no profile data
-	  flog.info({ function: 'miniLogin', userId: row.id}, 'mini login success ');
-      
     });
   });
 }
