@@ -54,8 +54,6 @@ function decrypt(combined) {
 
         return decrypted;
     } catch (err) {
-        // this will fail if the key is wrong or data is tampered with
-        flog.error({ function: 'decrypt', error: err }, "Decryption failed. Data may be tampered or key is wrong.");
         throw new Error('Decryption failed.');
     }
 }
