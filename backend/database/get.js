@@ -2,6 +2,8 @@ const db = require('./initDB.js');
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'get.js' }); // scoped logger
 const bcrypt = require('bcrypt');
+const { ERROR_CODES } = require('@sharedErr');
+const { VALIDATION_ERR} = ERROR_CODES;
 // naming can be changed 
 // get each element from database , such as score, name , status
 // userId is passed as ({object}) not (value) to allow adjustmenst such as do not show password
@@ -180,10 +182,12 @@ async function checkPasswordMatch( userId, password ) {
         				return reject({ error: 'Hash comparison failed', code: 500 });
         			}
         			if (!isMatch) {
-          				return reject({ error: 'Invalid password', code: 401 });
+          				return reject({ error: 'Invalid password', code: 400 });
         			}
+					if (isMatch){
+		        		resolve({ ok: 'Password match', userId: row.id });
+					}
 				});
-        		resolve({ ok: 'Password match', userId: row.id });
 			}
 		)
 			
@@ -208,7 +212,11 @@ async function miniLogin(username, password) {
 			  return reject({ error: 'Hash comparison failed', code: 500 });
 			}
 			if (!isMatch) {
-			  return reject({ error: 'Invalid password', code: 401 });
+			  return reject({ error: 'invalid password ', code: 400});
+			}
+			if (isMatch){
+				flog.info({ function: 'miniLogin', userId: row.id}, 'mini login success ');		
+				return resolve({ id: row.id});
 			}
 	//      // TEMP: plain text password check for testing only
 //      if (row.password !== password) {
@@ -216,7 +224,7 @@ async function miniLogin(username, password) {
       })
       // Return minimal info — no profile data
 	  flog.info({ function: 'miniLogin', userId: row.id}, 'mini login success ');
-      resolve({ id: row.id});
+      
     });
   });
 }

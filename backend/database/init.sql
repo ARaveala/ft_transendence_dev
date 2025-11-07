@@ -84,7 +84,7 @@ CREATE TABLE IF NOT  EXISTS tournament_players (
     tournament_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     alias TEXT NOT NULL,
-    seed INTEGER NOT NULL CHECK (seed BETWEEN 1 AND 4),
+    seed INTEGER CHECK (seed BETWEEN 1 AND 4),
 	player_role TEXT NOT NULL DEFAULT 'player',
 	player_status TEXT NOT NULL DEFAULT 'waiting',
 	player_score INTEGER NOT NULL DEFAULT 0,

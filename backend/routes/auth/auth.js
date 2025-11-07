@@ -68,7 +68,7 @@ async function loginUser(fastify, options) {
 				//const hashedPassword = await bcrypt.hash(password, saltRounds);
 
 				const result = await DBget.miniLogin(username, password);
-                if (!result) {
+                if (result.error) {
                     return reply.code(401).send({ error: "Invalid username or password." });
                 }
 
