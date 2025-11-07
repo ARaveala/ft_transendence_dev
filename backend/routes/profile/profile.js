@@ -338,7 +338,7 @@ async function updateAvatar(fastify, options) {
 
 			} catch (err) {
 				console.error('Error during avatar change:', err);
-				reply.code(500).send({ status: 'ERROR', error: 'Server error during avatar update' });
+				reply.code(418).send({ status: 'ERROR', error: 'Server error during avatar update' });
 			}
 		},
 	});
