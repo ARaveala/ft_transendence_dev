@@ -44,7 +44,7 @@ async function fetchUser(userId ) {
 					console.warn('User not found for ID:', userId);
 					reject({ error: 'User not found fecth' });
 				} else {
-					console.log('User found:', row);
+					//console.log('User found:', row);
 					resolve(row);
 				}
 

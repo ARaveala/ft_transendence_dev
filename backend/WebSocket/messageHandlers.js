@@ -3,6 +3,8 @@ const {
 	createGameState, initGame, updateKeys, updateGame
 } = require('../pong_game/pong_server.js');
 
+const {logger} = require('@logger');
+const flog = logger.child({ fileContext: 'get.js' }); // scoped logger
 const {
   handleGreet,
   startLoop,
@@ -129,8 +131,8 @@ function handleMessage(ws, data) {
 		}
 		case 'gameOver': {
 			const gameId = ws ? ws.gameId || game.gameId : game.gameId;
-			console.log(`[WS] Game ${gameId} - Game Over received`);
-			console.log("[WS] DEBUG players in game:", [...game.players.values()]);
+			//console.log(`[WS] Game ${gameId} - Game Over received`);
+			//console.log("[WS] DEBUG players in game:", [...game.players.values()]);
 
 			const [id1, player1] = [...game.players.entries()]
 				.find(([_, p]) => p.role === 'player1');
@@ -180,14 +182,14 @@ function handleMessage(ws, data) {
 				updateStatsIfLogin(false, loserId, loser, winner)
 			])
 				.then(() => {
-				console.log(`[WS] 🏁 Stats updated for Game ${gameId}`);
+//				console.log(`[WS] 🏁 Stats updated for Game ${gameId}`);
 				})
 				.catch(err => {
-				console.error(`[WS] ❌ Failed to update game stats for Game ${gameId}`, err);
+//				console.error(`[WS] ❌ Failed to update game stats for Game ${gameId}`, err);
 				});
 			if (game.mode === "tournament") {
-				console.log(`[WS] Tournament detected - updating tournament stats for Game ${gameId}`);
-				console.log(`[WS] Tournament ID: ${game.tid}`);
+//				console.log(`[WS] Tournament detected - updating tournament stats for Game ${gameId}`);
+//				console.log(`[WS] Tournament ID: ${game.tid}`);
 
 				updateTournamentStats(gameId, player1.score, player2.score, "finished", winnerId)
 					.then(() => {
@@ -244,11 +246,14 @@ function handleMessage(ws, data) {
 		case "start_loop":{
 			// if remote this should only start once player 1 and player 2 have initilized and player 1 has initilized the game
 			// then this should be updated to startloop for both player websockets
-			//const player1 = [...game.players.values()].find(player => player.role === "player1");
-			//const player2 = [...game.players.values()].find(player => player.role === "player2");
+			const {ws, ...player1Debug} = [...game.players.values()].find(player => player.role === "player1");
+			const player2Debug = [...game.players.values()].find(player => player.role === "player2");
 
 			// !!!! Edited this to take the first two players, does not expect specific role
+			//flog.debug({fucntion: 'MessageHandler startLoop', player1: player1, player2: player2});
+
 			const [player1, player2] = [...game.players.values()].slice(0, 2);
+			flog.debug({fucntion: '------------------------------------------MessageHandler startLoop', player1id: player1Debug, player2id: player2Debug});
 			if (!player1 || !player2)
 			{
 				console.log("Error getting players");

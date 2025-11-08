@@ -101,6 +101,9 @@ test('test', async ({ page }) => {
   await page.getByRole('button', { name: 'Start Tournament' }).click();
   await expect(page.getByRole('heading', { name: 'Winner' })).toBeVisible();
 
+////////here
+
+
   await page.getByRole('button', { name: 'Play Match 1' }).click();
   await expect(page.getByRole('heading', { name: 'Game Settings' })).toBeVisible();
 
@@ -116,6 +119,8 @@ test('test', async ({ page }) => {
   await page.getByRole('button', { name: 'Play Match 2' }).click();
   await page.locator('iframe').contentFrame().getByText('OK').click();
   await page.getByRole('button', { name: 'Play Final' }).click();
+  await expect(page.frameLocator('iframe').getByText('OK')).toBeVisible();
+
   await page.locator('iframe').contentFrame().getByText('OK').click();
  
   await page.getByRole('link', { name: 'Settings' }).click();
@@ -149,6 +154,9 @@ test('test', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Username' }).fill(usernames[1]);
   await page.getByRole('textbox', { name: 'Username' }).press('Tab');
   await page.getByRole('textbox', { name: 'Password' }).fill('asdasdasd');
+
+  await page.waitForSelector('form >> text=Login', { state: 'visible' });
+
   await page.locator('form').getByRole('button', { name: 'Login' }).click();
   await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
 

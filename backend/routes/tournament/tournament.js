@@ -71,13 +71,27 @@ function buildTournamentPlayerList(players) {
  * @returns 
  */
 async function getTournamentState(tournamentId) {
-	const players = await getTournamentPlayersWithUsernames(tournamentId);
-	const tournamentStatus = await getActiveTournamentStatus(tournamentId)
-	const full_list = buildTournamentPlayerList(players);
-	const brackets = await getBrackets(tournamentId);
-	let fullBracket = []; 
+	let players = await getTournamentPlayersWithUsernames(tournamentId);
+	let tournamentStatus = await getActiveTournamentStatus(tournamentId)
+	let full_list = buildTournamentPlayerList(players);
+	let brackets = await getBrackets(tournamentId);
+	let fullBracket = [];
+	let tid = tournamentId;
+	if (players.length < 4){
+		const round0Finished = brackets[0]?.some(match => match.status === 'finished');
+		if (round0Finished) {
+		  console.log("HELL TO THE YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+			tid = 0;
+			full_list = [];
+			players = [];
+			//brackets = [];
+			// await DBtour.applyTournamentId(userId, 0);
+		}
 
-	if (brackets.length > 0){
+	}
+	else if (brackets.length > 0){
+		//full_list = buildTournamentPlayerList(players);
+		//players = await getTournamentPlayersWithUsernames(tournamentId);
 		if (Array.isArray(brackets) && brackets.length >= 3) {
 			fullBracket = [
 				[brackets[0][0], brackets[1][0]], // extract game1 and game2
@@ -87,7 +101,7 @@ async function getTournamentState(tournamentId) {
 	}
 
 	const tournamentState = {
-		tournament_id: tournamentId,
+		tournament_id: tid,
 		status: tournamentStatus,
 		players: full_list,
 		currentMatch: undefined, //not in use?
@@ -147,6 +161,9 @@ async function verifyPlayer(fastify, options){
  			flog.debug({ function: 'verifyPlayer', body: request.body }, 'request body:');
  			const {role, username, password, alias} = request.body;
 			try {
+				if (!currentTournamentId || currentTournamentId === 0){
+					return;
+				}
 				const userId = request.userId;				
 				let tournamentState = undefined;
 				if (role === 'player1'){
@@ -254,7 +271,10 @@ async function startTournament(fastify, options){
 		url: API_PROTOCOL.START_TOURNAMENT.path,
  		handler: async (request, reply) => {
 			try {
-				//flog.warn({fucntion: 'start torunamnet'}, "checking if we see this before seeding");
+				flog.warn({fucntion: 'start torunamnet'}, "starting tournamnet ------------------------");
+				if (!currentTournamentId || currentTournamentId === 0){
+					return;
+				}
 				
 				await DBtour.seedPlayers(currentTournamentId);
 				const players = await DBtour.getTournamentPlayers(currentTournamentId);
