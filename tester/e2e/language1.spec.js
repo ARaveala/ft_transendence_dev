@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
-
+test.use({ ignoreHTTPSErrors: true });
 test('test', async ({ page }) => {
-  await page.goto('http://localhost:5173/');
+  await page.goto('https://localhost:4004/');
   await page.getByRole('button', { name: 'English' }).click();
   await expect(page.getByRole('main')).toContainText('Register');
   await expect(page.getByRole('main')).toContainText('Login');

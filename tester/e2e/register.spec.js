@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
 const { randomUsername, randomizeNUsernames } = require('./utils.js');
+test.use({ ignoreHTTPSErrors: true });
 test('test', async ({ page }) => {
     const username = randomUsername();
-  await page.goto('http://localhost:5173/');
+  await page.goto('https://localhost:4004/');
   await page.getByRole('button', { name: 'Register' }).click();
   await page.getByRole('textbox', { name: 'Username' }).click();
   await page.getByRole('textbox', { name: 'Username' }).fill(username);

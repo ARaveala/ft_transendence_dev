@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
 const { randomUsername } = require('./utils');
-
+test.use({ ignoreHTTPSErrors: true });
 
 test('test', async ({ page }) => {
     const user = randomUsername();
-  await page.goto('http://localhost:5173/');
+  await page.goto('https://localhost:4004/');
   await expect(page.getByRole('button', { name: 'English' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Register' }).click();
@@ -24,7 +24,7 @@ test('test', async ({ page }) => {
   await expect(page.getByRole('main')).toContainText('0');
   await expect(page.getByRole('main')).toContainText('0');
   await expect(page.getByRole('main')).toContainText('0');
-  await page.goto('http://localhost:5173/');
+  await page.goto('https://localhost:4004/');
   await expect(page.getByRole('heading', { name: 'Pong' })).toBeVisible();
 
   await page.getByRole('link', { name: 'Game' }).click();

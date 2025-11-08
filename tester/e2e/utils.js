@@ -1,6 +1,6 @@
 // utils.js
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = 'https://localhost:4004';
 
 async function registerUserWithApi(username, password) {
     const response = await fetch(`${API_BASE}/api/register`, {

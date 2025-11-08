@@ -18,6 +18,10 @@ export default defineConfig({
     // Collect trace when retrying failed tests
     trace: 'on-first-retry',
   },
+  timeout: 60000, // each test can run up to 60 seconds
+  expect: {
+    timeout: 15000, // expect(...) waits up to 15 seconds
+  },
 
   projects: [
     {

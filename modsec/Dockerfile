@@ -39,6 +39,7 @@ RUN echo "Include /usr/share/modsecurity-crs/rules/*.conf" >> /etc/nginx/modsec/
 
 # Your nginx config (TLS + reverse proxy)
 COPY ./conf/nginx.conf /etc/nginx/nginx.conf
+COPY ./crs-setup.conf /etc/modsecurity/crs/crs-setup.conf
 
 EXPOSE 80 443
 
