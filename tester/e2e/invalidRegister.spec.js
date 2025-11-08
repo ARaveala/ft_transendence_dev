@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
-
+test.use({ ignoreHTTPSErrors: true });
 test('test', async ({ page }) => {
-  await page.goto('http://localhost:5173/');
+  await page.goto('https://localhost:4004/');
   await expect(page.getByRole('button', { name: 'English' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Register' }).click();

@@ -15,7 +15,6 @@ import CenteredContainer from "../components/layout/CenteredContainer";
 import MiniLogin from "../components/game/MiniLogin";
 import { useTranslation } from "../shared/Translation";
 import { useApiFetch } from "../utils/apiFetch"
-
 type GameMode = "guest" | "login" | "ai";
 //	const { isLoggedIn, loading, refreshSession, tournament, setTournament } = useAuth();
 const Game: React.FC = () => {
@@ -60,7 +59,7 @@ const Game: React.FC = () => {
 
 	useEffect(() => {
 		function handleMessage(event: MessageEvent) {
-			if (event.origin !== "http://localhost:3000") return;
+			//if (event.origin !== "http://localhost:3000") return;
 
 			if (event.data?.type === "GAME RESULT") {
 			console.log(t("game.status.receivedResult"), event.data.payload);
