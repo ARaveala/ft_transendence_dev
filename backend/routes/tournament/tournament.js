@@ -113,13 +113,13 @@ async function createTournament(fastify, options){
  		method: API_PROTOCOL.CREATE_TOURNAMENT.method,
  		url: API_PROTOCOL.CREATE_TOURNAMENT.path,
  		handler: async (request, reply) => {
-// 			flog.debug({ function: 'createTournament', body: request.body }, 'request body:');
+ 			flog.debug({ function: 'createTournament', body: request.body }, 'request body:');
  			try{
 				const userId = request.userId;
 				const tournamentId = await DBtour.createTournament();
 				flog.warn({function: "create tournamnet", tidbeforeset: tournamentId});
 				currentTournamentId = tournamentId; // set global variable to current tournament id
-				await DBtour.createTournamentPlayer(tournamentId, userId, "", 1, "player1", true, true);
+				await DBtour.createTournamentPlayer(tournamentId, userId, "", "player1", true, true);
 				const tournamentState = await getTournamentState(tournamentId);
 				await DBupdate.applyTournamentId(userId, tournamentId);				
  				reply.code(200).send({status: 'OK', tournament: tournamentState});
@@ -158,7 +158,7 @@ async function verifyPlayer(fastify, options){
 					//flog.warn({fucntion: "verify player", othrId: otherUserId.id});
 					if (otherUserId) {
 						flog.warn({fiucntion: "verify player", otherid: otherUserId.id}, "seeing if undefined, should not be");
-						await DBtour.createTournamentPlayer(currentTournamentId, otherUserId.id, alias, Number(role.replace('player','')), role, true, false);
+						await DBtour.createTournamentPlayer(currentTournamentId, otherUserId.id, alias, role, true, false);
 						await DBtour.updatePlayerReadyStatus(currentTournamentId, otherUserId.id, 'ready');
 
 						const checkFull = await DBtour.getTournamentPlayers(currentTournamentId);
@@ -171,7 +171,7 @@ async function verifyPlayer(fastify, options){
 						}
 					}
 				}
- 				reply.code(200).send({status: 'OK', tournament: tournamentState}); //wrong
+ 				reply.code(200).send({status: 'OK', tournament: tournamentState});
  			}
  			catch (err){
  				flog.error({fucntion: 'createTournament'}, "error :: in verify player", err); //wrong
@@ -248,15 +248,19 @@ const ret = {
 
 
 async function startTournament(fastify, options){
-	const {DBtour, game} = options;
+	const {DBtour, game, DBget} = options;
  	fastify.route({
 		method: API_PROTOCOL.START_TOURNAMENT.method,
 		url: API_PROTOCOL.START_TOURNAMENT.path,
  		handler: async (request, reply) => {
 			try {
-				const players = await DBtour.getTournamentPlayers(currentTournamentId);
-		// Round 1: seed 1 vs seed 4
+				//flog.warn({fucntion: 'start torunamnet'}, "checking if we see this before seeding");
 				
+				await DBtour.seedPlayers(currentTournamentId);
+				const players = await DBtour.getTournamentPlayers(currentTournamentId);
+				if (players.length != 4){
+					return;
+				}
 				const match1 = await createMatchWithBracket(DBtour, game, currentTournamentId, players[0], players[3], 1);
 				const match2 = await createMatchWithBracket(DBtour, game, currentTournamentId, players[1], players[2], 2);
 				const match3 = await createMatchWithBracket(DBtour, game, currentTournamentId, null, null, 3);		
@@ -296,7 +300,7 @@ async function removeUserFromTournament(fastify, options) {
 }
 
 async function cancelTournament(fastify, options) {
-	const {secure, DBupdate, DBtour, game} = options;
+	const {DBupdate, DBtour} = options;
  	fastify.route({
 		method: API_PROTOCOL.CANCEL_TOURNAMENT.method,
 		url: API_PROTOCOL.CANCEL_TOURNAMENT.path,

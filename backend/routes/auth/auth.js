@@ -5,6 +5,7 @@ const flog = logger.child({ fileContext: 'auth' }); // scoped logger
 const signSchema = require('@schemas/signSchema.js');
 const speakeasy = require('speakeasy'); // for creating 2FA secrets
 const qrcode = require('qrcode');      // creating qrcodes
+const { deleteOldAvatar } = require('../profile/save_avatar');
 
 const { encrypt, decrypt } = require('./crypto');
 const tempSetupSecrets = new Map();
@@ -48,7 +49,7 @@ async function registerUser(fastify, options) {
 			if (err.error){
 				reply.code(err.code).send( {message: err.error});
 			}
-			reply.code(200).send('ok');
+			reply.code(200).send({ status: "REGISTERED" });
 		} catch (err) {
 			reply.code(418).send(err);
 			flog.error( {function: 'registerUser', error: err}, 'Error during user registration::', err);
@@ -69,7 +70,7 @@ async function loginUser(fastify, options) {
 				//const hashedPassword = await bcrypt.hash(password, saltRounds);
 
 				const result = await DBget.miniLogin(username, password);
-                if (!result) {
+                if (result.error) {
                     return reply.code(401).send({ error: "Invalid username or password." });
                 }
 
@@ -94,7 +95,7 @@ async function loginUser(fastify, options) {
 						return reply.code(err.code).send( {message: err.error});
 					}
 
-					reply.code(200).send('ok');
+					reply.code(200).send({ status: "LOGGED_IN" });
                 }
             } catch (err) {
                 flog.error({ function: 'loginUser', error: err }, 'Error during login:', err);
@@ -126,7 +127,7 @@ async function logoutUser(fastify, options) {
 
 
 async function deleteUser(fastify, option) {
-	const {secure, DBdelete} = option;
+	const {secure, DBdelete, DBget} = option;
 	fastify.route({
 		method: API_PROTOCOL.DELETE_PROFILE.method,
 		url: API_PROTOCOL.DELETE_PROFILE.path,
@@ -135,10 +136,23 @@ async function deleteUser(fastify, option) {
 		console.log('request.userId:', request.userId);
 		try	{
 			const userId = request.userId;
-
-//			flog.warn({fucntion: 'delteUser', testing: userId}, 'seeing if we get valid id ');			
+			let oldAvatarUrl = null;
+			try {
+					const user = await DBget?.fetchUser?.(userId);
+					oldAvatarUrl = user?.avatar_file || null;
+				} catch (err) {
+					console.warn("⚠️ Could not fetch user before delete:", err.message);
+				}
+		
 			const result = await DBdelete.deleteUserById(userId);
 			if (result === 1) {
+				try {
+						if (oldAvatarUrl && typeof oldAvatarUrl === 'string' && oldAvatarUrl.startsWith('/api/avatars/')) {
+							await deleteOldAvatar(oldAvatarUrl);
+						}
+					} catch (err) {
+						console.warn("⚠️ Failed to delete old avatar:", err.message);
+					}
 				reply.code(200).send("ok");//?
 			}
 			if (result === 0) {
@@ -147,7 +161,7 @@ async function deleteUser(fastify, option) {
 			console.log("result of delete user", result);
 		}
 		catch {
-			flog.error({fucntion: 'deletUser'}, 'ERROR deleting user ');
+			flog.error({fucntion: 'deleteUser'}, 'ERROR deleting user ');
 			reply.code(418).send('error deleting user');
 		}
 		}

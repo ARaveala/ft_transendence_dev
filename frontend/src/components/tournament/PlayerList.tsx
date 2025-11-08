@@ -149,11 +149,11 @@ const PlayerList: React.FC<PlayerListProps> = ({
 		// Validate username + password for non-self players
 		if (!player.isSelf) {
 			if (!USERNAME_REGEX.test(data?.username ?? "")) {
-				localErrors.username = t("auth.error.usernameFormat");
+				localErrors.username = t("auth.error.invalidCredentials");
 			}
 
 			if (!PASSWORD_REGEX.test(data?.password ?? "")) {
-				localErrors.password = t("auth.error.passwordFormat");
+				localErrors.password = t("auth.error.invalidCredentials");
 			}
 		}
 
@@ -233,12 +233,26 @@ const PlayerList: React.FC<PlayerListProps> = ({
 			}
 			
 			} catch (err: any) {
-				if (err.sessionExpired) return; // let apiFetch handle redirect
-				console.error("Error verifying player:", err);
+				if (err.sessionExpired) return;
+
+				let message = t("error.network"); // default fallback
+				
+				try {
+					const parsed = JSON.parse(err.message);
+					if (parsed.error === "Verification failed?") {
+						 message = t("auth.error.invalidCredentials");
+					} else if (parsed.error) {
+						message = parsed.error; // use backend error otherwise
+					}
+				} catch (_) {
+					// keep fallback
+				}
+
 				setErrors(prev => ({
 					...prev,
-					[role]: { alias: err.message || t("error.network") }
-				}));
+					[role]: { alias: message }
+			}));
+
 		} finally {
 			setLoading(null);
 		}
@@ -396,10 +410,11 @@ const PlayerList: React.FC<PlayerListProps> = ({
 							</Button>
 						</div>
 					)}
+					</div>
 				</div>
 				
 				{/* Inline field errors (shown only after clicking button) */}
-					<div className="mt-1">
+					<div className="text-red-500 text-sm mt-1 ml-[1.8rem] flex flex-col gap-0.5">
 						{fieldErrs.username && (
 							<div className="text-red-500 text-sm">{fieldErrs.username}</div>
 						)}
@@ -410,7 +425,6 @@ const PlayerList: React.FC<PlayerListProps> = ({
 							<div className="text-red-500 text-sm">{fieldErrs.alias}</div>
 						)}
 					</div>
-				</div>
 			</div>
 		);
 	});

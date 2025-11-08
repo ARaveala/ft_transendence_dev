@@ -1,6 +1,6 @@
 const { API_PROTOCOL } = require('@sharedApi');
 const {logger} = require('@logger');
-const { saveAndGetAvatarUrl, deleteOldAvatar } = require('./save_avatar.js'); // <-- Note the new import
+const { saveAndGetAvatarUrl, deleteOldAvatar } = require('./save_avatar.js');
 const flog = logger.child({ fileContext: 'profile.js' }); // scoped logger
 const usernameSchema = require('@schemas/usernameSchema.js');
 const passwordSchema = require('@schemas/passwordSchema.js');
@@ -149,10 +149,9 @@ async function updateUsername(fastify, options) {
 					error: 'no such user'
 				})
 			}
-
 			reply.code(200).send({
 				status: 'UPDATED',
-				profile: profile,
+				//profile: profile,
 			});
 		} catch (err) {
 			console.log(('Error during login:', err));
@@ -271,38 +270,80 @@ async function uploadAvatarFileRoute(fastify, options) {
 }
 
 
+// async function updateAvatar(fastify, options) {
+// 	const { DBupdate, secure } = options;
+// 	fastify.route({
+// 		method: API_PROTOCOL.CHANGE_AVATAR.method,
+// 		url: API_PROTOCOL.CHANGE_AVATAR.path,
+// 		handler: async (request, reply) => {
+// 		//schema: { body: schemas.updateAvatar }, dosnt exist yet 
+// 		const { avatar } = request.body;
+// 		try {
+
+// 			const userId = request.userId;
+// 			if (userId){
+// 				const check = await DBupdate.changeAvatar(avatar, userId);
+// 				console.log('checking check', check)
+// 				//might need more in depth error handling
+// 				if (check.error) {
+// 					reply.code(400).send({
+// 						status: 'ERROR',
+// 						error: 'not valid avatar?'// other errors?
+// 					})
+// 				}
+// 			}
+// 			reply.code(200).send({
+// 				status: 'UPDATED',
+// 			});
+// 		} catch (err) {
+// 			console.log(('Error during avatar change:', err));
+// 			reply.code(418).send(err);
+// 		}
+// 	}
+// 	});
+// }
 async function updateAvatar(fastify, options) {
-	const { DBupdate, secure } = options;
+	const { DBupdate, DBget } = options;
 	fastify.route({
 		method: API_PROTOCOL.CHANGE_AVATAR.method,
 		url: API_PROTOCOL.CHANGE_AVATAR.path,
 		handler: async (request, reply) => {
-		//schema: { body: schemas.updateAvatar }, dosnt exist yet 
-		const { avatar } = request.body;
-		try {
-
+			const { avatar } = request.body;
 			const userId = request.userId;
-			if (userId){
+
+			try {
+				// 1. Fetch old avatar
+				const user = await DBget.fetchUser(userId);
+				const oldAvatarUrl = user ? user.avatar_file : null;
+
+				// 2. Update DB
 				const check = await DBupdate.changeAvatar(avatar, userId);
-				console.log('checking check', check)
-				//might need more in depth error handling
 				if (check.error) {
 					reply.code(400).send({
 						status: 'ERROR',
-						error: 'not valid avatar?'// other errors?
-					})
+						error: check.error,
+					});
+					return;
 				}
+
+				// 3. If switching from uploaded → default, delete old file
+				const wasUploaded = oldAvatarUrl && oldAvatarUrl.startsWith('/api/avatars/');
+				const nowDefault = avatar && avatar.includes('/assets/avatars/');
+
+				if (wasUploaded && nowDefault) {
+					await deleteOldAvatar(oldAvatarUrl);
+				}
+
+				reply.code(200).send({ status: 'UPDATED' });
+
+			} catch (err) {
+				console.error('Error during avatar change:', err);
+				reply.code(418).send({ status: 'ERROR', error: 'Server error during avatar update' });
 			}
-			reply.code(200).send({
-				status: 'UPDATED',
-			});
-		} catch (err) {
-			console.log(('Error during avatar change:', err));
-			reply.code(418).send(err);
-		}
-	}
+		},
 	});
 }
+
 
 async function updateLanguage(fastify, options) {
 	const { DBupdate, secure } = options;

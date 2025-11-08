@@ -25,6 +25,8 @@
   "profile.history.time": "Time",
   "profile.result.win": "Win",
   "profile.result.loss": "Loss",
+  "profile.match.histor.empty": "No match history available.",
+  "profile.error.loading": "Unable to load profile.",
 
   "settings.title": "Settings",
   "settings.loginRequired": "Please log in to view settings.",
@@ -33,7 +35,7 @@
   "settings.item.language": "Select new language",
   "settings.title.username": "Change username",
   "settings.item.newUsername": "Enter new username",
-  "settings.username.notice": "3-15 characters",
+  "settings.username.notice": "6-12 characters",
   "settings.title.password": "Change password",
   "settings.item.passwordCurrent": "Current password",
   "settings.item.passwordNew": "New password",
@@ -193,8 +195,9 @@
   "common.twofa.disabled": "Two-factor authentication disabled.",
   "common.gotIt": "Got it!",
 
-  "error.username.length": "Username must be between 3-15 characters.",
+  "error.username.length": "Username must be between 6-12 characters.",
   "error.username.updateFailed": "Could not update username.",
+  "error.username.taken": "Username not available.",
   "error.password.length": "New password must be at least 8 characters.",
   "error.password.match": "Passwords do not match.",
   "error.password.required": "Current password is required.",
@@ -221,8 +224,7 @@
   "error.game.create": "Failed to create game. Make sure you are logged in.",
   "error.game.start": "Failed to start game. Make sure you are logged in.",
   "error.auth.miniLoginFailed": "Mini login failed. Check your credentials and try again.",
-   "error.network": "Network error. Please try again.",
+  "error.network": "Network error. Please try again.",
   "error.alias.format": "Alias must be 5–10 characters (letters, numbers, underscores).",
   "error.alias.unique": "Alias must be unique."
-
 }
