@@ -31,3 +31,24 @@ echo "Test for Command Injection"
 curl -X POST https://localhost:4004/api -k -d "target=8.8.8.8; cat /etc/passwd" -v
 curl -X POST https://localhost:4004/api -d "target=8.8.8.8 && ls /" -vk
 
+echo "Test for SSRF / Internal IPs"
+
+curl -X POST https://localhost:4004/api -k -d "url=http://169.254.169.254/latest/meta-data/" -v
+curl -X POST https://localhost:4004/api -k -d "url=http://127.0.0.1:8080/admin" -v
+
+echo "Test for CRLF / Response Splitting"
+
+curl -G "https://localhost:4004/api" --data-urlencode "q=normal%0d%0aSet-Cookie:%20evil=1" -vk
+
+echo "Test for Large / Slow Body (DOS-ish)"
+
+curl -X POST https://localhost:4004/api -k --data-binary "@-"<<'EOF' -v
+$(python - <<'PY'
+print("A"*1000000)
+PY
+EOF
+
+echo "Test for Path Normalization / Encoded Traversal"
+
+curl -G https://localhost:4004/api/download --data-urlencode "file=..%2F..%2F..%2Fetc%2Fpasswd" -vk
+curl -G https://localhost:4004/api/download --data-urlencode "file=%2e%2e/%2e%2e/%2e%2e/etc/passwd" -vk

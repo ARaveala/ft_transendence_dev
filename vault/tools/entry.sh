@@ -12,8 +12,8 @@ fi
 # start vault server in dev (background)
 vault server -dev \
   -dev-root-token-id="${VAULT_DEV_ROOT_TOKEN:-myroot}" \
-  -dev-listen-address="0.0.0.0:8200" &
-VAULT_PID=$!
+  -dev-listen-address="0.0.0.0:8200" > /dev/null 2>&1 &
+VAULT_PID=$! 
 
 # wait for vault to answer
 export VAULT_ADDR="http://127.0.0.1:8200"
