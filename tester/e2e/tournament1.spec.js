@@ -119,6 +119,7 @@ test('test', async ({ page }) => {
   await page.getByRole('button', { name: 'Play Match 2' }).click();
   await page.locator('iframe').contentFrame().getByText('OK').click();
   await page.getByRole('button', { name: 'Play Final' }).click();
+  
   await expect(page.frameLocator('iframe').getByText('OK')).toBeVisible();
 
   await page.locator('iframe').contentFrame().getByText('OK').click();
@@ -182,5 +183,6 @@ test('test', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Delete profile' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
+	await page.waitForLoadState('networkidle'); // or 'domcontentloaded'
   await expect(page.getByRole('heading', { name: 'Pong' })).toBeVisible();
 });
