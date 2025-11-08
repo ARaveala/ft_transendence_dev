@@ -10,7 +10,7 @@ export default defineConfig({              // Export Vite configuration
     port: 5173,                          // Port for the development server
     host: '0.0.0.0', // 👈 This exposes the server to external connections
 	proxy: {
-		'/api': 'http://backend:3000',
+		'/api': 'https://backend:3000',
 	},
 },
 
