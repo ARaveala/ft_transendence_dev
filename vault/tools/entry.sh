@@ -9,7 +9,7 @@ if [ ! -f /out/fullchain.pem ]; then
     -subj "/CN=localhost"
 fi
 
-exec vault server -dev -dev-root-token-id=myroot
+#exec vault server -dev -dev-root-token-id=myroot
 # start vault server in dev (background)
 vault server -dev \
   -dev-root-token-id="${VAULT_DEV_ROOT_TOKEN:-myroot}" \

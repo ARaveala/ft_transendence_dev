@@ -29,8 +29,8 @@ function setAuthCookie(reply, token) {
   reply.setCookie('auth_token', token, {
     httpOnly: true, //this must be https eventually
     path: '/',
-    sameSite: 'lax', // change to strict 
-    secure: false // set to true in production
+    sameSite: 'none', // change to strict 
+    secure: true // set to true in production
   });
 }
 
@@ -39,8 +39,8 @@ function clearAuthCookie(reply) {
 	expires: new Date(0),
 	httpOnly: true,
 	path:'/',
-	sameSite: 'lax', //this should be strict not dev
-	secure: false //this should be true when not dev
+	sameSite: 'none', //this should be strict not dev
+	secure: true //this should be true when not dev
 ,	});
 }
 
