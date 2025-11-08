@@ -6,7 +6,7 @@ DOCKER_COMPOSE_FILE := ./docker-compose.yml
 #	@docker network inspect custom-network >/dev/null 2>&1 || docker network create inceptionnet
 # Build the Docker images defined in the Dockerfile
 build:
-	docker-compose -f $(DOCKER_COMPOSE_FILE) build
+	docker-compose -f $(DOCKER_COMPOSE_FILE) up --build
 
 # Start services defined in docker-compose.yml added as fail safe to start network
 up: #start-network

@@ -44,7 +44,7 @@ services:
     networks:
       - app-net
     healthcheck:
-      test: ["CMD-SHELL", "test -s /run/secrets/app.env && grep -q '^JWT_SECRET=' /run/secrets/app.env"]
+      test: ["CMD-SHELL", "test -s /run/secrets/app.env && grep -q '^JWT_SECRET=' /run/secrets/app.env test -s /out/fullchain.pem -a -s /out/privkey.pem"]
       interval: 5s
       timeout: 2s
       retries: 30
