@@ -1,23 +1,7 @@
-# Use Node.js LTS image
-FROM node:20-bookworm-slim
-
-RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 curl && rm -rf /var/lib/apt/lists/*
-
-# Set working directory
+# Stage 1: build frontend
+FROM node:20-bookworm-slim AS builder
 WORKDIR /app
-
-# Copy package.json + package-lock.json
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
-
-# Copy the rest of the project
 COPY . .
-
-# Expose the Vite dev server port
-EXPOSE 5173
-
-# Run the dev server (Vite)
-CMD ["npm", "run", "dev"]
-
+RUN npm run build

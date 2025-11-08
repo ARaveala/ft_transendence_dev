@@ -3,25 +3,22 @@ services:
   waf:
     container_name: modsecurity
     build:
-      context: ./modsec
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: modsec/Dockerfile
     restart: always
     depends_on:
       backend:
         condition: service_healthy
-      frontend:
-        condition: service_healthy
       vault:
         condition: service_healthy
     volumes:
-    - ./volumes/nginx_logs:/var/log/nginx
-    - ./volumes/tls:/etc/ssl/local
+      - ./volumes/nginx_logs:/var/log/nginx
+      - ./volumes/tls:/etc/ssl/local
     ports:
-    - "8080:80"
-    - "4004:443"
+      - "8080:80"
+      - "4004:443"
     networks:
       - app-net
-    # Optional: mark proxy itself healthy (hits its own https listener)
     healthcheck:
       test: ["CMD-SHELL", "curl -fk https://localhost/health || exit 1"]
       interval: 10s
@@ -77,26 +74,6 @@ services:
       retries: 10
       start_period: 20s
 
-  frontend:
-    container_name: frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    depends_on:
-      - backend
-    environment:
-      - BROWSER=none
-    expose:
-      - "5173"
-    networks:
-      - app-net
-    healthcheck:
-      # node:20-alpine has BusyBox wget
-      test: ["CMD-SHELL", "curl http://localhost:5173/status >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-      start_period: 20s
 
 networks:
   app-net:

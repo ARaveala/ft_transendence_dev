@@ -66,7 +66,7 @@ let positions;
 let gameReady = false;
 
 // Websocket
-const webSocket = new WebSocket(`wss://localhost:4004/wss`);
+const webSocket = new WebSocket("wss://localhost:3000/wss");
 
 // Player data
 let p1Alias, p2Alias;
@@ -161,9 +161,10 @@ webSocket.onmessage = (event) => {
                     // Update win declaration and show the div
                     let endPrompt = document.getElementById("endPrompt");
                     let endPromptText = document.getElementById("endPromptText");
-                    const text = (winner == 1 ? p1Alias : p2Alias) + " won!";
+                    const text = (winner == 1 ? "🔵" : "🔴") + " 🏆";
                     endPromptText.textContent = text;
                     endPromptText.classList.add("text-" + (winner == 1 ? "blue" : "red") + "-500");
+                    
                     endPrompt.classList.remove("hidden");
                     webSocket.send(JSON.stringify({ type: "gameOver", gameId: gameId }));			
                 }

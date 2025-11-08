@@ -1,21 +1,28 @@
-import { defineConfig } from 'vite'        // Import Vite's defineConfig helper to get proper type hints
-import react from '@vitejs/plugin-react'   // Import React plugin to enable JSX/TSX support and fast refresh
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
-export default defineConfig({              // Export Vite configuration
-  plugins: [react()],                      // React plugin enables JSX/TSX compilation and hot module replacement
-  
-  // Dev server options
+export default defineConfig({
+  plugins: [react()],
+
   server: {
-    open: true,                            // Automatically open browser when dev server starts
-    port: 5173,                          // Port for the development server
-    host: '0.0.0.0', // 👈 This exposes the server to external connections
-	proxy: {
-		'/api': 'https://backend:3000',
-	},
-},
+    open: true,
+    port: 5173,
+    host: '0.0.0.0',
+    proxy: {
+      '/api': 'https://backend:3000',
+    },
+  },
 
-  // Build options for production
   build: {
-    outDir: 'dist'                          // Directory where compiled/optimized files are output
-  }
+    outDir: 'dist',
+    assetsDir: 'assets',   // put JS/CSS/images in /assets/
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+      },
+    },
+  },
 });
+	
