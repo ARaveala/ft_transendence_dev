@@ -1,6 +1,15 @@
 #!/usr/bin/env sh
 set -e
 
+if [ ! -f /out/fullchain.pem ]; then
+  openssl req -x509 -nodes -newkey rsa:2048 \
+    -keyout /out/privkey.pem \
+    -out /out/fullchain.pem \
+    -days 365 \
+    -subj "/CN=localhost"
+fi
+
+exec vault server -dev -dev-root-token-id=myroot
 # start vault server in dev (background)
 vault server -dev \
   -dev-root-token-id="${VAULT_DEV_ROOT_TOKEN:-myroot}" \
