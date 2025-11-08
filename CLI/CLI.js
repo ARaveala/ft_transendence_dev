@@ -40,7 +40,7 @@ async function startGameCLI() {
             name: 'mode',
             type: 'list',
             message: 'Select player mode:',
-            choices: ['guest', 'login'],
+            choices: ['guest'],
         }]);
 
         // Step 3: Create Game
