@@ -66,7 +66,7 @@ let positions;
 let gameReady = false;
 
 // Websocket
-const webSocket = new WebSocket("wss://localhost/wss");
+const webSocket = new WebSocket(`wss://localhost:4004/wss`);
 
 // Player data
 let p1Alias, p2Alias;

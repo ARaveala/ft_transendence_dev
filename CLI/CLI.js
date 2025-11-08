@@ -1,12 +1,16 @@
 // CLI.js
+const env = require('dotenv').config( { path: '../.env' });
 const fetchCookie = require('fetch-cookie');
 const nodeFetch = require('node-fetch');
 const fetch = fetchCookie(nodeFetch);
 const WebSocket = require('ws');
 const inquirer = require('inquirer');
+const API_BASE = process.env.PROTOCOL_HTTPS;
+const WEBSOCKET = process.env.PROTOCOL_CLI_WEBSOCKET;
 
-const API_BASE = 'http://localhost:3000';
-
+console.log("API_BASE", `${API_BASE}`);
+console.log("WEBSOCKET", `${WEBSOCKET}`);
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 async function startGameCLI() {
     try {
         // Step 1: Login
@@ -83,7 +87,7 @@ async function startGameCLI() {
 
         // Step 5: create WebSocket	
         const player1Token = startData.playerTokens.player1;
-        const ws = new WebSocket("wss://localhost:3000/ws");
+        const ws = new WebSocket(`${WEBSOCKET}`);
         ws.onopen = (event) => {
             console.log("WebSocket connections opened.");
             console.log("Sending init message gameId:", gameId);
