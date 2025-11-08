@@ -63,7 +63,7 @@ async function getFriendProfile(fastify, options) {
 
 // this should be getProfile
 async function getUser(fastify, options) {
-	const { DBget, secure, DBtour } = options;
+	const { DBget, secure, DBtour, DBupdate } = options;
 	fastify.get(API_PROTOCOL.GET_PROFILE.path,{
 	}, async (request, reply) => {
 		// just for testing check no fail after remove
@@ -108,6 +108,11 @@ async function getUser(fastify, options) {
 
 //			console.log("show mock profile", mockProfile);
 			mockProfile.tournament = profile.active_tournament_id === 0 ? null : await getTournamentState(profile.active_tournament_id);
+			if (profile.active_tournament_id &&   mockProfile.tournament?.brackets?.length === 0){
+				await DBupdate.applyTournamentId(userId, 0);
+				console.log("testing theory that now bracket is empty in purpose");
+
+			}
 //			flog.warn({finalMockProfile: mockProfile}, "FULL PROFILE SENT TO FRONTEND");
 			reply.send(mockProfile);
 		} catch (err) {

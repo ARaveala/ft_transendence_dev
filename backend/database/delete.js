@@ -57,14 +57,29 @@ function deleteUserByUsername(username) {
     if (!username || typeof username !== 'string') {
       return reject(new Error('Invalid username'));
     }
+	db, serialize (() => {
     db.run(
       'DELETE FROM users WHERE username = ?',
       [username],
       function onDone(err) {
         if (err) return reject(err);
-        resolve(this.changes);
-      }
+        	return resolve(this.changes);
+      },
+	  db.run('DELETE FROM tournament_players WHERE user_id = ?',
+			[player.user_id], function(err) {
+				if (err) {
+					flog.error({fucntion: 'DBremovePlayer'});
+					return reject({error: 'DB error in rmeove player'});
+				}
+				else if (this.changes === 0) {
+					return reject({error: 'DB remove player no changes made '});
+				}
+				return resolve(this.changes);
+			}
+
+		)
     );
+  })
   });
 }
 
