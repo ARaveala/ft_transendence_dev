@@ -41,10 +41,11 @@ RUN npm ci --omit=dev
 RUN npm i @fastify/static
 
 # Optional: sqlite CLI for debugging
-RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 curl && rm -rf /var/lib/apt/lists/*
 
 COPY . .
-RUN mkdir -p /app/data
+RUN mkdir -p data
+RUN chmod 777 data
 
 # # Expose the port Fastify listens on
 EXPOSE 3000
@@ -52,6 +53,10 @@ EXPOSE 3000
 ENV NODE_ENV=production \
     DB_DIR=/app/data \
     DB_FILE=app.sqlite \
-    INIT_SQL=/app/database/init.sql
+    INIT_SQL=/app/database/init.sql \
+    SECRETS_FILE=/run/secrets/app.env
 
-CMD ["node", "server.js"]
+COPY ./tools/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+# CMD [ "node", "server.js" ]

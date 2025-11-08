@@ -1,6 +1,6 @@
 require('module-alias/register'); // enables aliases
-require('dotenv').config();
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
+require('dotenv').config({ path: process.env.SECRETS_FILE || '/run/secrets/app.env' });
+
 const cookie = require('@fastify/cookie');
 
 'use strict';

@@ -5,13 +5,13 @@ const {log} = require('@logger');
 const {logger} = require('@logger');
 const flog = logger.child({ fileContext: 'security.js' }); // scoped logger
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
+const getJwtSecret = () => process.env.JWT_SECRET || 'dev-secret-key';
 
 function generateToken(id, username) {
 	console.log("checking id and name before tokenization", id, username);
 	return jwt.sign(
     { id: id, username: username },
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: '1h' }
   );
 }
@@ -19,7 +19,7 @@ function generateToken(id, username) {
 function generateWsToken(playerId, gameId) {
   return jwt.sign(
     { id: playerId, gameId},
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: '15m' } // short-lived
   );
 }
@@ -29,8 +29,8 @@ function setAuthCookie(reply, token) {
   reply.setCookie('auth_token', token, {
     httpOnly: true, //this must be https eventually
     path: '/',
-    sameSite: 'lax', // change to strict 
-    secure: false // set to true in production
+    sameSite: 'none', // change to strict 
+    secure: true // set to true in production
   });
 }
 
@@ -39,19 +39,20 @@ function clearAuthCookie(reply) {
 	expires: new Date(0),
 	httpOnly: true,
 	path:'/',
-	sameSite: 'lax', //this should be strict not dev
-	secure: false //this should be true when not dev
+	sameSite: 'none', //this should be strict not dev
+	secure: true //this should be true when not dev
 ,	});
 }
 
 function verifyToken(token) {
-  return jwt.verify(token, JWT_SECRET);
+  return jwt.verify(token, getJwtSecret());
 }
 
 function getUserIdFromToken(token) {
 	log('GET USER ID FROM TOKEN', 'taking id from token');
 	try {
-		const decoded = jwt.verify(token, JWT_SECRET);
+		flog.warn({fucntion: 'get user id from token', secret: getJwtSecret()}, 'NOTICE--------ME-----sENPAI')
+		const decoded = jwt.verify(token, getJwtSecret());
 		if (decoded === undefined) {
 			flog.warn( {function: 'getUserIdFromToken'}, 'Token verification returned undefined');
 			//return undefined;
@@ -72,7 +73,7 @@ function getUserIdFromTokenH(token) {
 		return {error: 'MISSING_TOKEN'};
 	}
 	try {
-		const decoded = jwt.verify(token, JWT_SECRET);
+		const decoded = jwt.verify(token, getJwtSecret());
 		if (decoded === undefined) {
 			flog.warn( {function: 'getUserIdFromToken'}, 'Token verification returned undefined');
 			//return undefined;
@@ -102,12 +103,12 @@ function getUserIdFromTokenH(token) {
 /* functions for creating temporary token on login with 2FA enabled
  */
 function generateTemporaryToken(payload) {
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: '3m' });
+    return jwt.sign(payload, getJwtSecret(), { expiresIn: '3m' });
 }
 
 function verifyTemporaryToken(token) {
     try {
-        return jwt.verify(token, JWT_SECRET);
+        return jwt.verify(token, getJwtSecret());
     } catch (err) {
         console.error('Invalid or expired temporary token:', err.message);
         return null;

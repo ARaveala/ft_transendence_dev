@@ -57,8 +57,8 @@ const TournamentLobby: React.FC = () => {
 
 	useEffect(() => {
 		async function handleMessage(event: MessageEvent) {
-			if (event.origin !== "http://localhost:3000")
-				return;
+			//if (event.origin !== "http://localhost:3000")
+			//	return;
 			if (event.data?.type === "GAME RESULT") {
 				console.log("Received game result from iframe:", event.data.payload);
 				const result = event.data.payload;
@@ -370,11 +370,14 @@ const TournamentLobby: React.FC = () => {
 					}}
 				>
 					<iframe
-					ref={iframeRef}
-					onLoad={handleIframeLoad}
-					src={`http://localhost:3000/pong_game/index.html?gameId=${activeGameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}&lang=${encodeURIComponent(lang)}`}
-					className="absolute inset-0 w-full h-full border-none rounded-lg"
-					scrolling="no"
+
+						ref={iframeRef}
+						// Attach the focus handler to the iframe's onLoad event
+						onLoad={handleIframeLoad} 
+						src={`https://localhost:4004/pong_game/index.html?gameId=${activeGameId}&player1Token=${player1Token}&player2Token=${player2Token}&gameSettings=${encodeURIComponent(JSON.stringify(gameSettings))}&lang=${encodeURIComponent(lang)}`}
+						// The iframe is absolutely positioned to fill the responsive container
+						className="absolute inset-0 w-full h-full border-none rounded-lg"
+						scrolling="no"
 					/>
 				</div>
 			</div>

@@ -1,45 +1,103 @@
-name: transcendence
-
-# enviroment:
-#   NODE_DEV: production
-#   PORT: 3000
-#   DB_DIR: /app/data
-#   DB_FILE: app.sqlite
-#   INIT_SQL: /app/database/init.sql
 
 services:
+  waf:
+    container_name: modsecurity
+    build:
+      context: ./modsec
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
+    volumes:
+    - ./volumes/nginx_logs:/var/log/nginx
+    - ./volumes/tls:/etc/ssl/local
+    ports:
+    - "8080:80"
+    - "4004:443"
+    networks:
+      - app-net
+    # Optional: mark proxy itself healthy (hits its own https listener)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fk https://localhost/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  vault:
+    container_name: vault
+    build:
+      context: ./vault
+      dockerfile: Dockerfile
+    environment:
+      VAULT_DEV_ROOT_TOKEN: myroot
+      VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_API_ADDR: http://127.0.0.1:8200
+    volumes:
+      - ./volumes/backend_secrets:/run/secrets
+      - ./volumes/tls:/out
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /run/secrets/app.env && grep -q '^JWT_SECRET=' /run/secrets/app.env test -s /out/fullchain.pem -a -s /out/privkey.pem"]
+      interval: 5s
+      timeout: 2s
+      retries: 30
+    # restart: unless-stopped
+
   backend:
+    container_name: backend
+    depends_on:
+      vault:
+        condition: service_healthy
     build:
       context: ./backend
       dockerfile: Dockerfile
-    env_file: .env
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      SQLITE_PATH: /data/database.sqlite
-    ports:
-      - "3000:3000"    # publish for quick API testing
     volumes:
-      - backend_data:/data
-    restart: unless-stopped
+      - ./volumes/backend_data:/app/data
+      - ./volumes/backend_secrets:/run/secrets
+    expose:
+    - "3000" # Expose backend API port
     networks:
       - app-net
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_API_ADDR: http://vault:8200
+    healthcheck:
+      # bookworm-slim: install curl in the Dockerfile (see below)
+      test: ["CMD-SHELL", "curl http://localhost:3000/status >/dev/null|| exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
 
   frontend:
+    container_name: frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    env_file: .env
     depends_on:
       - backend
-    ports:
-      - "80:80"
-    restart: unless-stopped
+    environment:
+      - BROWSER=none
+    expose:
+      - "5173"
     networks:
       - app-net
+    healthcheck:
+      # node:20-alpine has BusyBox wget
+      test: ["CMD-SHELL", "curl http://localhost:5173/status >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
 
 networks:
   app-net:
 
-volumes:
-  backend_data:
+

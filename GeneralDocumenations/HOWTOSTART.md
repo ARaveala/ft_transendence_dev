@@ -71,3 +71,34 @@ This requires you fill in also json below
 as the shared directories grow in both frontend and backend, we can utalize the api protocols and payloads as examples
 ---
 
+# Cybersecurity
+## Major module
+	Implement WAF/ModSecurity with Hardened Configuration and HashiCorp Vault for Secrets Management
+
+### ModSecurity
+
+- it's a firewall, the nginx-based version (works with nginx as reverse proxy) 
+- works with OWASP CRS
+
+### HashiCorp Vault
+
+- stores variables securely and shares the volume with backend to provide the variables
+
+How to test:
+- enter the backend container and run cat /run/secrets/app.env --> it will show a key value
+- enter the vault container and run
+```
+export VAULT_ADDR="http://127.0.0.1:8200"
+vault login myroot
+vault kv put secret/app JWT_SECRET="rotated-$(date +%s)"  DB_USER="pong" DB_PASS="super-strong" API_KEY_PAYMENT="pk_test_123"
+vault kv get secret/app
+
+docker compose exec backend sh -lc 'sed -n "1,20p" /run/secrets/app.env'
+```
+the last command will show the new key after 2-5 secs (you can check in the backend container as well)
+
+
+
+
+
+

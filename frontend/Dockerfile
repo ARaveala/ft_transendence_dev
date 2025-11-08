@@ -1,5 +1,7 @@
 # Use Node.js LTS image
-FROM node:20-alpine
+FROM node:20-bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 curl && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -8,17 +10,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install 
-RUN npm install -D @types/react @types/react-dom
+RUN npm install
 
 # Copy the rest of the project
 COPY . .
 
-# Build for production (optional if just testing dev server)
-# RUN npm run build
-
-# Expose port for Vite dev server
+# Expose the Vite dev server port
 EXPOSE 5173
 
-# Run the dev server
-CMD ["npm", "run", "dev", "--", "--host"]
+# Run the dev server (Vite)
+CMD ["npm", "run", "dev"]
+

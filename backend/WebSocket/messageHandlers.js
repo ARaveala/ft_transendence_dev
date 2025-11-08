@@ -57,7 +57,7 @@ function handleMessage(ws, data) {
 	//console.log('getGameContext returned:', context);
 	const {game, gameState} = context || {};
 
-
+	console.log("we have entered the dam handler");
 	if (data.type != "keys")
 		console.log("Message received: (Ignoring keypresses)", data);
 	

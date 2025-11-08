@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 const {randomUsername} = require('./utils.js');
-
+test.use({ ignoreHTTPSErrors: true });
 test('test', async ({ page }) => {
     const username = randomUsername();
-  await page.goto('http://localhost:5173/');
+  await page.goto('https://localhost:4004/');
   await expect(page.getByRole('button', { name: 'English' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Register' }).click();
