@@ -6,7 +6,7 @@ DOCKER_COMPOSE_FILE := ./docker-compose.yml
 #	@docker network inspect custom-network >/dev/null 2>&1 || docker network create inceptionnet
 # Build the Docker images defined in the Dockerfile
 build:
-	docker-compose -f $(DOCKER_COMPOSE_FILE) up --build
+	docker-compose -f $(DOCKER_COMPOSE_FILE) up --build -d
 
 # Start services defined in docker-compose.yml added as fail safe to start network
 up: #start-network
@@ -33,13 +33,6 @@ ps:
 restart:
 	docker-compose -f $(DOCKER_COMPOSE_FILE) restart
 
-# Run Docker Container new and not tested yet
-#run:
-#    docker run --env-file /path/to/your/.env -d --name wordpress-container wordpress
-
-# Run tests if any are defined
-#test:
-#	docker-compose -f $(DOCKER_COMPOSE_FILE) run --rm test
 
 # View logs of the running services in real time
 logs:
@@ -48,6 +41,11 @@ logs:
 # Clean dangling images and unused volumes
 clean:
 	docker system prune -f --volumes
+
+# Remove all Docker volumes
+clean-volumes:
+	@echo "Removing all Docker volumes..."
+	docker volume prune -f
 
 # View logs for the Nginx service in real time
 logs-nginx:
@@ -60,6 +58,12 @@ fclean: clean
 	docker container prune -f
 	@echo "Removing all Docker images..."
 	docker image prune -a -f
+
+# Remove all Docker volumes including named volumes
+fclean-volumes: fclean
+	@echo "Removing all Docker volumes (including named volumes)..."
+	docker volume rm -f $(docker volume ls -q)
+
 # Clear logs
 clear-logs:
 	docker exec -it $(docker ps -q -f "name=nginx") sh -c 'cd /var/log/nginx && 
