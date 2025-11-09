@@ -1,4 +1,18 @@
 {
-  "type": "commonjs"
+  "name": "pong_game",
+  "private": true,
+  "scripts": {
+    "build": "tsc script.tsx --target ES6 --jsx react --outFile script.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/react": "^18.2.0",
+    "csstype": "^3.1.0",
+    "@babel/parser": "^7.25.0",
+    "@babel/types": "^7.25.0",
+    "@types/babel__core": "^7.21.10",
+    "@types/babel__generator": "^7.6.3",
+    "@types/babel__template": "^7.3.2",
+    "@types/babel__traverse": "^7.18.4"
+  }
 }
-
