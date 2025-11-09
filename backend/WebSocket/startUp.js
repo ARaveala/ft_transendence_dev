@@ -36,31 +36,13 @@ function setUpWebSockets(server) {
 		wss.on('connection', (ws) => {
 			console.log('WebSocket client connected');
 			
-			ws.on('message', (msg, isBinary) => {
+			ws.on('message', (msg) => {
 				let data;				
-				//try {
-				//if (reconnect) {
-				//		handleMessage(ws, {type: "reconnect"}); // actual player detials needed
-				//		reconnect = false;
-				//		return;
-				//	}
-				//	console.log('Raw WebSocket message:', msg);
-				//	const text = Buffer.isBuffer(msg) ? msg.toString() : msg;
-//
-				//	console.log('Text version is ------', text);
-				//	//const text = isBinary ? msg.toString() : msg.toString('utf8');
-				//	const data = JSON.parse(text);
-				//	handleMessage(ws, data);
-				//	} catch (err) {
-				//	console.error('Invalid JSON:', msg);
-				//	ws.send('Error: Invalid format');
-				//}
 					try {
 						const text = Buffer.isBuffer(msg) ? msg.toString() : msg;
 						data = JSON.parse(text);
 						} catch (err) {
 							console.error('Failed to parse JSON:', msg.toString());
-							console.error('Parse error:', err.message);
 							ws.send('Error: Invalid format');
 						return;
 					}
@@ -79,21 +61,14 @@ function setUpWebSockets(server) {
 				console.log("Client disconnected");
 				// some kind of pause logic here 
 				const player = ws.player;//players.get(playerId);
-				flog.info({ function: 'setupwebsockets', playerId: ws.playerId, gameId: ws.gameId }, 'player details in trace');
-				flog.debug({ function: 'setupwebsockets', playerId: player });
-				console.log('checking if player exists on disconnect', player, 'is there a game id', ws.gameId, 'access anything', ws.player.ready);
 				if (player) {
 					
 					player.disconnectedAt = Date.now();
-					flog.debug({ function: 'setupwebsockets', player: player , playerDisconnect: player.disconnectedAt}, 'player disconnected at time');
-					console.log("Player disconnected:", player);
 					player.ws = null;
 					handleMessage(undefined, { type: "pause", playerId: ws.playerId, gameId: ws.gameId });
 					
-					// Pause game logic if needed
-				player.pauseTimeout = setTimeout(() => {
+					player.pauseTimeout = setTimeout(() => {
 						// If still disconnected after 10s, end game or remove player
-						//players.delete(playerId);
 					console.log("client died, bury them ");
 					}, 10000);
 				}

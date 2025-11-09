@@ -86,12 +86,12 @@ services:
     environment:
       - BROWSER=none
     expose:
-      - "5173"
+      - "5174"
     networks:
       - app-net
     healthcheck:
       # node:20-alpine has BusyBox wget
-      test: ["CMD-SHELL", "curl http://localhost:5173/status >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "curl http://localhost:5174/status >/dev/null || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 10

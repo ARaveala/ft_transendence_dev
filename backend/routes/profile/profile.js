@@ -66,7 +66,6 @@ async function getUser(fastify, options) {
 	const { DBget, secure, DBtour } = options;
 	fastify.get(API_PROTOCOL.GET_PROFILE.path,{
 	}, async (request, reply) => {
-		// just for testing check no fail after remove
 		userId = request.userId;
 
 		const mockProfile = {
@@ -85,14 +84,13 @@ async function getUser(fastify, options) {
 				],
 				tournament: undefined
 			};
-		console.log('Fetching user with ID:', userId, 'with type', typeof userId);
 		try {
 			const profile = await DBget.fetchUser(userId);
-			console.log("WHAT IS TID :", profile.active_tournament_id);
+//			console.log("WHAT IS TID :", profile.active_tournament_id);
 
 			//flog.warn({function: "getProfile", totalGames: profile.total_games}, "can we see total matches updated and recived==============================");
 			const friends = await DBget.getFriendsForPlayer(userId);
-			flog.info({function: 'getUser', friends: friends}, 'checking friend object');
+//			flog.info({function: 'getUser', friends: friends}, 'checking friend object');
 			const matchHistory = await DBget.getMatchHistory(userId);
 			
 			mockProfile.username = profile.username;

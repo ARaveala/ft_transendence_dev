@@ -7,11 +7,11 @@ export default defineConfig({              // Export Vite configuration
   // Dev server options
   server: {
     open: true,                            // Automatically open browser when dev server starts
-    port: 5173,                          // Port for the development server
+    port: 5174,                          // Port for the development server
     host: '0.0.0.0', // 👈 This exposes the server to external connections
-	proxy: {
-		'/api': 'https://backend:3000',
-	},
+//	proxy: {
+//		'/api': 'https://backend:3000',
+//	},
 },
 
   // Build options for production

@@ -12,11 +12,7 @@ const flog = logger.child({ fileContext: 'insert.js' }); // scoped logger
  */
 function deleteUserById(id) {
   return new Promise((resolve, reject) => {
-    // defensive: ensure integer
-	console.log('checking id', id);
 	const userId = id;
-	// const userId = Number(id);
-	console.log('db function delete check id', userId, 'type', typeof userId);
     if (!Number.isInteger(userId) || userId <= 0) {
       return reject(new Error('Invalid user id'));
     }

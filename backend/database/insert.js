@@ -46,7 +46,7 @@ function insertUser({ username, hashedPassword}) {
 
 
 function insertFriend(friendId, userId) {
-	flog.info({ function: 'insertFRiend' }, 'inserting friend');
+//	flog.info({ function: 'insertFRiend' }, 'inserting friend');
 //	flog.debug({ function: 'insertFRiend', friend: friendId, user: userId }, 'checking ids');
 
   return new Promise((resolve, reject) => {
@@ -84,6 +84,5 @@ function insertFriend(friendId, userId) {
 module.exports = {
 	insertUser,
 	insertFriend,
-	// loginUser
 };
 

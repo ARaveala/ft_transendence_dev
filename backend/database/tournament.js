@@ -69,22 +69,6 @@ function getActiveTournamentStatus(tId) {
 function createTournamentPlayer(tournamentId, playerId, alias, role, verified, isOwner) {
 	flog.debug({ function: 'createTournamentPlayer', playerid: playerId }, 'Adding player to tournament');
 		return new Promise((resolve, reject) => {
-			// db.get('SELECT id FROM tournaments WHERE id = ?', [tournamentId], (err, tournamentRow) => {
-			//      if (err) return reject(err);
-			//      if (!tournamentRow) {
-			//		flog.error({ function: 'createTournamentPlayer', tournamentId}, 'Tournament does not exist');
-			//        return reject(new Error(`Tournament ${tournamentId} does not exist`));
-			//      }
-			//  
-			//      // Then check that the user exists
-			//      db.get('SELECT id FROM users WHERE id = ?', [playerId], (err, userRow) => {
-			//        if (err) return reject(err);
-			//        if (!userRow) {
-			//			flog.error({ function: 'createTournamentPlayer', playerId}, 'User does not exist');
-			//          return reject(new Error(`User ${playerId} does not exist`));
-			//        }
-			// });
-			//})			
 			db.run('INSERT INTO tournament_players (tournament_id, user_id, alias, player_role, verified, is_owner) VALUES (?, ?, ?, ?, ?, ?)', 
 				[tournamentId, playerId, alias, role, verified, isOwner], function onDone(err) {
 				if (err) {
@@ -102,7 +86,6 @@ function seedPlayers(tournamentId) {
 	flog.info({fucntion: 'seedPlayers', tid: tournamentId}, "tid ")
   return new Promise((resolve, reject) => {
     db.serialize(() => {
-      // Step 1: Join users to tournament_players to get rank
       db.all(
         `SELECT tp.user_id, u.rank
          FROM tournament_players tp
@@ -121,7 +104,6 @@ function seedPlayers(tournamentId) {
             return resolve({ message: 'No players to seed' });
           }
 
-          // Step 2: Assign seeds based on rank order
           const updates = rows.map((player, index) => {
             return new Promise((res, rej) => {
               db.run(
@@ -138,7 +120,6 @@ function seedPlayers(tournamentId) {
             });
           });
 
-          // Step 3: Wait for all updates to complete
           Promise.all(updates)
             .then(() => {
               console.info('Seeding complete for tournament:', tournamentId);
@@ -154,60 +135,6 @@ function seedPlayers(tournamentId) {
   });
 }
 
-//function seedPlayers(tournamentId) {
-//  return new Promise((resolve, reject) => {
-//    db.serialize(() => {
-//      db.all('SELECT user_id, rank FROM tournament_players WHERE tournament_id = ? ORDER BY rank DESC',
-//		[tournamentId], (err, rows) => {
-//        if (err){
-//			flog.error({fucntion: 'seed players', err: err.message}, 'fffffffffffffff');
-//			 return reject(err);
-//		}
-//		flog.warn({function: 'seed players'}, 'aaaaaaaaaaaaaaaaaaaaa');
-//        const updates = rows.map((player, index) => {
-//        return new Promise((res, rej) => {
-//          db.run(
-//            'UPDATE tournament_players SET seed = ? WHERE tournament_id = ? AND user_id = ?',
-//            [index + 1, tournamentId, player.user_id],
-//            (err) => {
-//              if (err) return rej(err);
-//              res();
-//            }
-//          );
-//        });
-//          });
-//
-//          Promise.all(updates)
-//            .then(() => resolve({ message: 'Seeding complete', totalSeeded: updates.length }))
-//            .catch(reject);
-//        }
-//      );
-//    });
-//  });
-//}
-
-//function seedPlayers(tournamnetId) {
-//	return new Promise ((resolve, reject) => {
-//		db.run('UPDATE FROM tournamen_players seed')
-//		//seed based on rank		
-//	})
-//}
-//function getTournamentPlayersByTournamentId(tournamentId) {
-//	flog.debug({ function: 'getTournamentPlayers' }, 'Fetching tournament players');
-//		return new Promise((resolve, reject) => {
-//			db.all('SELECT * FROM tournament_players WHERE tournament_id = ?',[tournamentId], (err, rows) =>{
-//				if (err) {
-//					reject({ error: 'DB error fetch' });
-//				} else if (!rows) {
-//					reject({ error: 'No players found' });
-//				} else {
-//					flog.info({ function: 'getTournamentPlayers', players: rows }, 'Tournament players found');
-//					resolve(rows);
-//				}
-//			}
-//			);
-//		});
-//}
 /**
  * 
  * @param {*} tournamentId unique id for tournament
@@ -268,7 +195,6 @@ function getTournamentPlayerById(userId) {
 
 
 function getTournamentPlayers(tid) {
-	//flog.debug({ function: 'fffffffffffffffffffffgetTournamentPlayersALL', tournamnetId: tid }, 'Fetching tournament players');
 		return new Promise((resolve, reject) => {
 			db.all('SELECT * FROM tournament_players WHERE tournament_id = ? ORDER BY seed ASC',[tid], (err, rows) =>{
 				if (err) {
@@ -294,7 +220,7 @@ function getTournamentPlayers(tid) {
 }
 
 function getTournamentById(tournamentId) {
-	flog.debug({ function: 'getTournamentById' }, 'Fetching tournament by ID');
+//	flog.debug({ function: 'getTournamentById' }, 'Fetching tournament by ID');
 		return new Promise((resolve, reject) => {
 			db.get('SELECT * FROM tournaments WHERE id = ?',[tournamentId], (err, row) =>{
 				if (err) {
@@ -329,7 +255,7 @@ function updateAlias(tournamentId, playerId, newAlias) {
 
 
 function updatePlayerReadyStatus(tournamentId, playerId, newStatus) {
-	flog.debug({ function: 'playerReadyStatus', playerId: playerId }, '!!!!!!!!!!Updating playerReadyStatus in tournament');
+//	flog.debug({ function: 'playerReadyStatus', playerId: playerId }, '!!!!!!!!!!Updating playerReadyStatus in tournament');
 		return new Promise((resolve, reject) => {
 			db.run('UPDATE tournament_players SET player_status = ? WHERE tournament_id = ? AND user_id = ?', 
 				[newStatus, tournamentId, playerId], function onDone(err) {
@@ -345,7 +271,7 @@ function updatePlayerReadyStatus(tournamentId, playerId, newStatus) {
 }
 
 function updateTournamentStats(gameId, p1Score, p2Score, status, winnerId){
-	flog.debug({function: "updateTournamentStats", gameid: gameId, p1Score: p1Score, p2Score: p2Score, winnerId: winnerId});
+//	flog.debug({function: "updateTournamentStats", gameid: gameId, p1Score: p1Score, p2Score: p2Score, winnerId: winnerId});
 		return new Promise((resolve, reject) => {
     		db.get('SELECT tournament_id, p1_id, p2_id FROM game WHERE game_uid = ?', [gameId], (err, row) => {
     			if (err || !row) {
@@ -376,7 +302,7 @@ function updateTournamentStats(gameId, p1Score, p2Score, status, winnerId){
 )}
 )}
 function cancelTournament(tournamentId) {
-	flog.debug({ function: 'DBcancelTournament' , tid: tournamentId}, 'Cancelling tournament with id of');
+//	flog.debug({ function: 'DBcancelTournament' , tid: tournamentId}, 'Cancelling tournament with id of');
 		return new Promise((resolve, reject) => {
 			db.run('DELETE FROM tournaments WHERE id = ?', [tournamentId], function onDone(err) {
 				
@@ -390,14 +316,12 @@ function cancelTournament(tournamentId) {
         		}
 				flog.info({ function: 'DBcancelTournament'}, 'tournamnet canceled');
 				resolve(this.changes);
-				//const tournamentId = this.lastID
-				  // Use tournamentId to insert players and games
 				});
 		});
 }
 
 function getUserByRole(tournamentId, role) {
-	flog.debug({ function: 'getUserByRole' , tid: tournamentId, role: role});
+//	flog.debug({ function: 'getUserByRole' , tid: tournamentId, role: role});
 		return new Promise((resolve, reject) => {
 			db.get('SELECT * FROM tournament_players WHERE tournament_id = ? AND player_role = ?',
 				[tournamentId, role], (err, row) =>{
@@ -419,7 +343,7 @@ function removePlayer(tournamentId, role) {
 	return new Promise ((resolve, reject) => {
 		getUserByRole(tournamentId, role).then(player => {
 
-		flog.debug({function: "removePlayer", playerid: player.user_id});
+//		flog.debug({function: "removePlayer", playerid: player.user_id});
 		db.run('DELETE FROM tournament_players WHERE user_id = ?',
 			[player.user_id], function(err) {
 				if (err) {
@@ -438,38 +362,12 @@ function removePlayer(tournamentId, role) {
 	});
 }
 
-/**
-CREATE TABLE IF NOT EXISTS game
-(
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	tournament_id INTEGER,
-	p1_id INTEGER,
-	p2_id INTEGER,
-	p1_score INTEGER NOT NULL DEFAULT 0,
-	p2_score INTEGER NOT NULL DEFAULT 0,
-	winner_id INTEGER,
-	round INTEGER,
-	bracket_pos INTEGER,
-	ALTER TABLE game ADD COLUMN game_uid TEXT UNIQUE,
-	status TEXT NOT NULL DEFAULT 'waiting'
-		CHECK (status IN ('waiting', 'ready', 'ongoing', 'finished')),
-	FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
-	FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
-	FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
-	FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
-);
 
-
- */
-
-//status pending
 function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status){
 	let bracket_pos = 0;
-	if (round === 1 || round === 2)
-	{
+	if (round === 1 || round === 2) {
 		bracket_pos = 1;
-	}
-	else {
+	} else {
 		bracket_pos = 2;
 	}
 	return new Promise((resolve, reject) => {
@@ -495,44 +393,35 @@ function buildBracket(tournamentId, player1Id, player2Id, gameid, round, status)
 }
 
 function updateBracket(tournamentId, userId, bracketPos) {
-  return new Promise((resolve, reject) => {
-    // Step 1: Find the game with empty slot at bracketPos
-    db.get(
-      `SELECT id, p1_id, p2_id, game_uid FROM game 
-       WHERE tournament_id = ? AND bracket_pos = ? AND status = 'pending'`,
-      [tournamentId, bracketPos],
-      (err, row) => {
-        if (err) return reject(err);
-        if (!row) return reject(new Error('No available game slot found'));
+	return new Promise((resolve, reject) => {
+    	db.get(
+      	`SELECT id, p1_id, p2_id, game_uid FROM game 
+      	WHERE tournament_id = ? AND bracket_pos = ? AND status = 'pending'`,
+      	[tournamentId, bracketPos],
+      	(err, row) => {
+        	if (err) return reject(err);
+        	if (!row) return reject(new Error('No available game slot found'));
 
-        const { id, p1_id, p2_id, game_uid } = row;
+       			const { id, p1_id, p2_id, game_uid } = row;
 
-        // Step 2: Fill the empty slot
-        let updateField = '';
-		let both = false;
-		flog.warn({fucntion: "updateBracket", p1: p1_id}, "-----do we have a id ---------");
-        if (p1_id === null) {
-          updateField = 'p1_id';
-        } else if (p2_id === null) {
-          updateField = 'p2_id';
-		  both = true;
-        } else {
-          return reject(new Error('Both player slots are already filled'));
-        }
+		        let updateField = '';
+				let both = false;
+				flog.warn({fucntion: "updateBracket", p1: p1_id}, "-----do we have a id ---------");
+		        if (p1_id === null) {
+		          updateField = 'p1_id';
+		        } else if (p2_id === null) {
+		          updateField = 'p2_id';
+				  both = true;
+		        } else {
+		          return reject(new Error('Both player slots are already filled'));
+		        }
 
-        // Step 3: Update game with player
-        db.run(
-          `UPDATE game SET ${updateField} = ?, status = ? WHERE id = ?`,
-          [
-            userId,
-//            p1_id && p2_id ? 'ongoing' : 'pending', // status becomes 'ongoing' if both are filled
-			both == true ? 'ongoing' : 'pending',
-			id,
-          ],
-          function (err2) {
+	        db.run(
+	          `UPDATE game SET ${updateField} = ?, status = ? WHERE id = ?`,
+	          [ userId, both == true ? 'ongoing' : 'pending', id, ],
+          		function (err2) {
             if (err2) return reject(err2);
 
-            // Step 4: Update player status
             db.run(
               `UPDATE tournament_players SET player_status = ? WHERE tournament_id = ? AND user_id = ?`,
               ['ready', tournamentId, userId]
@@ -547,69 +436,68 @@ function updateBracket(tournamentId, userId, bracketPos) {
 }
 
 function getBrackets(tournamentId) {
-  flog.debug({ function: 'getBrackets' }, 'Getting brackets');
+//  flog.debug({ function: 'getBrackets' }, 'Getting brackets');
 
-  return new Promise((resolve, reject) => {
-    db.all(
-      `SELECT * FROM game WHERE tournament_id = ? ORDER BY round ASC, bracket_pos ASC`,
-      [tournamentId],
-      (err, games) => {
-        if (err) {
-          flog.error({ function: 'getBrackets', err }, 'DB error getting games');
-          return reject(err);
-        }
+	return new Promise((resolve, reject) => {
+    	db.all(
+      	`SELECT * FROM game WHERE tournament_id = ? ORDER BY round ASC, bracket_pos ASC`,
+      	[tournamentId],
+      	(err, games) => {
+        	if (err) {
+        		flog.error({ function: 'getBrackets', err }, 'DB error getting games');
+        		return reject(err);
+        	}
 
-        db.all(
-          `SELECT tp.*, u.username FROM tournament_players tp
-           LEFT JOIN users u ON tp.user_id = u.id
-           WHERE tp.tournament_id = ?`,
-          [tournamentId],
-          (err, players) => {
-            if (err) {
-              flog.error({ function: 'getBrackets', err }, 'DB error getting players');
-              return reject(err);
-            }
+        	db.all(
+          	`SELECT tp.*, u.username FROM tournament_players tp
+           	LEFT JOIN users u ON tp.user_id = u.id
+           	WHERE tp.tournament_id = ?`,
+          	[tournamentId],
+          	(err, players) => {
+            	if (err) {
+            	return reject(err);
+            	}
 
             const playerMap = {};
             players.forEach(p => {
-              playerMap[p.user_id] = {
-                username: p.username || "",
-                alias: p.alias,
-                role: p.player_role,
-                status: p.player_status,
-                score: p.player_score,
-                isSelf: !!p.is_owner,
-                isVerified: !!p.verified,
-              };
+            	playerMap[p.user_id] = {
+                	username: p.username || "",
+                	alias: p.alias,
+                	role: p.player_role,
+                	status: p.player_status,
+                	score: p.player_score,
+                	isSelf: !!p.is_owner,
+                	isVerified: !!p.verified,
+              	};
             });
 
-        const groupedBrackets = {};
-		games.forEach(game => {
-		if (!groupedBrackets[game.round]) {
-		    groupedBrackets[game.round] = [];
-		}
-		const winnerAlias = game.winner_id && playerMap[game.winner_id]
-		    ? playerMap[game.winner_id].alias : null;
+        	const groupedBrackets = {};
+			games.forEach(game => {
+			if (!groupedBrackets[game.round]) {
+		    	groupedBrackets[game.round] = [];
+			}
+			const winnerAlias = game.winner_id && playerMap[game.winner_id]
+		    	? playerMap[game.winner_id].alias : null;
 
-		  groupedBrackets[game.round].push({
-		    match_id: game.game_uid,
-		    round: game.round,
-		    bracket_pos: game.bracket_pos,
-		    player1: playerMap[game.p1_id] || null,
-		    player2: playerMap[game.p2_id] || null,
-		    status: game.status,
-			winner: winnerAlias,
-		    score: {
-		      player1: game.p1_score,
-		      player2: game.p2_score,
-		    },
-		  });
+			groupedBrackets[game.round].push({
+		    	match_id: game.game_uid,
+		    	round: game.round,
+		    	bracket_pos: game.bracket_pos,
+		    	player1: playerMap[game.p1_id] || null,
+		    	player2: playerMap[game.p2_id] || null,
+		    	status: game.status,
+				winner: winnerAlias,
+		    	score: {
+		    	  player1: game.p1_score,
+		    	  player2: game.p2_score,
+		    	},
 			});
+		});
 			//flog.debug({ players }, 'Fetched players');
 			const bracketArray = Object.keys(groupedBrackets)
 			  .sort((a, b) => a - b)
 			  .map(round => groupedBrackets[round]);
-				flog.debug({function: 'Fetched games array',  brackket: bracketArray});
+		//		flog.debug({function: 'Fetched games array',  brackket: bracketArray});
 			  return resolve(bracketArray);
 		      }
 		    );
@@ -617,32 +505,6 @@ function getBrackets(tournamentId) {
 	    );
   });
 }
-//function getBrackets(tournamentId){
-//	flog.debug({ function: 'getBrackets',}, 'getting Brackets');
-//		return new Promise((resolve, reject) => {
-//			//what i need for each game
-//			// game_uid
-//			// bracket num 2 is last, the other 2
-//			// are in round order .
-//
-//			//p1_id , p2_id 
-//			db.get('SELECT')
-//			if (err) {
-//				flog.error({ function: 'getBrackets', err}, 'DB error gettin getBrackets:');
-//				return reject(err);
-//			}
-//
-//			return resolve([1, 2][3]);
-//		});
-//}
-//getTOurnamnetplayers attach them to relative gameid, for return get game status for that , build score results
-//const ret = {
-//		match_id: bracket.game_uid,
-//		player1: player1,
-//		player2: player2,
-//		status: "pending",
-//		score: { player1: player1.score, player2: player2.score },
-//	}
 
 function updateTournamentStatus(tournamentId, newStatus) {
 	flog.debug({ function: 'updateTournamnetStatus',}, 'Updating tournamnetStatus in tournament');
@@ -653,7 +515,6 @@ function updateTournamentStatus(tournamentId, newStatus) {
 					flog.error({ function: 'updatetournamnetStatus', err}, 'DB error updating tournamnetStatus:');
 					return reject(err);
 				}
-//				flog.info({ function: 'playerReadyStatus', tournamentId, playerId, newAlias }, 'playerReadyStatus updated in tournament');
 				resolve(this.changes);
 				}
 			);
@@ -661,7 +522,7 @@ function updateTournamentStatus(tournamentId, newStatus) {
 }
 
 function cancelTournament(tournamentId) {
-	flog.debug({ function: 'DBcancelTournament' , tid: tournamentId}, 'Cancelling tournament with id of');
+//	flog.debug({ function: 'DBcancelTournament' , tid: tournamentId}, 'Cancelling tournament with id of');
 		return new Promise((resolve, reject) => {
 			db.run('DELETE FROM tournaments WHERE id = ?', [tournamentId], function onDone(err) {
 				
@@ -675,14 +536,12 @@ function cancelTournament(tournamentId) {
         		}
 				flog.info({ function: 'DBcancelTournament'}, 'tournamnet canceled');
 				resolve(this.changes);
-				//const tournamentId = this.lastID
-				  // Use tournamentId to insert players and games
 				});
 		});
 }
 
 function getUserByRole(tournamentId, role) {
-	flog.debug({ function: 'getUserByRole' , tid: tournamentId, role: role});
+//	flog.debug({ function: 'getUserByRole' , tid: tournamentId, role: role});
 		return new Promise((resolve, reject) => {
 			db.get('SELECT * FROM tournament_players WHERE tournament_id = ? AND player_role = ?',
 				[tournamentId, role], (err, row) =>{
@@ -704,7 +563,7 @@ function removePlayer(tournamentId, role) {
 	return new Promise ((resolve, reject) => {
 		getUserByRole(tournamentId, role).then(player => {
 
-		flog.debug({function: "removePlayer", playerid: player.user_id});
+//		flog.debug({function: "removePlayer", playerid: player.user_id});
 		db.run('DELETE FROM tournament_players WHERE user_id = ?',
 			[player.user_id], function(err) {
 				if (err) {

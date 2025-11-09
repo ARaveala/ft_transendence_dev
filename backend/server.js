@@ -19,8 +19,6 @@ const friendRoutes = require('@routes/friends.js');
 const friendContext = require('@routes/context.js');
 const tournamentRoutes = require('@routes/tournament/tournament.js');
 const tournamentContext = require('@routes/tournament/context.js');
-// set up context, require from context.js 
-// there will be multiple index or context.txt for each file ....
 const context = require('@context');
 // Register the multipart plugin (Mandatory for request.file() to work)
 fastify.register(require('@fastify/multipart'), {
@@ -81,13 +79,9 @@ fastify.addHook('onRequest', async (request, reply) => {
 
 const start = async () => {
     try {
-        log('STARTING SERVER', '---------------------------------------------');
-
-        //    await fastify.listen({ port: 3000 });
         await fastify.register(cookie);
         await fastify.register(authHooks, authHookContext);
         await fastify.register(authRoutes, authcontext);
-        //await fastify.register(userRoutes, context);
         await fastify.register(tournamentRoutes, tournamentContext);
         await fastify.register(friendRoutes, context);
         await fastify.register(profileRoutes, profilecontext);
@@ -107,8 +101,6 @@ const start = async () => {
         });
 
         await fastify.listen({ port: 3000, host: '0.0.0.0' });//, err => {
-
-        fastify.log.info('Server listening on port 3000')
 
         setUpWebSockets(fastify.server);
         console.log('WebSocket server is running');
