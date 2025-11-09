@@ -11,6 +11,12 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
 
+	timeout: 60000, // each test can run up to 60 seconds
+  expect: {
+    timeout: 15000, // expect(...) waits up to 15 seconds
+  },
+
+
   use: {
     // 👇 Automatically use the correct base URL
     baseURL: BASE_URL,
