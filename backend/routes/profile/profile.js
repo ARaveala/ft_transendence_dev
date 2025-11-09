@@ -275,38 +275,6 @@ async function uploadAvatarFileRoute(fastify, options) {
 }
 
 
-// async function updateAvatar(fastify, options) {
-// 	const { DBupdate, secure } = options;
-// 	fastify.route({
-// 		method: API_PROTOCOL.CHANGE_AVATAR.method,
-// 		url: API_PROTOCOL.CHANGE_AVATAR.path,
-// 		handler: async (request, reply) => {
-// 		//schema: { body: schemas.updateAvatar }, dosnt exist yet 
-// 		const { avatar } = request.body;
-// 		try {
-
-// 			const userId = request.userId;
-// 			if (userId){
-// 				const check = await DBupdate.changeAvatar(avatar, userId);
-// 				console.log('checking check', check)
-// 				//might need more in depth error handling
-// 				if (check.error) {
-// 					reply.code(400).send({
-// 						status: 'ERROR',
-// 						error: 'not valid avatar?'// other errors?
-// 					})
-// 				}
-// 			}
-// 			reply.code(200).send({
-// 				status: 'UPDATED',
-// 			});
-// 		} catch (err) {
-// 			console.log(('Error during avatar change:', err));
-// 			reply.code(418).send(err);
-// 		}
-// 	}
-// 	});
-// }
 async function updateAvatar(fastify, options) {
 	const { DBupdate, DBget } = options;
 	fastify.route({
@@ -317,29 +285,19 @@ async function updateAvatar(fastify, options) {
 			const userId = request.userId;
 
 			try {
-				// 1. Fetch old avatar
-				const user = await DBget.fetchUser(userId);
-				const oldAvatarUrl = user ? user.avatar_file : null;
+                const user = await DBget.fetchUser(userId);
+                const oldAvatarUrl = user ? user.avatar_file : null;
 
-				// 2. Update DB
-				const check = await DBupdate.changeAvatar(avatar, userId);
-				if (check.error) {
-					reply.code(400).send({
-						status: 'ERROR',
-						error: check.error,
-					});
-					return;
-				}
+                const check = await DBupdate.changeAvatar(avatar, userId);
+                if (check.error) {
+                    return reply.code(400).send({ status: 'ERROR', error: check.error });
+                }
 
-				// 3. If switching from uploaded → default, delete old file
-				const wasUploaded = oldAvatarUrl && oldAvatarUrl.startsWith('/api/avatars/');
-				const nowDefault = avatar && avatar.includes('/assets/avatars/');
+                if (oldAvatarUrl && oldAvatarUrl.startsWith('/api/avatars/') && oldAvatarUrl !== avatar) {
+                    await deleteOldAvatar(oldAvatarUrl);
+                }
 
-				if (wasUploaded && nowDefault) {
-					await deleteOldAvatar(oldAvatarUrl);
-				}
-
-				reply.code(200).send({ status: 'UPDATED' });
+                reply.code(200).send({ status: 'UPDATED' });
 
 			} catch (err) {
 				console.error('Error during avatar change:', err);

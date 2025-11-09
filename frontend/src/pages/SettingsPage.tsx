@@ -122,7 +122,7 @@ const SettingsPage: React.FC = () => {
 		setCurrentAvatar(avatar);
 		setSelectedAvatar(avatar);
 	}
-	}, [user]);
+	}, []);
 
 	if (loading) {
 		return <div className="p-6 text-center text-gray-300">{t("settings.loading")}</div>;
