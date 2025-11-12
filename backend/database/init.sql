@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS games
     bracket_pos INTEGER,
     status TEXT NOT NULL DEFAULT 'pending'
         CHECK (status IN ('pending', 'ongoing', 'finished')),
-    FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
     FOREIGN KEY (p1_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (p2_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
@@ -68,8 +68,8 @@ CREATE TABLE IF NOT EXISTS games
 
 CREATE TABLE IF NOT  EXISTS tournament_players (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tournament_id INTEGER NOT NULL,
     user_id TEXT NOT NULL,
+    tournament_id INTEGER NOT NULL,
     alias TEXT NOT NULL,
     role INTEGER NOT NULL CHECK (role BETWEEN 1 AND 4),
     verified INTEGER NOT NULL DEFAULT 0,
@@ -79,3 +79,6 @@ CREATE TABLE IF NOT  EXISTS tournament_players (
     FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS idx_tp_tournament ON tournament_players(tournament_id);
+CREATE INDEX IF NOT EXISTS idx_tp_user       ON tournament_players(user_id);

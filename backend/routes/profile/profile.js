@@ -4,32 +4,13 @@ const { saveAndGetAvatarUrl, deleteOldAvatar } = require('./save_avatar.js'); //
 const flog = logger.child({ fileContext: 'profile.js' }); // scoped logger
 
 const {
-	getTournamentState,
-} = require('@Rtour/tournament.js');
-/**
- * 
-    const player = await db.getPlayerById(playerId);
-    const friends = await db.getFriendsForPlayer(playerId);
-    const matchHistory = await db.getMatchHistory(playerId);
+  getActiveTournamentForUser,
+  buildTournamentState
+} = require('../../database/tournament'); // fix path to your DAL
 
-    const profile = {
-      username: player.username,
-      avatarFile: player.avatarFile,
-      twoFactor: player.twoFactor,
-      rank: player.rank,
-      score: player.score,
-      victories: player.victories,
-      losses: player.losses,
-      totalMatches: player.totalMatches,
-      friends,
-      matchHistory
-    };
- */
-// this should be getProfile
 async function getUser(fastify, options) {
-  const { DBget, secure, DBtour } = options;
+  const { DBget, secure, db } = options; // <-- make sure you pass `db` when you register this plugin
 
-  const roleToString = (n) => `player${Number(n) || 1}`;
   const toFriend = (r) => ({
     user_id: r.friendID,
     username: r.username,
@@ -37,155 +18,67 @@ async function getUser(fastify, options) {
     online_status: r.status === 'online'
   });
 
-  // Turn a raw tournament_players row into a TournamentPlayer
-  const toTournamentPlayer = (p, currentUserId) => ({
-    username: p.username || '',
-    alias: p.alias,
-    status: p.verified ? 'ready' : 'waiting',
-    avatar: undefined,
-    score: undefined,
-    isSelf: p.user_id === currentUserId,
-    isVerified: !!p.verified,
-    role: roleToString(p.role)
-  });
-
-  // Build a Match object from a games row + joined usernames/aliases
+  // Match history item -> your frontend Match shape (for the history list)
   const toMatch = (g) => {
-    const p1 = {
-      username: g.p1_username || '',
-      alias: g.p1_alias || g.p1_username || '',
-      status: g.status === 'finished' ? 'finished'
-            : g.status === 'ongoing'  ? 'playing'
-            : 'ready',
-      avatar: undefined,
-      score: g.p1_score ?? undefined,
-      isSelf: undefined,
-      isVerified: undefined,
-      role: 'player1'
-    };
-    const p2 = {
-      username: g.p2_username || '',
-      alias: g.p2_alias || g.p2_username || '',
-      status: g.status === 'finished' ? 'finished'
-            : g.status === 'ongoing'  ? 'playing'
-            : 'ready',
-      avatar: undefined,
-      score: g.p2_score ?? undefined,
-      isSelf: undefined,
-      isVerified: undefined,
-      role: 'player2'
-    };
+    const status = (g.status === 'finished') ? 'finished'
+                : (g.status === 'ongoing')  ? 'ongoing'
+                : 'pending';
     return {
       match_id: String(g.id),
-      player1: p1,
-      player2: p2,
+      player1: {
+        username: g.p1_username || '',
+        alias: g.p1_alias || g.p1_username || '',
+        status: status === 'ongoing' ? 'playing' : (status === 'finished' ? 'finished' : 'ready'),
+        avatar: undefined,
+        score: g.p1_score ?? undefined,
+        isSelf: undefined,
+        isVerified: undefined,
+        role: 'player1'
+      },
+      player2: {
+        username: g.p2_username || '',
+        alias: g.p2_alias || g.p2_username || '',
+        status: status === 'ongoing' ? 'playing' : (status === 'finished' ? 'finished' : 'ready'),
+        avatar: undefined,
+        score: g.p2_score ?? undefined,
+        isSelf: undefined,
+        isVerified: undefined,
+        role: 'player2'
+      },
       winner: g.winner_username || undefined,
       score: { player1: g.p1_score ?? 0, player2: g.p2_score ?? 0 },
-      status: g.status // 'pending' | 'ongoing' | 'finished'
+      status
     };
   };
 
-  async function buildTournamentState(tournamentId, currentUserId) {
-    try {
-      const statusRow = await DBtour.getActiveTournamentStatus(tournamentId); // { status }
-      if (!statusRow) throw new Error('no such tournament');
-
-      const playersDB = await DBtour.getTournamentPlayersWithUsernames(tournamentId);
-      const players = playersDB.map((p) => toTournamentPlayer(p, currentUserId));
-
-      // owner = role 1 (schema doesn’t store “owner”)
-      const ownerP = playersDB.find(p => Number(p.role) === 1);
-      const owner = ownerP?.username || ownerP?.alias || '';
-
-      // can_start = four players and all verified
-      const assigned = playersDB.length;
-      const pending = Math.max(0, 4 - assigned);
-      const canStart = assigned === 4 && playersDB.every(p => p.verified === 1);
-
-      // bracket from games table
-      const flatGames = await DBtour.getBrackets(tournamentId); // rows with round, bracket_pos, joined names
-      const roundsMap = new Map();
-      for (const g of flatGames) {
-        const m = toMatch(g);
-        const r = Number(g.round) || 1;
-        if (!roundsMap.has(r)) roundsMap.set(r, []);
-        roundsMap.get(r).push({ pos: Number(g.bracket_pos) || 0, match: m });
-      }
-      // sort each round by bracket_pos and strip helpers
-      const bracket = Array.from(roundsMap.keys())
-        .sort((a, b) => a - b)
-        .map(r => roundsMap.get(r).sort((a, b) => a.pos - b.pos).map(x => x.match));
-
-      // currentMatch = first ongoing else first pending
-      const current = flatGames.find(g => g.status === 'ongoing')
-                    || flatGames.find(g => g.status === 'pending');
-      const currentMatch = current ? toMatch(current) : undefined;
-
-      return {
-        tournament_id: String(tournamentId),
-        status: statusRow.status,                 // 'waiting' | 'ongoing' | 'finished'
-        owner,
-        players,
-        currentMatch,
-        bracket,
-        winner: undefined,
-        createdAt: undefined,
-        lastUpdated: undefined,
-        can_start: canStart,
-        pending_players: pending
-      };
-    } catch {
-      // No tournament for user
-      return {
-        tournament_id: '',
-        status: 'waiting',
-        owner: '',
-        players: [],
-        bracket: [],
-        winner: undefined,
-        createdAt: undefined,
-        lastUpdated: undefined,
-        can_start: false,
-        pending_players: 0
-      };
-    }
-  }
-
   fastify.get(API_PROTOCOL.GET_PROFILE.path, {}, async (request, reply) => {
-    const token = request.cookies.auth_token;
+    const token = request.cookies?.auth_token;
     if (!token) return reply.code(401).send({ error: 'Unauthorized' });
 
-    const userId = secure.getUserIdFromToken(token);
-    if (!userId) return reply.code(401).send({ error: 'Unauthorized' });
+    let userId;
+    try {
+      userId = secure.getUserIdFromToken(token);
+    } catch {
+      return reply.code(401).send({ error: 'Unauthorized' });
+    }
 
     try {
-      // 1) user row
+      // 1) base user row
       const profile = await DBget.fetchUser({ userId });
 
-      // 2) friends + history (from games)
+      // 2) friends + match history
       const [friendsRows, historyRows] = await Promise.all([
         DBget.getFriendsForPlayer(userId),
         DBget.getMatchHistory({ userId })
       ]);
 
-      // 3) tournament state (optional)
-      const tid = profile.active_tournament_id ?? 0; // if you add this later, it will start working
-      const tournament = tid
-        ? await buildTournamentState(tid, userId)
-        : {
-            tournament_id: '',
-            status: 'waiting',
-            owner: '',
-            players: [],
-            bracket: [],
-            winner: undefined,
-            createdAt: undefined,
-            lastUpdated: undefined,
-            can_start: false,
-            pending_players: 0
-          };
+      // 3) tournament state (use the DAL; do NOT rely on a non-existent users.active_tournament_id)
+      const active = await getActiveTournamentForUser(db, userId);
+      const tournament = active
+        ? await buildTournamentState(db, active.id, userId)
+        : null;
 
-      // 4) final payload
+      // 4) final payload (keep keys your UI uses)
       const payload = {
         user_id: userId,
         username: profile.username,
@@ -199,13 +92,17 @@ async function getUser(fastify, options) {
         tournamentWins: undefined, // not in schema
         friends: friendsRows.map(toFriend),
         matchHistory: historyRows.map(toMatch),
-        tournament,
+
+        // Give the frontend exactly what it expects:
+        // either a full TournamentState or null (so it knows to show "Create/Join")
+        tournament: tournament,
+
         language: profile.language || 'en'
       };
 
       return reply.code(200).send(payload);
     } catch (err) {
-      flog.error({ function: 'getUser', err }, 'Failed to build profile');
+      request.log.error({ err }, 'Failed to build profile');
       return reply.code(500).send({ error: 'Failed to fetch profile' });
     }
   });

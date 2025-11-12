@@ -51,7 +51,7 @@ function insertUser({ username, password, score = 0, status = 'online', avatarFi
             err.errno === 19 ||
             (err.message && err.message.includes('UNIQUE constraint failed'));
             if (isConstraint) return reject({status: 409, error: 'Username already taken'});
-            return reject({status: 500, error: 'BD insert failed', details: err});
+            return reject({status: 500, error: 'DB insert failed', details: err});
           }
           resolve(id);
         }
